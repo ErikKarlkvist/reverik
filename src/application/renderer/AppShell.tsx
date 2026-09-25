@@ -2,6 +2,7 @@ import { type JSX, useEffect, useState } from 'react';
 import { type AppInfo, appInfoChannel } from '@/application/ipc/channels';
 import { invokeChannel } from '@/common/renderer/ipc';
 import { RepoPanel, useRepo } from '@/features/repo';
+import { ThemeSelect } from './ThemeSelect';
 
 export function AppShell(): JSX.Element {
   const [info, setInfo] = useState<AppInfo | null>(null);
@@ -31,7 +32,10 @@ export function AppShell(): JSX.Element {
       </section>
 
       <footer className="shell__footer">
-        {info ? `v${info.version} · Electron ${info.electron} · ${info.platform}` : 'Startar…'}
+        <span>
+          {info ? `v${info.version} · Electron ${info.electron} · ${info.platform}` : 'Startar…'}
+        </span>
+        <ThemeSelect />
       </footer>
     </div>
   );

@@ -23,8 +23,8 @@
   margin: 0;
   padding: 8px 10px;
   border-radius: 6px;
-  background: rgb(255 92 92 / 12%);
-  color: #ff8a8a;
+  background: var(--danger-bg);
+  color: var(--danger);
   cursor: pointer;
 }
 
