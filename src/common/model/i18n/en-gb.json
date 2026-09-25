@@ -78,5 +78,9 @@
   "validation.unknownTable": "Edge \"{id}\" touches table \"{table}\" which does not exist on node \"{node}\"",
   "validation.duplicateEdge": "Edge id \"{id}\" appears more than once",
   "validation.unknownNode": "Edge \"{id}\" points to unknown node \"{node}\"",
-  "validation.unknownEdge": "Step {step} points to unknown edge \"{edge}\""
+  "validation.unknownEdge": "Step {step} points to unknown edge \"{edge}\"",
+  "validation.unknownReference": "Column {table}.{column} references unknown table \"{target}\"",
+
+  "table.primaryKey": "Primary key",
+  "table.references": "References {target}"
 }

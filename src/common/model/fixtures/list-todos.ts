@@ -74,15 +74,31 @@ export const listTodosFlow: Flow = {
       label: 'Postgres todos',
       tables: [
         {
+          name: 'lists',
+          description: 'Optional grouping of todos',
+          columns: [
+            { name: 'id', type: 'serial', primaryKey: true },
+            { name: 'name', type: 'text' },
+            { name: 'created_at', type: 'timestamptz' },
+          ],
+          source: { file: 'backend/src/db/schema.sql', line: 1 },
+        },
+        {
           name: 'todos',
           description: 'One row per todo',
           columns: [
-            { name: 'id', type: 'serial', description: 'Primary key' },
+            { name: 'id', type: 'serial', primaryKey: true, description: 'Primary key' },
+            {
+              name: 'list_id',
+              type: 'integer',
+              references: { table: 'lists', column: 'id' },
+              description: 'Nullable',
+            },
             { name: 'title', type: 'text' },
             { name: 'completed', type: 'boolean', description: 'Defaults to false' },
             { name: 'created_at', type: 'timestamptz', description: 'Set by the database' },
           ],
-          source: { file: 'backend/src/db/schema.sql', line: 1 },
+          source: { file: 'backend/src/db/schema.sql', line: 7 },
         },
       ],
     },

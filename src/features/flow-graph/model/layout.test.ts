@@ -17,7 +17,7 @@ describe('layoutFlow', () => {
   it('lägger UI till vänster om backend', () => {
     const { positions } = layoutFlow(detail);
     const form = positions.get('add-form');
-    const db = positions.get('postgres');
+    const db = positions.get('table:postgres:todos');
     expect(form && db && form.x + NODE_SIZES.node.width <= db.x).toBe(true);
   });
 

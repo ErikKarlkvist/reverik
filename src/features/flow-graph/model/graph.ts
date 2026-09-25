@@ -9,7 +9,8 @@ import {
 } from '@/common/model/flow';
 
 export type GraphKind = NodeKind | SystemKind;
-export type GraphLevel = 'system' | 'node';
+/** system: ett helt system. node: en nod i koden. table: en tabell i en inzoomad lagringsnod. */
+export type GraphLevel = 'system' | 'node' | 'table';
 
 /** En tabell och de anrop i flödet som rör den. */
 export interface TableInfo extends DataTable {
@@ -28,6 +29,18 @@ export interface GraphNode {
   systemId: string;
   /** Tabeller noden lagrar, med anropen som rör dem. Tom för det mesta utom db och cache. */
   tables: TableInfo[];
+  /** För level table: tabellen noden visar */
+  table?: TableInfo;
+  /** För level table: antal kolumner, styr nodens höjd i layouten */
+  columnCount?: number;
+}
+
+/** Relation mellan två tabellnoder, från kolumnen med främmande nyckel till tabellen den pekar på. */
+export interface GraphRelation {
+  id: string;
+  from: string;
+  to: string;
+  label: string;
 }
 
 /** Ram runt noderna i ett system i detaljvyn. */
@@ -49,6 +62,7 @@ export interface GraphModel {
   edges: FlowEdge[];
   steps: FlowStep[];
   groups: GraphGroup[];
+  relations: GraphRelation[];
 }
 
 export type GraphView =
@@ -70,6 +84,8 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
   const nodeToTarget = new Map<string, string>();
   const nodes: GraphNode[] = [];
   const groups: GraphGroup[] = [];
+  const relations: GraphRelation[] = [];
+  const expandedTables = new Set<string>();
 
   for (const system of flow.systems) {
     const members = flow.nodes.filter((n) => n.system === system.id);
@@ -91,6 +107,34 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
       if (members.length > 0)
         groups.push({ id: system.id, kind: system.kind, label: system.label });
       for (const member of members) {
+        if (member.tables && member.tables.length > 0) {
+          // Lagringsnod med tabeller visas som en ruta per tabell
+          expandedTables.add(member.id);
+          for (const info of tablesOf(flow, [member])) {
+            nodes.push({
+              id: tableNodeId(member.id, info.name),
+              level: 'table',
+              kind: member.kind,
+              label: info.name,
+              description: info.description,
+              source: info.source,
+              systemId: system.id,
+              tables: [],
+              table: info,
+              columnCount: info.columns?.length ?? 0,
+            });
+            for (const column of info.columns ?? []) {
+              if (!column.references) continue;
+              relations.push({
+                id: `relation:${member.id}:${info.name}.${column.name}`,
+                from: tableNodeId(member.id, info.name),
+                to: tableNodeId(member.id, column.references.table),
+                label: `${column.name} → ${column.references.column}`,
+              });
+            }
+          }
+          continue;
+        }
         nodes.push({
           id: member.id,
           level: 'node',
@@ -109,7 +153,7 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
   const edges = flow.edges.map((edge) => ({
     ...edge,
     from: nodeToTarget.get(edge.from) ?? edge.from,
-    to: nodeToTarget.get(edge.to) ?? edge.to,
+    to: targetForEdge(flow, edge, nodeToTarget, expandedTables),
   }));
   const edgeById = new Map(edges.map((e) => [e.id, e]));
   const steps = flow.steps.filter((step) => {
@@ -117,7 +161,7 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
     return !edge || edge.from !== edge.to;
   });
 
-  return { nodes, edges, steps, groups };
+  return { nodes, edges, steps, groups, relations };
 }
 
 /**
@@ -140,6 +184,28 @@ export function mapStepIndex(
     if (flow.steps.indexOf(candidate) <= original) best = i;
   });
   return best;
+}
+
+function tableNodeId(nodeId: string, table: string): string {
+  return `table:${nodeId}:${table}`;
+}
+
+/**
+ * Målet för en kant. Går kanten till en lagringsnod som visas som tabeller
+ * pekar den på den första tabellen kanten rör, annars på nodens första tabell.
+ */
+function targetForEdge(
+  flow: Flow,
+  edge: FlowEdge,
+  nodeToTarget: Map<string, string>,
+  expandedTables: Set<string>,
+): string {
+  if (expandedTables.has(edge.to)) {
+    const node = flow.nodes.find((n) => n.id === edge.to);
+    const table = edge.tables?.[0] ?? node?.tables?.[0]?.name;
+    if (table) return tableNodeId(edge.to, table);
+  }
+  return nodeToTarget.get(edge.to) ?? edge.to;
 }
 
 /** Tabellerna hos ett antal noder, med de kanter i flödet som rör varje tabell. */

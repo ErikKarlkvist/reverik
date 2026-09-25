@@ -52,10 +52,19 @@ export const sourceRefSchema = z.object({
   endLine: z.number().int().positive().optional(),
 });
 
+export const columnReferenceSchema = z.object({
+  /** Tabell i samma nod */
+  table: z.string().min(1),
+  column: z.string().min(1),
+});
+
 export const tableColumnSchema = z.object({
   name: z.string().min(1),
   type: z.string().min(1),
   description: z.string().optional(),
+  primaryKey: z.boolean().optional(),
+  /** Främmande nyckel: kolumnen pekar på en annan tabell i samma nod */
+  references: columnReferenceSchema.optional(),
 });
 
 /** En tabell, collection eller nyckelrymd i en lagringsnod. */
@@ -173,6 +182,25 @@ export const flowSchema = z
       }
     });
 
+    flow.nodes.forEach((node, i) => {
+      const names = new Set(node.tables?.map((t) => t.name));
+      node.tables?.forEach((table, ti) => {
+        table.columns?.forEach((column, ci) => {
+          if (column.references && !names.has(column.references.table)) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['nodes', i, 'tables', ti, 'columns', ci, 'references'],
+              message: t('validation.unknownReference', {
+                table: table.name,
+                column: column.name,
+                target: column.references.table,
+              }),
+            });
+          }
+        });
+      });
+    });
+
     const tablesByNode = new Map(
       flow.nodes.map((n) => [n.id, new Set(n.tables?.map((t) => t.name))]),
     );
@@ -224,6 +252,7 @@ export type SourceRef = z.infer<typeof sourceRefSchema>;
 export type FlowNode = z.infer<typeof flowNodeSchema>;
 export type DataTable = z.infer<typeof dataTableSchema>;
 export type TableColumn = z.infer<typeof tableColumnSchema>;
+export type ColumnReference = z.infer<typeof columnReferenceSchema>;
 export type FlowEdge = z.infer<typeof flowEdgeSchema>;
 export type FlowStep = z.infer<typeof flowStepSchema>;
 export type Flow = z.infer<typeof flowSchema>;

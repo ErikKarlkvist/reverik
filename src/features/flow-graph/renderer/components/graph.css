@@ -235,6 +235,129 @@ button.crumb:hover:not(:disabled) {
   font-size: 10px;
 }
 
+/* Tabeller i en inzoomad lagringsnod */
+.graph-table {
+  position: relative;
+  width: 230px;
+  border: 1.5px solid var(--border);
+  border-top: 4px solid var(--node-color, var(--fg-muted));
+  border-radius: 8px;
+  background: var(--bg-panel);
+  color: var(--fg);
+  transition:
+    opacity 200ms,
+    box-shadow 200ms,
+    border-color 200ms;
+}
+
+.graph-table.is-pending {
+  opacity: 0.55;
+}
+
+.graph-table.is-active {
+  border-color: var(--node-color, var(--accent));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--node-color, var(--accent)) 25%, transparent);
+}
+
+.graph-table.is-selected {
+  border-color: var(--accent);
+}
+
+.graph-table__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--node-color, var(--fg-muted));
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.graph-table__name {
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-table__ops {
+  margin-left: auto;
+  min-width: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--node-color, var(--accent)) 14%, transparent);
+  font-size: 10px;
+  text-align: center;
+}
+
+.graph-table__columns {
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+}
+
+.graph-table__column {
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+.graph-table__key {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.graph-table__pk {
+  color: #d4a017;
+}
+
+.graph-table__fk {
+  color: var(--accent);
+}
+
+.graph-table__colname {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-table__type {
+  color: var(--fg-muted);
+}
+
+/* Relationer mellan tabeller */
+.graph .react-flow__edge-path.graph-relation {
+  stroke: var(--fg-muted);
+  stroke-width: 1.2;
+  stroke-dasharray: 5 4;
+  opacity: 0.8;
+}
+
+.graph-arrow.is-relation path {
+  fill: var(--fg-muted);
+  opacity: 0.8;
+}
+
+.graph-relation-label {
+  position: absolute;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
 /* Systemgrupper i detaljvyn */
 .graph-group {
   width: 100%;

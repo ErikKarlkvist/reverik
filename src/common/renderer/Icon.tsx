@@ -11,6 +11,8 @@ import {
   faDesktop,
   faForwardStep,
   faGears,
+  faKey,
+  faLink,
   faLayerGroup,
   faPause,
   faPlay,
@@ -45,6 +47,8 @@ const ICONS = {
   cache: faBolt,
   external: faCloud,
   queue: faLayerGroup,
+  key: faKey,
+  link: faLink,
 } satisfies Record<string, IconDefinition>;
 
 export type IconName = keyof typeof ICONS;

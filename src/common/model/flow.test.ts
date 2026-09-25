@@ -54,6 +54,32 @@ describe('validateFlow', () => {
     expect(errorsOf(flow)).toContainEqual(expect.stringContaining('table "orders"'));
   });
 
+  it('avvisar kolumn som refererar okänd tabell', () => {
+    const flow = {
+      ...base,
+      nodes: base.nodes.map((n) =>
+        n.id === 'postgres'
+          ? {
+              ...n,
+              tables: n.tables?.map((tbl) =>
+                tbl.name === 'todos'
+                  ? {
+                      ...tbl,
+                      columns: tbl.columns?.map((c) =>
+                        c.name === 'list_id'
+                          ? { ...c, references: { table: 'nope', column: 'id' } }
+                          : c,
+                      ),
+                    }
+                  : tbl,
+              ),
+            }
+          : n,
+      ),
+    };
+    expect(errorsOf(flow)).toContainEqual(expect.stringContaining('unknown table "nope"'));
+  });
+
   it('avvisar steg som pekar på okänd kant', () => {
     const flow = { ...base, steps: [{ edgeId: 'nope', description: 'x' }] };
     expect(errorsOf(flow)).toContainEqual(expect.stringContaining('unknown edge "nope"'));

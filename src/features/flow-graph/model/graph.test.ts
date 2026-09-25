@@ -32,9 +32,10 @@ describe('buildModel', () => {
   it('samlar tabeller med anropen som rör dem, även på systemnivå', () => {
     const system = buildModel(addTodoFlow, { kind: 'system' });
     const postgres = system.nodes.find((n) => n.id === 'postgres');
-    expect(postgres?.tables.map((t) => t.name)).toEqual(['todos']);
-    expect(postgres?.tables[0]?.touchedBy.map((t) => t.edgeId)).toEqual(['insert']);
-    expect(postgres?.tables[0]?.columns?.map((c) => c.name)).toContain('created_at');
+    expect(postgres?.tables.map((t) => t.name)).toEqual(['lists', 'todos']);
+    const todos = postgres?.tables.find((t) => t.name === 'todos');
+    expect(todos?.touchedBy.map((t) => t.edgeId)).toEqual(['insert']);
+    expect(todos?.columns?.map((c) => c.name)).toContain('created_at');
     const frontend = system.nodes.find((n) => n.id === 'frontend');
     expect(frontend?.tables).toEqual([]);
   });
@@ -75,9 +76,28 @@ describe('buildModel', () => {
     ]);
   });
 
+  it('inzoomad databas visar tabeller som noder med relationer', () => {
+    const model = buildModel(addTodoFlow, { kind: 'focus', systemId: 'postgres' });
+    const tables = model.nodes.filter((n) => n.level === 'table');
+    expect(tables.map((n) => n.label)).toEqual(['lists', 'todos']);
+    expect(model.nodes.find((n) => n.id === 'postgres')).toBeUndefined();
+    expect(model.relations).toEqual([
+      {
+        id: 'relation:postgres:todos.list_id',
+        from: 'table:postgres:todos',
+        to: 'table:postgres:lists',
+        label: 'list_id → id',
+      },
+    ]);
+    // Insert-anropet pekar på tabellen todos, inte på databasnoden
+    expect(model.edges.find((e) => e.id === 'insert')?.to).toBe('table:postgres:todos');
+    expect(model.groups.map((g) => g.id)).toEqual(['postgres']);
+  });
+
   it('detaljvyn har alla noder, alla steg och en grupp per system med noder', () => {
     const model = buildModel(addTodoFlow, { kind: 'detail' });
-    expect(model.nodes).toHaveLength(addTodoFlow.nodes.length);
+    // Postgres-noden ersätts av sina två tabeller, Redis-noden av sin nyckel
+    expect(model.nodes).toHaveLength(addTodoFlow.nodes.length + 1);
     expect(model.steps).toHaveLength(addTodoFlow.steps.length);
     expect(model.groups).toHaveLength(addTodoFlow.systems.length);
   });

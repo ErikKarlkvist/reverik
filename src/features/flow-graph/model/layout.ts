@@ -9,7 +9,21 @@ export interface Size {
 export const NODE_SIZES: Readonly<Record<GraphLevel, Size>> = {
   node: { width: 190, height: 58 },
   system: { width: 220, height: 76 },
+  table: { width: 230, height: 40 },
 };
+
+export const TABLE_HEADER_HEIGHT = 34;
+export const TABLE_ROW_HEIGHT = 22;
+
+/** Tabellnoder växer med antalet kolumner. */
+export function nodeSize(node: { level: GraphLevel; columnCount?: number }): Size {
+  const base = NODE_SIZES[node.level];
+  if (node.level !== 'table') return base;
+  return {
+    width: base.width,
+    height: TABLE_HEADER_HEIGHT + (node.columnCount ?? 0) * TABLE_ROW_HEIGHT + 8,
+  };
+}
 
 export interface Point {
   x: number;
@@ -37,9 +51,11 @@ export interface Layout {
 
 /** Det layouten behöver veta om en graf. */
 export interface LayoutInput {
-  nodes: readonly { id: string; level: GraphLevel; systemId: string }[];
+  nodes: readonly { id: string; level: GraphLevel; systemId: string; columnCount?: number }[];
   edges: readonly { id: string; from: string; to: string }[];
   groups: readonly { id: string }[];
+  /** Relationer mellan tabeller, påverkar placeringen men spelas inte upp */
+  relations?: readonly { id: string; from: string; to: string }[];
 }
 
 const GROUP_PADDING = 18;
@@ -65,15 +81,16 @@ export function layoutFlow(input: LayoutInput): Layout {
   }
   // dagre skriver koordinater in i objektet, så varje nod måste få sin egen kopia.
   for (const node of input.nodes) {
-    graph.setNode(node.id, { ...NODE_SIZES[node.level] });
-    if (node.level === 'node' && groupIds.has(node.systemId)) {
+    graph.setNode(node.id, { ...nodeSize(node) });
+    if (node.level !== 'system' && groupIds.has(node.systemId)) {
       graph.setParent(node.id, clusterId(node.systemId));
     }
   }
   // Bara framåtriktade kanter påverkar rangordningen. En kant är "framåt" första
   // gången paret ses, så svar tillbaka inte drar isär layouten. Självkanter ignoreras.
+  const allEdges = [...input.edges, ...(input.relations ?? [])];
   const seenPairs = new Set<string>();
-  for (const edge of input.edges) {
+  for (const edge of allEdges) {
     const key = pairKey(edge.from, edge.to);
     if (seenPairs.has(key) || edge.from === edge.to) continue;
     seenPairs.add(key);
@@ -85,7 +102,7 @@ export function layoutFlow(input: LayoutInput): Layout {
   for (const node of input.nodes) {
     // dagre ger centrum, React Flow vill ha övre vänstra hörnet
     const placed = graph.node(node.id) as Point;
-    const size = NODE_SIZES[node.level];
+    const size = nodeSize(node);
     positions.set(node.id, { x: placed.x - size.width / 2, y: placed.y - size.height / 2 });
   }
 
@@ -100,7 +117,8 @@ export function layoutFlow(input: LayoutInput): Layout {
     });
   }
 
-  return { positions, placements: placeEdges(input, positions), groupRects };
+  const placements = placeEdges({ ...input, edges: allEdges }, positions);
+  return { positions, placements, groupRects };
 }
 
 function clusterId(groupId: string): string {

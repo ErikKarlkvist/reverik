@@ -1,5 +1,12 @@
+CREATE TABLE IF NOT EXISTS lists (
+  id          SERIAL PRIMARY KEY,
+  name        TEXT NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS todos (
   id          SERIAL PRIMARY KEY,
+  list_id     INTEGER REFERENCES lists(id),
   title       TEXT NOT NULL,
   completed   BOOLEAN NOT NULL DEFAULT FALSE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()

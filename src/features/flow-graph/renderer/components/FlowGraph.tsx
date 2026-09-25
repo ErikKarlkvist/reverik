@@ -16,12 +16,19 @@ import { FlowEdgeView, type GraphEdge } from './FlowEdgeView';
 import { FlowNodeView, type GraphNode } from './FlowNodeView';
 import { GraphStateContext } from './GraphStateContext';
 import { GroupNodeView, type GroupNode } from './GroupNodeView';
+import { RelationEdgeView, type RelationEdge } from './RelationEdgeView';
+import { TableNodeView, type TableNode } from './TableNodeView';
 
-const nodeTypes: NodeTypes = { flow: FlowNodeView, systemGroup: GroupNodeView };
-const edgeTypes: EdgeTypes = { flow: FlowEdgeView };
+const nodeTypes: NodeTypes = {
+  flow: FlowNodeView,
+  systemGroup: GroupNodeView,
+  table: TableNodeView,
+};
+const edgeTypes: EdgeTypes = { flow: FlowEdgeView, relation: RelationEdgeView };
 const STATUSES = ['pending', 'active', 'done'] as const;
 
-type AnyNode = GraphNode | GroupNode;
+type AnyNode = GraphNode | GroupNode | TableNode;
+type AnyEdge = GraphEdge | RelationEdge;
 
 interface Props {
   model: GraphModel;
@@ -55,58 +62,83 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
     });
 
     // Bara sådant som är stabilt över hover och uppspelning ligger i noddatan.
-    const flowNodes: GraphNode[] = model.nodes.map((node) => ({
-      id: node.id,
-      type: 'flow',
-      position: layout.positions.get(node.id) ?? { x: 0, y: 0 },
-      draggable: true,
-      data: {
-        kind: node.kind,
-        level: node.level,
-        label: node.label,
-        description: node.description,
-        tables: node.tables,
-      },
-    }));
+    const flowNodes: (GraphNode | TableNode)[] = model.nodes.map((node) => {
+      const position = layout.positions.get(node.id) ?? { x: 0, y: 0 };
+      if (node.level === 'table' && node.table && node.kind !== 'app' && node.kind !== 'api') {
+        return {
+          id: node.id,
+          type: 'table',
+          position,
+          draggable: true,
+          data: { kind: node.kind, table: node.table },
+        };
+      }
+      return {
+        id: node.id,
+        type: 'flow',
+        position,
+        draggable: true,
+        data: {
+          kind: node.kind,
+          level: node.level,
+          label: node.label,
+          description: node.description,
+          tables: node.tables,
+        },
+      };
+    });
 
     return [...groups, ...flowNodes];
   }, [model, layout]);
 
-  const edges = useMemo<GraphEdge[]>(
-    () =>
-      model.edges
-        .filter((edge) => edge.from !== edge.to)
-        .map((edge) => {
-          const placement = layout.placements.get(edge.id);
-          const backward = placement?.direction === 'backward';
-          const open = hoveredEdge === edge.id;
-          return {
-            id: edge.id,
-            type: 'flow',
-            source: edge.from,
-            target: edge.to,
-            // Öppen kant lyfts ovanför noder och andra kanter
-            zIndex: open ? 1000 : 0,
-            sourceHandle: backward ? 'out-left' : 'out-right',
-            targetHandle: backward ? 'in-right' : 'in-left',
-            data: {
-              label: edge.label,
-              payload: edge.payload,
-              response: edge.response,
-              status: view.edges.get(edge.id) ?? 'pending',
-              offset: placement?.offset ?? 0,
-              direction: placement?.direction ?? 'forward',
-              hovered: open,
-            },
-          };
-        }),
-    [model, layout, view, hoveredEdge],
-  );
+  const edges = useMemo<AnyEdge[]>(() => {
+    const relations: RelationEdge[] = model.relations.map((relation) => {
+      const placement = layout.placements.get(relation.id);
+      const backward = placement?.direction === 'backward';
+      return {
+        id: relation.id,
+        type: 'relation',
+        source: relation.from,
+        target: relation.to,
+        sourceHandle: backward ? 'out-left' : 'out-right',
+        targetHandle: backward ? 'in-right' : 'in-left',
+        selectable: false,
+        data: { label: relation.label, offset: placement?.offset ?? 0 },
+      };
+    });
+    const flowEdges: GraphEdge[] = model.edges
+      .filter((edge) => edge.from !== edge.to)
+      .map((edge) => {
+        const placement = layout.placements.get(edge.id);
+        const backward = placement?.direction === 'backward';
+        const open = hoveredEdge === edge.id;
+        return {
+          id: edge.id,
+          type: 'flow',
+          source: edge.from,
+          target: edge.to,
+          // Öppen kant lyfts ovanför noder och andra kanter
+          zIndex: open ? 1000 : 0,
+          sourceHandle: backward ? 'out-left' : 'out-right',
+          targetHandle: backward ? 'in-right' : 'in-left',
+          data: {
+            label: edge.label,
+            payload: edge.payload,
+            response: edge.response,
+            status: view.edges.get(edge.id) ?? 'pending',
+            offset: placement?.offset ?? 0,
+            direction: placement?.direction ?? 'forward',
+            hovered: open,
+          },
+        };
+      });
+    return [...relations, ...flowEdges];
+  }, [model, layout, view, hoveredEdge]);
 
-  const onEdgeMouseEnter = useCallback<EdgeMouseHandler<GraphEdge>>((_, edge) => {
-    setHoveredEdge(edge.id);
+  const onEdgeMouseEnter = useCallback<EdgeMouseHandler<AnyEdge>>((_, edge) => {
+    if (edge.type === 'flow') setHoveredEdge(edge.id);
   }, []);
-  const onEdgeMouseLeave = useCallback<EdgeMouseHandler<GraphEdge>>(() => {
+  const onEdgeMouseLeave = useCallback<EdgeMouseHandler<AnyEdge>>(() => {
     setHoveredEdge(null);
   }, []);
   const onNodeMouseEnter = useCallback<NodeMouseHandler<Node>>((_, node) => {
@@ -122,7 +154,7 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
     },
     [model, onNodeClick],
   );
-  const handleEdgeClick = useCallback<EdgeMouseHandler<GraphEdge>>(
+  const handleEdgeClick = useCallback<EdgeMouseHandler<AnyEdge>>(
     (_, edge) => {
       const found = model.edges.find((e) => e.id === edge.id);
       if (found) onEdgeClick?.(found);
@@ -137,7 +169,7 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
       <GraphStateContext.Provider value={graphState}>
         <svg className="graph__defs">
           <defs>
-            {STATUSES.map((status) => (
+            {[...STATUSES, 'relation'].map((status) => (
               <marker
                 key={status}
                 id={`graph-arrow-${status}`}
@@ -154,7 +186,7 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
             ))}
           </defs>
         </svg>
-        <ReactFlow<AnyNode, GraphEdge>
+        <ReactFlow<AnyNode, AnyEdge>
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
