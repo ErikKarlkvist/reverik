@@ -5,7 +5,7 @@ import { RecentList } from './RecentList';
 import './repo.css';
 
 export function RepoPanel(): JSX.Element {
-  const { repo, busy, error, pickLocal, clearError } = useRepo();
+  const { repo, busy, error, pickLocal, openDemo, clearError } = useRepo();
 
   return (
     <section className="repo">
@@ -17,6 +17,11 @@ export function RepoPanel(): JSX.Element {
         <button type="button" disabled={busy} onClick={() => void pickLocal()}>
           Välj mapp…
         </button>
+        {!repo && (
+          <button type="button" disabled={busy} onClick={() => void openDemo()}>
+            Ladda demo
+          </button>
+        )}
       </div>
 
       {busy && <p className="repo__muted">Läser repo…</p>}

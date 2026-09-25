@@ -1,8 +1,12 @@
-import { BrowserWindow, dialog } from 'electron';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { app, BrowserWindow, dialog } from 'electron';
 import { handleChannel } from '@/common/main/ipc';
+import { DEMO_REPO_RELATIVE_PATH } from '@/common/model/fixtures';
 import {
   forgetRepoChannel,
   listRecentReposChannel,
+  openDemoRepoChannel,
   openRepoChannel,
   pickLocalRepoChannel,
 } from '../ipc/channels';
@@ -22,11 +26,20 @@ export function registerRepoHandlers(): void {
     return openAndRemember(path);
   });
 
+  handleChannel(openDemoRepoChannel, () => openAndRemember(demoRepoPath()));
+
   handleChannel(openRepoChannel, ({ path }) => openAndRemember(path));
 
   handleChannel(listRecentReposChannel, () => readRecent());
 
   handleChannel(forgetRepoChannel, ({ path }) => forgetRepo(path));
+}
+
+/** Under utveckling är app-sökvägen projektroten. I en paketerad app finns inte demot. */
+function demoRepoPath(): string {
+  const path = resolve(app.getAppPath(), DEMO_REPO_RELATIVE_PATH);
+  if (!existsSync(path)) throw new Error(`Demo-appen hittades inte på ${path}`);
+  return path;
 }
 
 async function openAndRemember(path: string): Promise<RepoInfo> {

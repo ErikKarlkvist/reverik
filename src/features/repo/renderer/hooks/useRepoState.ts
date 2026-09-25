@@ -3,6 +3,7 @@ import { invokeChannel } from '@/common/renderer/ipc';
 import {
   forgetRepoChannel,
   listRecentReposChannel,
+  openDemoRepoChannel,
   openRepoChannel,
   pickLocalRepoChannel,
 } from '../../ipc/channels';
@@ -14,6 +15,7 @@ export interface RepoState {
   busy: boolean;
   error: string | null;
   pickLocal: () => Promise<void>;
+  openDemo: () => Promise<void>;
   open: (path: string) => Promise<void>;
   forget: (path: string) => Promise<void>;
   clearError: () => void;
@@ -49,6 +51,10 @@ export function useRepoState(): RepoState {
     () => run(() => invokeChannel(pickLocalRepoChannel, undefined)),
     [run],
   );
+  const openDemo = useCallback(
+    () => run(() => invokeChannel(openDemoRepoChannel, undefined)),
+    [run],
+  );
   const open = useCallback(
     (path: string) => run(() => invokeChannel(openRepoChannel, { path })),
     [run],
@@ -61,5 +67,5 @@ export function useRepoState(): RepoState {
     setError(null);
   }, []);
 
-  return { repo, recent, busy, error, pickLocal, open, forget, clearError };
+  return { repo, recent, busy, error, pickLocal, openDemo, open, forget, clearError };
 }

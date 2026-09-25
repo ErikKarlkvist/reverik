@@ -2,6 +2,7 @@ import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { DEMO_REPO_RELATIVE_PATH } from '@/common/model/fixtures';
 import { inspectRepo } from './inspect';
 
 describe('inspectRepo', () => {
@@ -14,6 +15,18 @@ describe('inspectRepo', () => {
     expect(info.fileCount).toBeGreaterThan(10);
     // node_modules är ignorerat och får inte räknas
     expect(info.fileCount).toBeLessThan(500);
+    expect(info.languages[0]?.name).toBe('TypeScript');
+  });
+
+  it('läser demo-appen som undermapp i git-repot', async () => {
+    const info = await inspectRepo(
+      resolve(import.meta.dirname, '../../../..', DEMO_REPO_RELATIVE_PATH),
+    );
+    expect(info.name).toBe('todo-app');
+    expect(info.isGit).toBe(true);
+    expect(info.branch).toBe('main');
+    expect(info.fileCount).toBeGreaterThan(20);
+    expect(info.fileCount).toBeLessThan(40);
     expect(info.languages[0]?.name).toBe('TypeScript');
   });
 
