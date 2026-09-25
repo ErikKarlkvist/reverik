@@ -8,3 +8,4 @@ release/
 *.log
 .DS_Store
 .vite/
+*.tsbuildinfo
