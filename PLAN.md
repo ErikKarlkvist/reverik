@@ -44,13 +44,14 @@ git-URL:er är bortvalt, repot ska redan finnas på disk.
 
 Mål: ett fast kontrakt mellan AI och UI, så att delarna kan byggas oberoende.
 
-- [ ] Definiera `Flow` i `src/shared/flow.ts` med zod:
+- [x] Definiera `Flow` i `src/common/model/flow.ts` med zod:
   - `nodes[]`: `id`, `kind` (ui, handler, http, service, db, external, queue), `label`, `source` (fil, rad)
-  - `edges[]`: `id`, `from`, `to`, `label`, `payload` (fritext eller exempel-JSON), `source`
-  - `steps[]`: ordnad lista av `edgeId` + kort beskrivning, det är detta som spelas upp
-  - `summary`: en mening om vad flödet gör
-- [ ] Skriv en handgjord fixture (`fixtures/add-to-cart.json`) som täcker alla nodtyper
-- [ ] Validera fixturen i ett test
+  - `edges[]`: `id`, `from`, `to`, `label`, `payload`, `response`, `source`
+  - `steps[]`: ordnad lista av `edgeId` + beskrivning, det är detta som spelas upp
+  - `question`, `title`, `summary`
+  - `validateFlow()` kontrollerar även referenser och dubbletter och ger läsbara fel för modellen
+- [x] Handgjord fixture (`src/common/model/fixtures/add-to-cart.ts`) som täcker alla nodtyper
+- [x] Validera fixturen i ett test
 
 ## Del 3: Visualisering och uppspelning
 
