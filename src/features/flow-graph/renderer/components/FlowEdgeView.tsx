@@ -11,12 +11,20 @@ import { formatPayload } from '../../model/format';
 import { type Direction } from '../../model/layout';
 import { type StepStatus } from '../../model/playback';
 
-// React Flow kräver Record<string, unknown>, vilket ett interface inte uppfyller.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type GraphEdgeData = {
+export interface EdgeMemberData {
+  id: string;
   label: string;
   payload: string | undefined;
   response: string | undefined;
+  status: StepStatus;
+}
+
+// React Flow kräver Record<string, unknown>, vilket ett interface inte uppfyller.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type GraphEdgeData = {
+  /** Anropen som ritas på den här linjen, i flödets ordning */
+  members: EdgeMemberData[];
+  /** Linjens status: aktiv om något anrop är aktivt, annars klar om något är klart */
   status: StepStatus;
   offset: number;
   direction: Direction;
@@ -28,6 +36,11 @@ const LABEL_DISTANCE = 26;
 
 export type GraphEdge = Edge<GraphEdgeData, 'flow'>;
 
+/**
+ * En linje mellan två noder. Etiketten visas bara för anropet som spelas upp
+ * just nu, eller för alla anrop på linjen när man håller musen över eller
+ * markerar den.
+ */
 export const FlowEdgeView = memo(function FlowEdgeView({
   id,
   sourceX,
@@ -48,8 +61,9 @@ export const FlowEdgeView = memo(function FlowEdgeView({
     sourcePosition,
     targetPosition,
   });
-  const showDetails = data.hovered || selected;
-  const hasDetails = Boolean(data.payload ?? data.response);
+  const open = data.hovered || selected;
+  const active = data.members.find((m) => m.status === 'active');
+  const shown = open ? data.members : active ? [active] : [];
   // Framåtkanter får etiketten ovanför linjen, svar under, så linjen syns.
   const side = data.direction === 'forward' ? -1 : 1;
   const labelOffsetY = labelY + side * LABEL_DISTANCE;
@@ -62,44 +76,56 @@ export const FlowEdgeView = memo(function FlowEdgeView({
         className={`graph-edge is-${data.status}${selected ? ' is-selected' : ''}`}
         markerEnd={`url(#graph-arrow-${data.status})`}
       />
-      <line
-        className={`graph-edge__leader is-${data.status}`}
-        x1={labelX}
-        y1={labelY}
-        x2={labelX}
-        y2={labelOffsetY}
-      />
+      {shown.length > 0 && (
+        <line
+          className={`graph-edge__leader is-${data.status}`}
+          x1={labelX}
+          y1={labelY}
+          x2={labelX}
+          y2={labelOffsetY}
+        />
+      )}
       {data.status === 'active' && (
         <circle r="5" className="graph-edge__pulse">
           <animateMotion dur="1.2s" repeatCount="indefinite" path={path} />
         </circle>
       )}
-      <EdgeLabelRenderer>
-        <div
-          className={`graph-edge-label is-${data.status}${showDetails ? ' is-open' : ''} graph-edge-label--${data.direction}`}
-          style={{
-            transform: `translate(-50%, ${side < 0 ? '-100%' : '0'}) translate(${labelX}px, ${labelOffsetY}px)`,
-          }}
-        >
-          <span className="graph-edge-label__text">{data.label}</span>
-          {showDetails && hasDetails && (
-            <div className="graph-edge-label__details">
-              {data.payload && (
-                <div className="graph-edge-label__row">
-                  <span className="graph-edge-label__key">{t('graph.sends')}</span>
-                  <pre className="graph-edge-label__value">{formatPayload(data.payload)}</pre>
-                </div>
-              )}
-              {data.response && (
-                <div className="graph-edge-label__row">
-                  <span className="graph-edge-label__key">{t('graph.response')}</span>
-                  <pre className="graph-edge-label__value">{formatPayload(data.response)}</pre>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </EdgeLabelRenderer>
+      {shown.length > 0 && (
+        <EdgeLabelRenderer>
+          <div
+            className={`graph-edge-label is-${data.status}${open ? ' is-open' : ''} graph-edge-label--${data.direction}`}
+            style={{
+              transform: `translate(-50%, ${side < 0 ? '-100%' : '0'}) translate(${labelX}px, ${labelOffsetY}px)`,
+            }}
+          >
+            {shown.map((member) => (
+              <div key={member.id} className={`graph-edge-label__member is-${member.status}`}>
+                <span className="graph-edge-label__text">{member.label}</span>
+                {open && (member.payload ?? member.response) && (
+                  <div className="graph-edge-label__details">
+                    {member.payload && (
+                      <div className="graph-edge-label__row">
+                        <span className="graph-edge-label__key">{t('graph.sends')}</span>
+                        <pre className="graph-edge-label__value">
+                          {formatPayload(member.payload)}
+                        </pre>
+                      </div>
+                    )}
+                    {member.response && (
+                      <div className="graph-edge-label__row">
+                        <span className="graph-edge-label__key">{t('graph.response')}</span>
+                        <pre className="graph-edge-label__value">
+                          {formatPayload(member.response)}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </EdgeLabelRenderer>
+      )}
     </>
   );
 });

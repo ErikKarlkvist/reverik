@@ -27,6 +27,8 @@ export interface GraphNode {
   source: SourceRef | undefined;
   /** Systemet noden tillhör eller är */
   systemId: string;
+  /** För level table: lagringsnoden i flödet som tabellen hör till */
+  memberOf: string | undefined;
   /** Tabeller noden lagrar, med anropen som rör dem. Tom för det mesta utom db och cache. */
   tables: TableInfo[];
   /** För level table: tabellen noden visar */
@@ -100,6 +102,7 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
         description: system.description,
         source: undefined,
         systemId: system.id,
+        memberOf: undefined,
         tables: tablesOf(flow, members),
       });
       for (const member of members) nodeToTarget.set(member.id, system.id);
@@ -119,6 +122,7 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
               description: info.description,
               source: info.source,
               systemId: system.id,
+              memberOf: member.id,
               tables: [],
               table: info,
               columnCount: info.columns?.length ?? 0,
@@ -143,6 +147,7 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
           description: member.description,
           source: member.source,
           systemId: system.id,
+          memberOf: undefined,
           tables: tablesOf(flow, [member]),
         });
         nodeToTarget.set(member.id, member.id);
@@ -218,4 +223,67 @@ function tablesOf(flow: Flow, members: readonly Flow['nodes'][number][]): TableI
         .map((e) => ({ edgeId: e.id, label: e.label })),
     })),
   );
+}
+
+/**
+ * En ritad linje mellan två noder. Alla flödeskanter som går samma väg
+ * ritas som en linje, så fram och tillbaka mellan två noder blir en linje
+ * åt varje håll oavsett hur många anrop som görs.
+ */
+export interface VisualEdge {
+  id: string;
+  from: string;
+  to: string;
+  /** I flödets ordning */
+  members: FlowEdge[];
+}
+
+export function visualEdgeId(from: string, to: string): string {
+  return `visual:${from}>${to}`;
+}
+
+/** Slår ihop kanterna per riktning. Självkanter ritas inte och hoppas över. */
+export function groupEdges(edges: readonly FlowEdge[]): VisualEdge[] {
+  const byRoute = new Map<string, VisualEdge>();
+  for (const edge of edges) {
+    if (edge.from === edge.to) continue;
+    const id = visualEdgeId(edge.from, edge.to);
+    const existing = byRoute.get(id);
+    if (existing) existing.members.push(edge);
+    else byRoute.set(id, { id, from: edge.from, to: edge.to, members: [edge] });
+  }
+  return [...byRoute.values()];
+}
+
+/**
+ * Tar bort noder användaren dolt, med kanterna som rör dem och stegen som
+ * spelar upp de kanterna. Ett dolt system döljer alla sina noder, en dold
+ * lagringsnod döljer sina tabeller. Stegobjekten behålls så positionen kan
+ * följa med när vyn byts.
+ */
+export function hideElements(
+  model: GraphModel,
+  hiddenNodes: ReadonlySet<string>,
+  hiddenEdges: ReadonlySet<string>,
+): GraphModel {
+  if (hiddenNodes.size === 0 && hiddenEdges.size === 0) return model;
+  const isHidden = (node: GraphNode): boolean =>
+    hiddenNodes.has(node.id) ||
+    hiddenNodes.has(node.systemId) ||
+    (node.memberOf !== undefined && hiddenNodes.has(node.memberOf));
+  const nodes = model.nodes.filter((node) => !isHidden(node));
+  const kept = new Set(nodes.map((n) => n.id));
+  const edges = model.edges.filter(
+    (edge) => !hiddenEdges.has(edge.id) && kept.has(edge.from) && kept.has(edge.to),
+  );
+  const edgeIds = new Set(edges.map((e) => e.id));
+  return {
+    nodes,
+    edges,
+    steps: model.steps.filter((step) => edgeIds.has(step.edgeId)),
+    groups: model.groups.filter((group) =>
+      nodes.some((n) => n.systemId === group.id && n.level !== 'system'),
+    ),
+    relations: model.relations.filter((r) => kept.has(r.from) && kept.has(r.to)),
+  };
 }

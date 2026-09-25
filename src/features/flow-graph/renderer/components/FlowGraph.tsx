@@ -1,18 +1,32 @@
 import {
   Background,
+  type EdgeChange,
   type EdgeMouseHandler,
   type EdgeTypes,
   type Node,
+  type NodeChange,
   type NodeMouseHandler,
   type NodeTypes,
   ReactFlow,
 } from '@xyflow/react';
 import { type JSX, useCallback, useMemo, useState } from 'react';
 import { type FlowEdge } from '@/common/model/flow';
-import { type GraphModel, type GraphNode as ModelNode } from '../../model/graph';
-import { layoutFlow } from '../../model/layout';
-import { stepView } from '../../model/playback';
-import { FlowEdgeView, type GraphEdge } from './FlowEdgeView';
+import {
+  type GraphModel,
+  type GraphNode as ModelNode,
+  groupEdges,
+  type VisualEdge,
+} from '../../model/graph';
+import {
+  GROUP_LABEL_HEIGHT,
+  GROUP_PADDING,
+  layoutFlow,
+  nodeSize,
+  type Point,
+  type Rect,
+} from '../../model/layout';
+import { type StepStatus, stepView } from '../../model/playback';
+import { type EdgeMemberData, FlowEdgeView, type GraphEdge } from './FlowEdgeView';
 import { FlowNodeView, type GraphNode } from './FlowNodeView';
 import { GraphStateContext } from './GraphStateContext';
 import { GroupNodeView, type GroupNode } from './GroupNodeView';
@@ -33,26 +47,53 @@ type AnyEdge = GraphEdge | RelationEdge;
 interface Props {
   model: GraphModel;
   stepIndex: number;
+  /** Noder användaren flyttat, övre vänstra hörnet per nod-id */
+  moved: ReadonlyMap<string, Point>;
+  onMove: (nodeId: string, position: Point) => void;
+  onHideNodes: (nodeIds: string[]) => void;
+  /** Flödeskanternas id:n, inte linjernas */
+  onHideEdges: (edgeIds: string[]) => void;
   onNodeClick?: ((node: ModelNode) => void) | undefined;
   onEdgeClick?: ((edge: FlowEdge) => void) | undefined;
 }
 
-export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props): JSX.Element {
+export function FlowGraph({
+  model,
+  stepIndex,
+  moved,
+  onMove,
+  onHideNodes,
+  onHideEdges,
+  onNodeClick,
+  onEdgeClick,
+}: Props): JSX.Element {
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-  const layout = useMemo(() => layoutFlow(model), [model]);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set());
+  const visualEdges = useMemo(() => groupEdges(model.edges), [model]);
+  const layout = useMemo(() => layoutFlow({ ...model, edges: visualEdges }), [model, visualEdges]);
   const view = useMemo(() => stepView(model, stepIndex), [model, stepIndex]);
 
+  const positionOf = useCallback(
+    (nodeId: string): Point => moved.get(nodeId) ?? layout.positions.get(nodeId) ?? { x: 0, y: 0 },
+    [moved, layout],
+  );
+
   const nodes = useMemo<AnyNode[]>(() => {
+    // Ramen följer noderna, så den växer när man drar ut en nod ur den.
     const groups: GroupNode[] = model.groups.flatMap((group) => {
-      const rect = layout.groupRects.get(group.id);
+      const members = model.nodes.filter((n) => n.systemId === group.id && n.level !== 'system');
+      const rect = boundingRect(members.map((n) => ({ ...positionOf(n.id), ...nodeSize(n) })));
       if (!rect) return [];
       return [
         {
           id: `group:${group.id}`,
           type: 'systemGroup',
-          position: { x: rect.x, y: rect.y },
-          style: { width: rect.width, height: rect.height },
+          position: { x: rect.x - GROUP_PADDING, y: rect.y - GROUP_LABEL_HEIGHT },
+          style: {
+            width: rect.width + 2 * GROUP_PADDING,
+            height: rect.height + GROUP_LABEL_HEIGHT + GROUP_PADDING,
+          },
           zIndex: -1,
           selectable: false,
           draggable: false,
@@ -63,13 +104,15 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
 
     // Bara sådant som är stabilt över hover och uppspelning ligger i noddatan.
     const flowNodes: (GraphNode | TableNode)[] = model.nodes.map((node) => {
-      const position = layout.positions.get(node.id) ?? { x: 0, y: 0 };
+      const position = positionOf(node.id);
+      const isSelected = selected.has(node.id);
       if (node.level === 'table' && node.table && node.kind !== 'app' && node.kind !== 'api') {
         return {
           id: node.id,
           type: 'table',
           position,
           draggable: true,
+          selected: isSelected,
           data: { kind: node.kind, table: node.table },
         };
       }
@@ -78,6 +121,7 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
         type: 'flow',
         position,
         draggable: true,
+        selected: isSelected,
         data: {
           kind: node.kind,
           level: node.level,
@@ -89,7 +133,7 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
     });
 
     return [...groups, ...flowNodes];
-  }, [model, layout]);
+  }, [model, positionOf, selected]);
 
   const edges = useMemo<AnyEdge[]>(() => {
     const relations: RelationEdge[] = model.relations.map((relation) => {
@@ -106,34 +150,67 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
         data: { label: relation.label, offset: placement?.offset ?? 0 },
       };
     });
-    const flowEdges: GraphEdge[] = model.edges
-      .filter((edge) => edge.from !== edge.to)
-      .map((edge) => {
-        const placement = layout.placements.get(edge.id);
-        const backward = placement?.direction === 'backward';
-        const open = hoveredEdge === edge.id;
-        return {
-          id: edge.id,
-          type: 'flow',
-          source: edge.from,
-          target: edge.to,
-          // Öppen kant lyfts ovanför noder och andra kanter
-          zIndex: open ? 1000 : 0,
-          sourceHandle: backward ? 'out-left' : 'out-right',
-          targetHandle: backward ? 'in-right' : 'in-left',
-          data: {
-            label: edge.label,
-            payload: edge.payload,
-            response: edge.response,
-            status: view.edges.get(edge.id) ?? 'pending',
-            offset: placement?.offset ?? 0,
-            direction: placement?.direction ?? 'forward',
-            hovered: open,
-          },
-        };
-      });
+    const flowEdges: GraphEdge[] = visualEdges.map((edge) => {
+      const placement = layout.placements.get(edge.id);
+      const backward = placement?.direction === 'backward';
+      const open = hoveredEdge === edge.id;
+      const members: EdgeMemberData[] = edge.members.map((m) => ({
+        id: m.id,
+        label: m.label,
+        payload: m.payload,
+        response: m.response,
+        status: view.edges.get(m.id) ?? 'pending',
+      }));
+      return {
+        id: edge.id,
+        type: 'flow',
+        source: edge.from,
+        target: edge.to,
+        // Öppen kant lyfts ovanför noder och andra kanter
+        zIndex: open ? 1000 : 0,
+        selected: selected.has(edge.id),
+        sourceHandle: backward ? 'out-left' : 'out-right',
+        targetHandle: backward ? 'in-right' : 'in-left',
+        data: {
+          members,
+          status: combinedStatus(members),
+          offset: placement?.offset ?? 0,
+          direction: placement?.direction ?? 'forward',
+          hovered: open,
+        },
+      };
+    });
     return [...relations, ...flowEdges];
-  }, [model, layout, view, hoveredEdge]);
+  }, [model, visualEdges, layout, view, hoveredEdge, selected]);
+
+  const onNodesChange = useCallback(
+    (changes: NodeChange<AnyNode>[]) => {
+      const removed: string[] = [];
+      for (const change of changes) {
+        if (change.type === 'position' && change.position) onMove(change.id, change.position);
+        else if (change.type === 'remove') removed.push(change.id);
+        else if (change.type === 'select') {
+          setSelected((current) => toggleSelected(current, change.id, change.selected));
+        }
+      }
+      if (removed.length > 0) onHideNodes(removed.filter((id) => !id.startsWith('group:')));
+    },
+    [onMove, onHideNodes],
+  );
+
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange<AnyEdge>[]) => {
+      const removed: string[] = [];
+      for (const change of changes) {
+        if (change.type === 'remove') removed.push(change.id);
+        else if (change.type === 'select') {
+          setSelected((current) => toggleSelected(current, change.id, change.selected));
+        }
+      }
+      if (removed.length > 0) onHideEdges(memberIds(visualEdges, removed));
+    },
+    [visualEdges, onHideEdges],
+  );
 
   const onEdgeMouseEnter = useCallback<EdgeMouseHandler<AnyEdge>>((_, edge) => {
     if (edge.type === 'flow') setHoveredEdge(edge.id);
@@ -154,15 +231,28 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
     },
     [model, onNodeClick],
   );
+  // Klick på en linje öppnar anropet som spelas upp, annars det första på linjen.
   const handleEdgeClick = useCallback<EdgeMouseHandler<AnyEdge>>(
     (_, edge) => {
-      const found = model.edges.find((e) => e.id === edge.id);
+      const visual = visualEdges.find((v) => v.id === edge.id);
+      if (!visual) return;
+      const active = visual.members.find((m) => view.edges.get(m.id) === 'active');
+      const found = active ?? visual.members[0];
       if (found) onEdgeClick?.(found);
     },
-    [model, onEdgeClick],
+    [visualEdges, view, onEdgeClick],
   );
 
-  const graphState = useMemo(() => ({ hoveredNodeId: hoveredNode, view }), [hoveredNode, view]);
+  const hide = useCallback(
+    (nodeId: string) => {
+      onHideNodes([nodeId]);
+    },
+    [onHideNodes],
+  );
+  const graphState = useMemo(
+    () => ({ hoveredNodeId: hoveredNode, view, hide }),
+    [hoveredNode, view, hide],
+  );
 
   return (
     <div className="graph">
@@ -198,7 +288,10 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
           nodesConnectable={false}
           elementsSelectable
           elevateEdgesOnSelect
+          deleteKeyCode={['Backspace', 'Delete']}
           proOptions={{ hideAttribution: true }}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
           onEdgeMouseEnter={onEdgeMouseEnter}
           onEdgeMouseLeave={onEdgeMouseLeave}
           onNodeMouseEnter={onNodeMouseEnter}
@@ -211,4 +304,44 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
       </GraphStateContext.Provider>
     </div>
   );
+}
+
+function combinedStatus(members: readonly { status: StepStatus }[]): StepStatus {
+  if (members.some((m) => m.status === 'active')) return 'active';
+  if (members.some((m) => m.status === 'done')) return 'done';
+  return 'pending';
+}
+
+function toggleSelected(
+  current: ReadonlySet<string>,
+  id: string,
+  isSelected: boolean,
+): ReadonlySet<string> {
+  if (current.has(id) === isSelected) return current;
+  const next = new Set(current);
+  if (isSelected) next.add(id);
+  else next.delete(id);
+  return next;
+}
+
+function memberIds(visualEdges: readonly VisualEdge[], visualIds: readonly string[]): string[] {
+  return visualEdges
+    .filter((v) => visualIds.includes(v.id))
+    .flatMap((v) => v.members.map((m) => m.id));
+}
+
+function boundingRect(rects: readonly Rect[]): Rect | null {
+  const first = rects[0];
+  if (!first) return null;
+  let left = first.x;
+  let top = first.y;
+  let right = first.x + first.width;
+  let bottom = first.y + first.height;
+  for (const rect of rects) {
+    left = Math.min(left, rect.x);
+    top = Math.min(top, rect.y);
+    right = Math.max(right, rect.x + rect.width);
+    bottom = Math.max(bottom, rect.y + rect.height);
+  }
+  return { x: left, y: top, width: right - left, height: bottom - top };
 }

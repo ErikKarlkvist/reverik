@@ -48,6 +48,8 @@
   "graph.zoomHint": "{name}. Click to zoom in.",
   "graph.sends": "Sends",
   "graph.response": "Response",
+  "graph.remove": "Remove from view",
+  "graph.restoreHidden": "Show hidden ({count})",
 
   "playback.restart": "From the start",
   "playback.previous": "Previous step",

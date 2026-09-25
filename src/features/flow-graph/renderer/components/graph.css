@@ -114,6 +114,34 @@ button.crumb:hover:not(:disabled) {
   border-color: var(--accent);
 }
 
+/* Krysset som döljer en nod, syns vid hover */
+.graph-node__remove {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-panel);
+  color: var(--fg-muted);
+  opacity: 0;
+  transition: opacity 120ms;
+}
+
+.graph-node:hover .graph-node__remove,
+.graph-table:hover .graph-node__remove {
+  opacity: 1;
+}
+
+.graph-node__remove:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
 .graph-node--system {
   width: 220px;
   height: 76px;
@@ -555,6 +583,21 @@ button.crumb:hover:not(:disabled) {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Flera anrop på samma linje listas när linjen är öppen */
+.graph-edge-label__member + .graph-edge-label__member {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.graph-edge-label.is-open .graph-edge-label__member.is-active .graph-edge-label__text {
+  color: var(--accent);
+}
+
+.graph-edge-label.is-open .graph-edge-label__member.is-pending {
+  opacity: 0.6;
 }
 
 .graph-edge-label.is-open .graph-edge-label__text {

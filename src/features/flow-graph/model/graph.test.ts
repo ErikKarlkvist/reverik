@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { addTodoFlow } from '@/common/model/fixtures';
-import { buildModel, mapStepIndex } from './graph';
+import { addTodoFlow, listTodosFlow } from '@/common/model/fixtures';
+import { buildModel, groupEdges, hideElements, mapStepIndex } from './graph';
 
 describe('buildModel', () => {
   it('systemvyn har en nod per system och kanterna pekar på system', () => {
@@ -121,5 +121,57 @@ describe('mapStepIndex', () => {
   it('börjar från början om inget tidigare steg finns', () => {
     // 'submit' (index 0) är internt och inget systemsteg ligger före
     expect(mapStepIndex(addTodoFlow, detail, 0, system)).toBe(0);
+  });
+});
+
+describe('groupEdges', () => {
+  it('ritar alla anrop samma väg som en linje och svar som en linje tillbaka', () => {
+    const model = buildModel(listTodosFlow, { kind: 'detail' });
+    const visual = groupEdges(model.edges);
+    const toCache = visual.find(
+      (v) => v.from === 'todo-service' && v.to === 'table:todo-cache:todos:all',
+    );
+    expect(toCache?.members.map((m) => m.id)).toEqual(['cache-get', 'cache-set']);
+    const forward = visual.find((v) => v.from === 'todos-api' && v.to === 'get-route');
+    const back = visual.find((v) => v.from === 'get-route' && v.to === 'todos-api');
+    expect(forward?.members.map((m) => m.id)).toEqual(['get']);
+    expect(back?.members.map((m) => m.id)).toEqual(['respond']);
+  });
+
+  it('hoppar över självkanter', () => {
+    const model = buildModel(addTodoFlow, { kind: 'system' });
+    expect(groupEdges(model.edges).every((v) => v.from !== v.to)).toBe(true);
+  });
+});
+
+describe('hideElements', () => {
+  it('döljer noden, dess kanter och stegen som spelar upp dem', () => {
+    const model = buildModel(addTodoFlow, { kind: 'system' });
+    const hidden = hideElements(model, new Set(['webhook']), new Set());
+    expect(hidden.nodes.some((n) => n.id === 'webhook')).toBe(false);
+    expect(hidden.edges.some((e) => e.to === 'webhook')).toBe(false);
+    expect(hidden.steps.map((s) => s.edgeId)).toEqual(['post', 'insert', 'invalidate', 'respond']);
+    // Samma stegobjekt som i modellen, så uppspelningen kan mappa mellan vyer
+    expect(model.steps).toContain(hidden.steps[0]);
+  });
+
+  it('ett dolt system döljer dess noder och tabeller i detaljvyn', () => {
+    const model = buildModel(addTodoFlow, { kind: 'detail' });
+    const hidden = hideElements(model, new Set(['postgres']), new Set());
+    expect(hidden.nodes.some((n) => n.systemId === 'postgres')).toBe(false);
+    expect(hidden.groups.some((g) => g.id === 'postgres')).toBe(false);
+    expect(hidden.relations).toHaveLength(0);
+  });
+
+  it('en dold kant tar bara bort sitt steg', () => {
+    const model = buildModel(addTodoFlow, { kind: 'system' });
+    const hidden = hideElements(model, new Set(), new Set(['notify']));
+    expect(hidden.nodes).toHaveLength(model.nodes.length);
+    expect(hidden.steps.some((s) => s.edgeId === 'notify')).toBe(false);
+  });
+
+  it('returnerar samma modell när inget är dolt', () => {
+    const model = buildModel(addTodoFlow, { kind: 'system' });
+    expect(hideElements(model, new Set(), new Set())).toBe(model);
   });
 });

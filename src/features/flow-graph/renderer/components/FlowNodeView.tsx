@@ -4,6 +4,7 @@ import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { type GraphKind, type GraphLevel, type TableInfo } from '../../model/graph';
 import { useNodeState } from './GraphStateContext';
+import { RemoveButton } from './RemoveButton';
 
 // React Flow kräver Record<string, unknown>, vilket ett interface inte uppfyller.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -22,7 +23,7 @@ export const FlowNodeView = memo(function FlowNodeView({
   data,
   selected,
 }: NodeProps<GraphNode>): JSX.Element {
-  const { status, hovered } = useNodeState(id);
+  const { status, hovered, hide } = useNodeState(id);
   const system = data.level === 'system';
   return (
     <div
@@ -42,6 +43,7 @@ export const FlowNodeView = memo(function FlowNodeView({
         <span className="graph-node__kind">{t(`kind.${data.kind}`)}</span>
         <span className="graph-node__label">{data.label}</span>
       </span>
+      <RemoveButton onRemove={hide} />
       {hovered && data.tables.length > 0 && <TablesPopover tables={data.tables} />}
     </div>
   );

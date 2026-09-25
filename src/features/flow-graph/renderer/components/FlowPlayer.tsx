@@ -3,7 +3,14 @@ import { type JSX, type ReactNode, useCallback, useEffect, useMemo, useState } f
 import { type Flow, type FlowEdge, type SourceRef } from '@/common/model/flow';
 import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
-import { buildModel, type GraphNode, type GraphView, mapStepIndex } from '../../model/graph';
+import {
+  buildModel,
+  type GraphNode,
+  type GraphView,
+  hideElements,
+  mapStepIndex,
+} from '../../model/graph';
+import { type Point } from '../../model/layout';
 import { useFlowPlayback } from '../hooks/useFlowPlayback';
 import { FlowGraph } from './FlowGraph';
 import { PlaybackControls } from './PlaybackControls';
@@ -29,8 +36,16 @@ export function FlowPlayer({
   beforeControls,
 }: Props): JSX.Element {
   const [view, setView] = useState<GraphView>({ kind: 'system' });
-  const model = useMemo(() => buildModel(flow, view), [flow, view]);
+  // Det användaren dolt gäller i alla vyer. Flyttade noder sparas per vy.
+  const [hiddenNodes, setHiddenNodes] = useState<ReadonlySet<string>>(() => new Set());
+  const [hiddenEdges, setHiddenEdges] = useState<ReadonlySet<string>>(() => new Set());
+  const [moved, setMoved] = useState<ReadonlyMap<string, Point>>(() => new Map());
+  const model = useMemo(
+    () => hideElements(buildModel(flow, view), hiddenNodes, hiddenEdges),
+    [flow, view, hiddenNodes, hiddenEdges],
+  );
   const playback = useFlowPlayback(model.steps.length);
+  const hiddenCount = hiddenNodes.size + hiddenEdges.size;
 
   useEffect(() => {
     const step = model.steps[playback.stepIndex];
@@ -65,6 +80,31 @@ export function FlowPlayer({
   const focused = view.kind === 'focus' ? flow.systems.find((s) => s.id === view.systemId) : null;
   const viewKey = view.kind === 'focus' ? `focus:${view.systemId}` : view.kind;
 
+  const movedInView = useMemo(() => {
+    const prefix = `${viewKey}/`;
+    const result = new Map<string, Point>();
+    for (const [key, point] of moved) {
+      if (key.startsWith(prefix)) result.set(key.slice(prefix.length), point);
+    }
+    return result;
+  }, [moved, viewKey]);
+  const onMove = useCallback(
+    (nodeId: string, position: Point) => {
+      setMoved((current) => new Map(current).set(`${viewKey}/${nodeId}`, position));
+    },
+    [viewKey],
+  );
+  const onHideNodes = useCallback((ids: string[]) => {
+    setHiddenNodes((current) => new Set([...current, ...ids]));
+  }, []);
+  const onHideEdges = useCallback((ids: string[]) => {
+    setHiddenEdges((current) => new Set([...current, ...ids]));
+  }, []);
+  const restoreHidden = useCallback(() => {
+    setHiddenNodes(new Set());
+    setHiddenEdges(new Set());
+  }, []);
+
   return (
     <div className="player">
       <header className="player__header">
@@ -91,6 +131,11 @@ export function FlowPlayer({
             </>
           )}
           <span className="player__crumbs-spacer" />
+          {hiddenCount > 0 && (
+            <button type="button" className="crumb" onClick={restoreHidden}>
+              {t('graph.restoreHidden', { count: hiddenCount })}
+            </button>
+          )}
           <button
             type="button"
             className={`crumb crumb--toggle${view.kind === 'detail' ? ' is-current' : ''}`}
@@ -107,6 +152,10 @@ export function FlowPlayer({
         key={viewKey}
         model={model}
         stepIndex={playback.stepIndex}
+        moved={movedInView}
+        onMove={onMove}
+        onHideNodes={onHideNodes}
+        onHideEdges={onHideEdges}
         onNodeClick={onNodeClick}
         onEdgeClick={onEdgeClick}
       />

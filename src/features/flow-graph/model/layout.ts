@@ -58,8 +58,8 @@ export interface LayoutInput {
   relations?: readonly { id: string; from: string; to: string }[];
 }
 
-const GROUP_PADDING = 18;
-const GROUP_LABEL_HEIGHT = 30;
+export const GROUP_PADDING = 18;
+export const GROUP_LABEL_HEIGHT = 30;
 
 const PARALLEL_GAP = 34;
 

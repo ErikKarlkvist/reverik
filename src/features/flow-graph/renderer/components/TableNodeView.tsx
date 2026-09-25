@@ -5,6 +5,7 @@ import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { type TableInfo } from '../../model/graph';
 import { useNodeState } from './GraphStateContext';
+import { RemoveButton } from './RemoveButton';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type TableNodeData = {
@@ -20,7 +21,7 @@ export const TableNodeView = memo(function TableNodeView({
   data,
   selected,
 }: NodeProps<TableNode>): JSX.Element {
-  const { status } = useNodeState(id);
+  const { status, hide } = useNodeState(id);
   const { table } = data;
   return (
     <div
@@ -31,6 +32,7 @@ export const TableNodeView = memo(function TableNodeView({
       <Handle type="source" position={Position.Right} id="out-right" className="graph-handle" />
       <Handle type="source" position={Position.Left} id="out-left" className="graph-handle" />
       <Handle type="target" position={Position.Right} id="in-right" className="graph-handle" />
+      <RemoveButton onRemove={hide} />
       <div className="graph-table__header">
         <Icon name="db" size="sm" />
         <span className="graph-table__name">{table.name}</span>

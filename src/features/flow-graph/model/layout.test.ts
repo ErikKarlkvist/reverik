@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addTodoFlow, listTodosFlow } from '@/common/model/fixtures';
-import { buildModel } from './graph';
+import { buildModel, groupEdges, visualEdgeId } from './graph';
 import { layoutFlow, NODE_SIZES } from './layout';
 
 describe('layoutFlow', () => {
@@ -27,11 +27,12 @@ describe('layoutFlow', () => {
     expect(placements.get('respond')?.direction).toBe('backward');
   });
 
-  it('förskjuter parallella kanter mellan samma noder', () => {
-    const { placements } = layoutFlow(buildModel(listTodosFlow, { kind: 'detail' }));
-    const get = placements.get('cache-get')?.offset ?? 0;
-    const set = placements.get('cache-set')?.offset ?? 0;
-    expect(get).not.toBe(set);
+  it('förskjuter linjerna fram och tillbaka mellan samma noder', () => {
+    const model = buildModel(listTodosFlow, { kind: 'detail' });
+    const { placements } = layoutFlow({ ...model, edges: groupEdges(model.edges) });
+    const forward = placements.get(visualEdgeId('todos-api', 'get-route'))?.offset ?? 0;
+    const back = placements.get(visualEdgeId('get-route', 'todos-api'))?.offset ?? 0;
+    expect(forward).not.toBe(back);
   });
 
   it('håller ihop grupper och lägger inte fristående system inuti dem', () => {
