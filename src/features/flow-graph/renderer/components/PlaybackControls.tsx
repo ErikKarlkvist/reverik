@@ -1,16 +1,16 @@
 import { type JSX } from 'react';
-import { type Flow } from '@/common/model/flow';
+import { type FlowStep } from '@/common/model/flow';
 import { Icon } from '@/common/renderer/Icon';
 import { type Playback } from '../hooks/useFlowPlayback';
 
 interface Props {
-  flow: Flow;
+  steps: readonly FlowStep[];
   playback: Playback;
 }
 
-export function PlaybackControls({ flow, playback }: Props): JSX.Element {
-  const step = flow.steps[playback.stepIndex];
-  const total = flow.steps.length;
+export function PlaybackControls({ steps, playback }: Props): JSX.Element {
+  const step = steps[playback.stepIndex];
+  const total = steps.length;
 
   return (
     <div className="playback">

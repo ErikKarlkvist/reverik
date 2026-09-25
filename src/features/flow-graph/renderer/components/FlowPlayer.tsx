@@ -2,7 +2,7 @@ import '@xyflow/react/dist/style.css';
 import { type JSX, useCallback, useEffect, useMemo, useState } from 'react';
 import { type Flow, type FlowEdge, type SourceRef } from '@/common/model/flow';
 import { Icon } from '@/common/renderer/Icon';
-import { buildModel, type GraphNode, type GraphView } from '../../model/graph';
+import { buildModel, type GraphNode, type GraphView, mapStepIndex } from '../../model/graph';
 import { useFlowPlayback } from '../hooks/useFlowPlayback';
 import { FlowGraph } from './FlowGraph';
 import { PlaybackControls } from './PlaybackControls';
@@ -20,22 +20,32 @@ interface Props {
  * det. Montera om med `key` när flödet byts så uppspelningen börjar om.
  */
 export function FlowPlayer({ flow, onActiveEdgeChange, onSelectSource }: Props): JSX.Element {
-  const playback = useFlowPlayback(flow.steps.length);
   const [view, setView] = useState<GraphView>({ kind: 'system' });
   const model = useMemo(() => buildModel(flow, view), [flow, view]);
+  const playback = useFlowPlayback(model.steps.length);
 
   useEffect(() => {
-    const step = flow.steps[playback.stepIndex];
+    const step = model.steps[playback.stepIndex];
     const edge = step ? flow.edges.find((e) => e.id === step.edgeId) : undefined;
     onActiveEdgeChange?.(edge ?? null);
-  }, [flow, playback.stepIndex, onActiveEdgeChange]);
+  }, [flow, model, playback.stepIndex, onActiveEdgeChange]);
+
+  /** Byter vy och flyttar uppspelningen till motsvarande steg i den nya vyn. */
+  const changeView = useCallback(
+    (next: GraphView) => {
+      const nextModel = buildModel(flow, next);
+      playback.goTo(mapStepIndex(flow, model, playback.stepIndex, nextModel));
+      setView(next);
+    },
+    [flow, model, playback],
+  );
 
   const onNodeClick = useCallback(
     (node: GraphNode) => {
-      if (node.level === 'system') setView({ kind: 'focus', systemId: node.systemId });
+      if (node.level === 'system') changeView({ kind: 'focus', systemId: node.systemId });
       else if (node.source) onSelectSource?.(node.source);
     },
-    [onSelectSource],
+    [changeView, onSelectSource],
   );
   const onEdgeClick = useCallback(
     (edge: FlowEdge) => {
@@ -59,7 +69,7 @@ export function FlowPlayer({ flow, onActiveEdgeChange, onSelectSource }: Props):
             type="button"
             className={`crumb${view.kind === 'system' ? ' is-current' : ''}`}
             onClick={() => {
-              setView({ kind: 'system' });
+              changeView({ kind: 'system' });
             }}
           >
             Alla system
@@ -78,7 +88,7 @@ export function FlowPlayer({ flow, onActiveEdgeChange, onSelectSource }: Props):
             className={`crumb crumb--toggle${view.kind === 'detail' ? ' is-current' : ''}`}
             title="Visa alla noder i alla system"
             onClick={() => {
-              setView(view.kind === 'detail' ? { kind: 'system' } : { kind: 'detail' });
+              changeView(view.kind === 'detail' ? { kind: 'system' } : { kind: 'detail' });
             }}
           >
             Alla detaljer
@@ -92,7 +102,7 @@ export function FlowPlayer({ flow, onActiveEdgeChange, onSelectSource }: Props):
         onNodeClick={onNodeClick}
         onEdgeClick={onEdgeClick}
       />
-      <PlaybackControls flow={flow} playback={playback} />
+      <PlaybackControls steps={model.steps} playback={playback} />
     </div>
   );
 }

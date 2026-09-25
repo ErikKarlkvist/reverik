@@ -30,9 +30,11 @@ export interface GraphGroup {
 }
 
 /**
- * Det som ritas. Kanterna behåller sina id:n från flödet så stegen kan
- * spelas upp oförändrade oavsett nivå. En kant vars båda ändar hamnar på
- * samma nod är intern och ritas inte, men markerar noden när steget spelas.
+ * Det som ritas. Kanterna behåller sina id:n från flödet. En kant vars båda
+ * ändar hamnar på samma nod är intern för ett hopslaget system: den ritas
+ * inte och dess steg spelas inte upp på den här nivån. `steps` är därför
+ * en delmängd av flödets steg, samma objekt, så positionen kan följa med
+ * när vyn byts.
  */
 export interface GraphModel {
   nodes: GraphNode[];
@@ -97,6 +99,33 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
     from: nodeToTarget.get(edge.from) ?? edge.from,
     to: nodeToTarget.get(edge.to) ?? edge.to,
   }));
+  const edgeById = new Map(edges.map((e) => [e.id, e]));
+  const steps = flow.steps.filter((step) => {
+    const edge = edgeById.get(step.edgeId);
+    return !edge || edge.from !== edge.to;
+  });
 
-  return { nodes, edges, steps: flow.steps, groups };
+  return { nodes, edges, steps, groups };
+}
+
+/**
+ * Hittar motsvarande steg i en annan modell: samma steg om det finns, annars
+ * det närmast föregående steget i flödet som finns i målmodellen.
+ */
+export function mapStepIndex(
+  flow: Flow,
+  from: GraphModel,
+  fromIndex: number,
+  to: GraphModel,
+): number {
+  const step = from.steps[fromIndex];
+  if (!step) return 0;
+  const direct = to.steps.indexOf(step);
+  if (direct !== -1) return direct;
+  const original = flow.steps.indexOf(step);
+  let best = 0;
+  to.steps.forEach((candidate, i) => {
+    if (flow.steps.indexOf(candidate) <= original) best = i;
+  });
+  return best;
 }

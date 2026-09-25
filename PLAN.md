@@ -63,7 +63,7 @@ Mål: fixturen renderas snyggt och kan spelas upp steg för steg.
 - [x] Uppspelning: play, paus, steg, scrubber. Aktiv kant får en puls, kommande tonas ner
 - [x] Aktivt steg och klick på nod eller kant visar kodutdrag i nedre panelen
 - [x] Tomt läge när ingen analys finns
-- [x] Systemvy först: en nod per applikation med ikon per typ. Klick zoomar in i systemet med grannarna kvar i kanten. Detaljvyn grupperar noder per system.
+- [x] Systemvy först: en nod per applikation med ikon per typ. Klick zoomar in i systemet med grannarna kvar i kanten. Detaljvyn grupperar noder per system. Interna steg spelas bara upp när man är inzoomad.
 
 ## Del 4: AI-analys
 

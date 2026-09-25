@@ -12,33 +12,35 @@ export interface Playback {
   goTo: (index: number) => void;
 }
 
+/**
+ * Indexet lagras rått och klampas vid läsning, så antalet steg kan ändras
+ * (t.ex. när grafens nivå byts) utan att positionen går förlorad.
+ */
 export function useFlowPlayback(stepCount: number, intervalMs = 1500): Playback {
-  const [stepIndex, setStepIndex] = useState(() => clampStep(0, stepCount));
+  const [rawIndex, setRawIndex] = useState(0);
   const [wantsPlay, setWantsPlay] = useState(false);
 
+  const stepIndex = clampStep(rawIndex, stepCount);
   const atEnd = stepIndex >= stepCount - 1;
   const playing = wantsPlay && !atEnd;
 
   useEffect(() => {
     if (!playing) return;
     const id = setInterval(() => {
-      setStepIndex((i) => clampStep(i + 1, stepCount));
+      setRawIndex((i) => clampStep(i + 1, stepCount));
     }, intervalMs);
     return () => {
       clearInterval(id);
     };
   }, [playing, stepCount, intervalMs]);
 
-  const goTo = useCallback(
-    (index: number) => {
-      setStepIndex(clampStep(index, stepCount));
-    },
-    [stepCount],
-  );
+  const goTo = useCallback((index: number) => {
+    setRawIndex(Math.max(0, index));
+  }, []);
 
   const toggle = useCallback(() => {
     if (atEnd) {
-      setStepIndex(clampStep(0, stepCount));
+      setRawIndex(clampStep(0, stepCount));
       setWantsPlay(true);
     } else {
       setWantsPlay((p) => !p);
@@ -47,17 +49,17 @@ export function useFlowPlayback(stepCount: number, intervalMs = 1500): Playback 
 
   const next = useCallback(() => {
     setWantsPlay(false);
-    setStepIndex((i) => clampStep(i + 1, stepCount));
+    setRawIndex((i) => clampStep(i + 1, stepCount));
   }, [stepCount]);
 
   const prev = useCallback(() => {
     setWantsPlay(false);
-    setStepIndex((i) => clampStep(i - 1, stepCount));
+    setRawIndex((i) => clampStep(i - 1, stepCount));
   }, [stepCount]);
 
   const restart = useCallback(() => {
     setWantsPlay(false);
-    setStepIndex(clampStep(0, stepCount));
+    setRawIndex(clampStep(0, stepCount));
   }, [stepCount]);
 
   return { stepIndex, playing, atEnd, toggle, next, prev, restart, goTo };

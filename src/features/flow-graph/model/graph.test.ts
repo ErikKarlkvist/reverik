@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addTodoFlow } from '@/common/model/fixtures';
-import { buildModel } from './graph';
+import { buildModel, mapStepIndex } from './graph';
 
 describe('buildModel', () => {
   it('systemvyn har en nod per system och kanterna pekar på system', () => {
@@ -9,9 +9,15 @@ describe('buildModel', () => {
     expect(model.nodes.every((n) => n.level === 'system')).toBe(true);
     const post = model.edges.find((e) => e.id === 'post');
     expect(post).toMatchObject({ from: 'frontend', to: 'backend' });
-    // Steg och kant-id:n är orörda
-    expect(model.steps).toBe(addTodoFlow.steps);
+    // Kant-id:n är orörda, men bara steg mellan system spelas upp
     expect(model.edges.map((e) => e.id)).toEqual(addTodoFlow.edges.map((e) => e.id));
+    expect(model.steps.map((s) => s.edgeId)).toEqual([
+      'post',
+      'insert',
+      'invalidate',
+      'notify',
+      'respond',
+    ]);
   });
 
   it('interna anrop blir självkanter i systemvyn', () => {
@@ -37,9 +43,44 @@ describe('buildModel', () => {
     expect(model.groups.map((g) => g.id)).toEqual(['backend']);
   });
 
-  it('detaljvyn har alla noder och en grupp per system med noder', () => {
+  it('fokus spelar upp stegen i systemet och över gränsen, inte andras interna', () => {
+    const model = buildModel(addTodoFlow, { kind: 'focus', systemId: 'backend' });
+    expect(model.steps.map((s) => s.edgeId)).toEqual([
+      'post',
+      'route-to-service',
+      'service-to-repo',
+      'insert',
+      'invalidate',
+      'notify',
+      'respond',
+    ]);
+  });
+
+  it('detaljvyn har alla noder, alla steg och en grupp per system med noder', () => {
     const model = buildModel(addTodoFlow, { kind: 'detail' });
     expect(model.nodes).toHaveLength(addTodoFlow.nodes.length);
+    expect(model.steps).toHaveLength(addTodoFlow.steps.length);
     expect(model.groups).toHaveLength(addTodoFlow.systems.length);
+  });
+});
+
+describe('mapStepIndex', () => {
+  const system = buildModel(addTodoFlow, { kind: 'system' });
+  const detail = buildModel(addTodoFlow, { kind: 'detail' });
+
+  it('behåller samma steg när det finns i båda vyerna', () => {
+    // 'insert' är steg 5 i detaljvyn (index 5) och steg 1 i systemvyn
+    expect(mapStepIndex(addTodoFlow, detail, 5, system)).toBe(1);
+    expect(mapStepIndex(addTodoFlow, system, 1, detail)).toBe(5);
+  });
+
+  it('faller tillbaka på närmast föregående steg', () => {
+    // 'route-to-service' (index 3 i detalj) är internt, närmast före i systemvyn är 'post'
+    expect(mapStepIndex(addTodoFlow, detail, 3, system)).toBe(0);
+  });
+
+  it('börjar från början om inget tidigare steg finns', () => {
+    // 'submit' (index 0) är internt och inget systemsteg ligger före
+    expect(mapStepIndex(addTodoFlow, detail, 0, system)).toBe(0);
   });
 });
