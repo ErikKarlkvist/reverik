@@ -76,6 +76,68 @@ button:disabled {
   cursor: default;
 }
 
+/* Ikoner och ikonknappar */
+.icon {
+  display: inline-block;
+  vertical-align: -0.125em;
+}
+
+.icon--sm {
+  font-size: 12px;
+}
+
+.icon--md {
+  font-size: 14px;
+}
+
+.icon--lg {
+  font-size: 16px;
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--fg);
+}
+
+.icon-button--primary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.icon-button--quiet {
+  width: 28px;
+  height: 28px;
+  border-color: transparent;
+  background: none;
+  color: var(--fg-muted);
+}
+
+.icon-button--quiet:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-color: transparent;
+  background: none;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.text-button:hover:not(:disabled) {
+  border-color: var(--border);
+  color: var(--fg);
+}
+
 input:focus,
 select:focus {
   outline: none;
@@ -153,20 +215,6 @@ select:focus {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
-}
-
-.shell__panel-toggle,
-.shell__footer-button {
-  background: none;
-  border: none;
-  padding: 0 4px;
-  color: var(--fg-muted);
-  font-size: 12px;
-}
-
-.shell__panel-toggle:hover,
-.shell__footer-button:hover {
-  color: var(--fg);
 }
 
 .shell__footer-tools {

@@ -93,15 +93,3 @@
 .recent__open:hover:not(:disabled) {
   color: var(--accent);
 }
-
-.recent__forget {
-  background: none;
-  border: none;
-  color: var(--fg-muted);
-  cursor: pointer;
-  padding: 4px 6px;
-}
-
-.recent__forget:hover {
-  color: var(--fg);
-}

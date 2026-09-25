@@ -1,4 +1,5 @@
 import { type JSX } from 'react';
+import { Icon } from '@/common/renderer/Icon';
 import { useAnalyses } from '../AnalysisContext';
 import './analysis.css';
 
@@ -34,11 +35,12 @@ export function AnalysisList(): JSX.Element {
               {analysis.origin !== 'builtin' && (
                 <button
                   type="button"
-                  className="analyses__delete"
+                  className="icon-button icon-button--quiet"
                   title="Ta bort analysen"
+                  aria-label="Ta bort analysen"
                   onClick={() => void remove(analysis.id)}
                 >
-                  ×
+                  <Icon name="close" size="sm" />
                 </button>
               )}
             </li>

@@ -1,6 +1,7 @@
 import { type JSX, useCallback, useEffect, useState } from 'react';
 import { type AppInfo, appInfoChannel } from '@/application/ipc/channels';
 import { type FlowEdge, type FlowNode, type SourceRef } from '@/common/model/flow';
+import { Icon } from '@/common/renderer/Icon';
 import { invokeChannel } from '@/common/renderer/ipc';
 import { AnalysisList, useAnalyses } from '@/features/analysis';
 import { FlowPlayer } from '@/features/flow-graph';
@@ -64,13 +65,14 @@ export function AppShell(): JSX.Element {
             <h2 className="shell__panel-heading">{shownSource ? 'Kod' : 'Logg'}</h2>
             <button
               type="button"
-              className="shell__panel-toggle"
+              className="icon-button"
               title="Minimera panelen"
+              aria-label="Minimera panelen"
               onClick={() => {
                 setLogOpen(false);
               }}
             >
-              ▾
+              <Icon name="chevronDown" />
             </button>
           </div>
           {shownSource ? (
@@ -91,13 +93,13 @@ export function AppShell(): JSX.Element {
           {!logOpen && (
             <button
               type="button"
-              className="shell__footer-button"
+              className="text-button"
               title="Visa panelen"
               onClick={() => {
                 setLogOpen(true);
               }}
             >
-              ▴ {shownSource ? 'Kod' : 'Logg'}
+              <Icon name="chevronUp" size="sm" /> {shownSource ? 'Kod' : 'Logg'}
             </button>
           )}
           <ThemeSelect />

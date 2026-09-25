@@ -1,5 +1,6 @@
 import { type JSX } from 'react';
 import { type Flow } from '@/common/model/flow';
+import { Icon } from '@/common/renderer/Icon';
 import { type Playback } from '../hooks/useFlowPlayback';
 
 interface Props {
@@ -14,28 +15,45 @@ export function PlaybackControls({ flow, playback }: Props): JSX.Element {
   return (
     <div className="playback">
       <div className="playback__buttons">
-        <button type="button" onClick={playback.restart} title="Från början" disabled={total === 0}>
-          ⏮
-        </button>
         <button
           type="button"
-          onClick={playback.prev}
-          title="Föregående steg"
-          disabled={playback.stepIndex <= 0}
-        >
-          ◀
-        </button>
-        <button
-          type="button"
-          className="playback__play"
-          onClick={playback.toggle}
-          title={playback.playing ? 'Pausa' : 'Spela'}
+          className="icon-button"
+          onClick={playback.restart}
+          title="Från början"
+          aria-label="Från början"
           disabled={total === 0}
         >
-          {playback.playing ? '⏸' : '▶'}
+          <Icon name="restart" />
         </button>
-        <button type="button" onClick={playback.next} title="Nästa steg" disabled={playback.atEnd}>
-          ▶︎|
+        <button
+          type="button"
+          className="icon-button"
+          onClick={playback.prev}
+          title="Föregående steg"
+          aria-label="Föregående steg"
+          disabled={playback.stepIndex <= 0}
+        >
+          <Icon name="stepBack" />
+        </button>
+        <button
+          type="button"
+          className="icon-button icon-button--primary playback__play"
+          onClick={playback.toggle}
+          title={playback.playing ? 'Pausa' : 'Spela'}
+          aria-label={playback.playing ? 'Pausa' : 'Spela'}
+          disabled={total === 0}
+        >
+          <Icon name={playback.playing ? 'pause' : 'play'} size="lg" />
+        </button>
+        <button
+          type="button"
+          className="icon-button"
+          onClick={playback.next}
+          title="Nästa steg"
+          aria-label="Nästa steg"
+          disabled={playback.atEnd}
+        >
+          <Icon name="stepForward" />
         </button>
       </div>
       <input
