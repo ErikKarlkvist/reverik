@@ -1,12 +1,23 @@
 import { type IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faBackwardStep,
+  faBolt,
   faChevronDown,
+  faChevronRight,
   faChevronUp,
+  faCloud,
+  faCode,
+  faDatabase,
+  faDesktop,
   faForwardStep,
+  faGears,
+  faLayerGroup,
   faPause,
   faPlay,
   faRotateLeft,
+  faRoute,
+  faServer,
+  faWindowMaximize,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -22,6 +33,18 @@ const ICONS = {
   stepForward: faForwardStep,
   restart: faRotateLeft,
   close: faXmark,
+  chevronRight: faChevronRight,
+  // Nod- och systemtyper i grafen
+  app: faDesktop,
+  api: faServer,
+  ui: faWindowMaximize,
+  handler: faCode,
+  http: faRoute,
+  service: faGears,
+  db: faDatabase,
+  cache: faBolt,
+  external: faCloud,
+  queue: faLayerGroup,
 } satisfies Record<string, IconDefinition>;
 
 export type IconName = keyof typeof ICONS;

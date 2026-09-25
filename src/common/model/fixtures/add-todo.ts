@@ -6,10 +6,23 @@ export const addTodoFlow: Flow = {
   title: 'Lägg till todo',
   summary:
     'Formuläret anropar hooken som skickar en POST till backend. Tjänsten sparar raden i Postgres, invaliderar listan i Redis och pingar en webhook innan svaret uppdaterar listan i klienten.',
+  systems: [
+    {
+      id: 'frontend',
+      kind: 'app',
+      label: 'Todo-frontend',
+      description: 'React-appen i webbläsaren',
+    },
+    { id: 'backend', kind: 'api', label: 'Todo-API', description: 'Express-servern' },
+    { id: 'postgres', kind: 'db', label: 'Postgres' },
+    { id: 'redis', kind: 'cache', label: 'Redis' },
+    { id: 'webhook', kind: 'external', label: 'Webhook' },
+  ],
   nodes: [
     {
       id: 'add-form',
       kind: 'ui',
+      system: 'frontend',
       label: 'AddTodoForm',
       description: 'Formuläret med textfält och knappen Lägg till',
       source: { file: 'frontend/src/components/AddTodoForm.tsx', line: 7 },
@@ -17,6 +30,7 @@ export const addTodoFlow: Flow = {
     {
       id: 'use-todos',
       kind: 'handler',
+      system: 'frontend',
       label: 'useTodos.addTodo',
       description: 'Hook som håller listan i state',
       source: { file: 'frontend/src/hooks/useTodos.ts', line: 15 },
@@ -24,6 +38,7 @@ export const addTodoFlow: Flow = {
     {
       id: 'todos-api',
       kind: 'handler',
+      system: 'frontend',
       label: 'todosApi.createTodo',
       description: 'Tunn klient över fetch',
       source: { file: 'frontend/src/api/todosApi.ts', line: 11 },
@@ -31,31 +46,36 @@ export const addTodoFlow: Flow = {
     {
       id: 'post-route',
       kind: 'http',
+      system: 'backend',
       label: 'POST /api/todos',
       source: { file: 'backend/src/routes/todos.ts', line: 16 },
     },
     {
       id: 'todo-service',
       kind: 'service',
+      system: 'backend',
       label: 'TodoService.create',
       source: { file: 'backend/src/services/TodoService.ts', line: 21 },
     },
     {
       id: 'todo-repository',
       kind: 'service',
+      system: 'backend',
       label: 'TodoRepository.insert',
       source: { file: 'backend/src/repositories/TodoRepository.ts', line: 28 },
     },
-    { id: 'postgres', kind: 'db', label: 'Postgres todos' },
+    { id: 'postgres', kind: 'db', system: 'postgres', label: 'Postgres todos' },
     {
       id: 'todo-cache',
       kind: 'cache',
+      system: 'redis',
       label: 'Redis todos:all',
       description: 'Hela listan cachad i 60 sekunder',
     },
     {
       id: 'webhook',
       kind: 'external',
+      system: 'webhook',
       label: 'Webhook',
       description: 'TODO_WEBHOOK_URL, t.ex. Slack',
     },

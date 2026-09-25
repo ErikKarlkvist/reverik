@@ -25,6 +25,25 @@ export const nodeKindSchema = z.enum([
   'queue',
 ]);
 
+/** Vilken sorts system en grupp noder tillhör. Visas i systemvyn. */
+export const systemKindSchema = z.enum([
+  /** Klientapplikation: webb, mobil, desktop */
+  'app',
+  /** Backend eller API-tjänst */
+  'api',
+  'db',
+  'cache',
+  'external',
+  'queue',
+]);
+
+export const flowSystemSchema = z.object({
+  id: z.string().min(1),
+  kind: systemKindSchema,
+  label: z.string().min(1),
+  description: z.string().optional(),
+});
+
 export const sourceRefSchema = z.object({
   /** Sökväg relativt repots rot */
   file: z.string().min(1),
@@ -35,6 +54,8 @@ export const sourceRefSchema = z.object({
 export const flowNodeSchema = z.object({
   id: z.string().min(1),
   kind: nodeKindSchema,
+  /** Systemet noden tillhör, refererar `systems[].id` */
+  system: z.string().min(1),
   label: z.string().min(1),
   description: z.string().optional(),
   /** Krävs för allt som finns i repot. Valfritt för db, cache, external och queue. */
@@ -75,14 +96,35 @@ export const flowSchema = z
     title: z.string().min(1),
     /** En mening om vad flödet gör */
     summary: z.string().min(1),
+    /** Applikationerna och systemen som deltar. Systemvyn visar flödet mellan dem. */
+    systems: z.array(flowSystemSchema).min(1),
     nodes: z.array(flowNodeSchema).min(1),
     edges: z.array(flowEdgeSchema).min(1),
     /** Ordningen flödet spelas upp i */
     steps: z.array(flowStepSchema).min(1),
   })
   .superRefine((flow, ctx) => {
+    const systemIds = new Set<string>();
+    flow.systems.forEach((system, i) => {
+      if (systemIds.has(system.id)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['systems', i, 'id'],
+          message: `System-id "${system.id}" förekommer mer än en gång`,
+        });
+      }
+      systemIds.add(system.id);
+    });
+
     const nodeIds = new Set<string>();
     flow.nodes.forEach((node, i) => {
+      if (!systemIds.has(node.system)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['nodes', i, 'system'],
+          message: `Noden "${node.id}" tillhör okänt system "${node.system}"`,
+        });
+      }
       if (nodeIds.has(node.id)) {
         ctx.addIssue({
           code: 'custom',
@@ -133,6 +175,8 @@ export const flowSchema = z
   });
 
 export type NodeKind = z.infer<typeof nodeKindSchema>;
+export type SystemKind = z.infer<typeof systemKindSchema>;
+export type FlowSystem = z.infer<typeof flowSystemSchema>;
 export type SourceRef = z.infer<typeof sourceRefSchema>;
 export type FlowNode = z.infer<typeof flowNodeSchema>;
 export type FlowEdge = z.infer<typeof flowEdgeSchema>;
@@ -162,6 +206,15 @@ export const NODE_KIND_LABELS: Readonly<Record<NodeKind, string>> = {
   handler: 'Handler',
   http: 'HTTP',
   service: 'Tjänst',
+  db: 'Databas',
+  cache: 'Cache',
+  external: 'Externt',
+  queue: 'Kö',
+};
+
+export const SYSTEM_KIND_LABELS: Readonly<Record<SystemKind, string>> = {
+  app: 'App',
+  api: 'API',
   db: 'Databas',
   cache: 'Cache',
   external: 'Externt',

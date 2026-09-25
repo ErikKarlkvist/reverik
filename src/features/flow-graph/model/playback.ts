@@ -1,6 +1,11 @@
-import { type Flow } from '@/common/model/flow';
-
 export type StepStatus = 'pending' | 'active' | 'done';
+
+/** Det uppspelningen behöver veta om en graf. */
+export interface StepInput {
+  nodes: readonly { id: string }[];
+  edges: readonly { id: string; from: string; to: string }[];
+  steps: readonly { edgeId: string }[];
+}
 
 /** Status för varje kant och nod givet vilket steg som är aktivt. -1 betyder inget steg. */
 export interface StepView {
@@ -9,7 +14,7 @@ export interface StepView {
   activeEdgeId: string | null;
 }
 
-export function stepView(flow: Flow, stepIndex: number): StepView {
+export function stepView(flow: StepInput, stepIndex: number): StepView {
   const edges = new Map<string, StepStatus>(flow.edges.map((e) => [e.id, 'pending']));
   const nodes = new Map<string, StepStatus>(flow.nodes.map((n) => [n.id, 'pending']));
   const edgeById = new Map(flow.edges.map((e) => [e.id, e]));

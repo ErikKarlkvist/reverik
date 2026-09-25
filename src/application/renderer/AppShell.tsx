@@ -1,6 +1,6 @@
 import { type JSX, useCallback, useEffect, useState } from 'react';
 import { type AppInfo, appInfoChannel } from '@/application/ipc/channels';
-import { type FlowEdge, type FlowNode, type SourceRef } from '@/common/model/flow';
+import { type FlowEdge, type SourceRef } from '@/common/model/flow';
 import { Icon } from '@/common/renderer/Icon';
 import { invokeChannel } from '@/common/renderer/ipc';
 import { AnalysisList, useAnalyses } from '@/features/analysis';
@@ -23,11 +23,8 @@ export function AppShell(): JSX.Element {
   const onActiveEdgeChange = useCallback((edge: FlowEdge | null) => {
     setSource(edge?.source ?? null);
   }, []);
-  const onSelectNode = useCallback((node: FlowNode) => {
-    if (node.source) setSource(node.source);
-  }, []);
-  const onSelectEdge = useCallback((edge: FlowEdge) => {
-    setSource(edge.source);
+  const onSelectSource = useCallback((selected: SourceRef) => {
+    setSource(selected);
   }, []);
 
   const shownSource = current ? source : null;
@@ -47,8 +44,7 @@ export function AppShell(): JSX.Element {
             key={current.id}
             flow={current.flow}
             onActiveEdgeChange={onActiveEdgeChange}
-            onSelectNode={onSelectNode}
-            onSelectEdge={onSelectEdge}
+            onSelectSource={onSelectSource}
           />
         ) : (
           <p className="shell__empty">

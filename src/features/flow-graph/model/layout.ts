@@ -1,8 +1,15 @@
 import dagre from '@dagrejs/dagre';
-import { type Flow } from '@/common/model/flow';
+import { type GraphLevel } from './graph';
 
-export const NODE_WIDTH = 190;
-export const NODE_HEIGHT = 58;
+export interface Size {
+  width: number;
+  height: number;
+}
+
+export const NODE_SIZES: Readonly<Record<GraphLevel, Size>> = {
+  node: { width: 190, height: 58 },
+  system: { width: 220, height: 76 },
+};
 
 export interface Point {
   x: number;
@@ -24,19 +31,26 @@ export interface Layout {
   placements: Map<string, EdgePlacement>;
 }
 
+/** Det layouten behöver veta om en graf. */
+export interface LayoutInput {
+  nodes: readonly { id: string; level: GraphLevel }[];
+  edges: readonly { id: string; from: string; to: string }[];
+}
+
 const PARALLEL_GAP = 34;
 
 /** Placerar noderna vänster till höger med dagre och räknar ut kanternas riktning och förskjutning. */
-export function layoutFlow(flow: Flow): Layout {
+export function layoutFlow(input: LayoutInput): Layout {
   const graph = new dagre.graphlib.Graph();
   graph.setGraph({ rankdir: 'LR', nodesep: 44, ranksep: 190, marginx: 20, marginy: 20 });
   graph.setDefaultEdgeLabel(() => ({}));
 
-  for (const node of flow.nodes) graph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+  // dagre skriver koordinater in i objektet, så varje nod måste få sin egen kopia.
+  for (const node of input.nodes) graph.setNode(node.id, { ...NODE_SIZES[node.level] });
   // Bara framåtriktade kanter påverkar rangordningen. En kant är "framåt" första
-  // gången paret ses, så svar tillbaka inte drar isär layouten.
+  // gången paret ses, så svar tillbaka inte drar isär layouten. Självkanter ignoreras.
   const seenPairs = new Set<string>();
-  for (const edge of flow.edges) {
+  for (const edge of input.edges) {
     const key = pairKey(edge.from, edge.to);
     if (seenPairs.has(key) || edge.from === edge.to) continue;
     seenPairs.add(key);
@@ -45,18 +59,19 @@ export function layoutFlow(flow: Flow): Layout {
   dagre.layout(graph);
 
   const positions = new Map<string, Point>();
-  for (const node of flow.nodes) {
+  for (const node of input.nodes) {
     // dagre ger centrum, React Flow vill ha övre vänstra hörnet
     const placed = graph.node(node.id) as Point;
-    positions.set(node.id, { x: placed.x - NODE_WIDTH / 2, y: placed.y - NODE_HEIGHT / 2 });
+    const size = NODE_SIZES[node.level];
+    positions.set(node.id, { x: placed.x - size.width / 2, y: placed.y - size.height / 2 });
   }
 
-  return { positions, placements: placeEdges(flow, positions) };
+  return { positions, placements: placeEdges(input, positions) };
 }
 
-function placeEdges(flow: Flow, positions: Map<string, Point>): Map<string, EdgePlacement> {
+function placeEdges(input: LayoutInput, positions: Map<string, Point>): Map<string, EdgePlacement> {
   const groups = new Map<string, string[]>();
-  for (const edge of flow.edges) {
+  for (const edge of input.edges) {
     const key = pairKey(edge.from, edge.to);
     const group = groups.get(key) ?? [];
     group.push(edge.id);
@@ -64,7 +79,7 @@ function placeEdges(flow: Flow, positions: Map<string, Point>): Map<string, Edge
   }
 
   const placements = new Map<string, EdgePlacement>();
-  for (const edge of flow.edges) {
+  for (const edge of input.edges) {
     const group = groups.get(pairKey(edge.from, edge.to)) ?? [edge.id];
     const index = group.indexOf(edge.id);
     const offset = (index - (group.length - 1) / 2) * PARALLEL_GAP;

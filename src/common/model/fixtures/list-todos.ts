@@ -6,10 +6,23 @@ export const listTodosFlow: Flow = {
   title: 'Ladda listan',
   summary:
     'Vid start hämtar hooken listan. Backend frågar Redis först, går till Postgres vid miss och fyller cachen i 60 sekunder.',
+  systems: [
+    {
+      id: 'frontend',
+      kind: 'app',
+      label: 'Todo-frontend',
+      description: 'React-appen i webbläsaren',
+    },
+    { id: 'backend', kind: 'api', label: 'Todo-API', description: 'Express-servern' },
+    { id: 'postgres', kind: 'db', label: 'Postgres' },
+    { id: 'redis', kind: 'cache', label: 'Redis' },
+    { id: 'webhook', kind: 'external', label: 'Webhook' },
+  ],
   nodes: [
     {
       id: 'use-todos',
       kind: 'handler',
+      system: 'frontend',
       label: 'useTodos',
       description: 'useEffect vid montering',
       source: { file: 'frontend/src/hooks/useTodos.ts', line: 9 },
@@ -17,29 +30,33 @@ export const listTodosFlow: Flow = {
     {
       id: 'todos-api',
       kind: 'handler',
+      system: 'frontend',
       label: 'todosApi.fetchTodos',
       source: { file: 'frontend/src/api/todosApi.ts', line: 5 },
     },
     {
       id: 'get-route',
       kind: 'http',
+      system: 'backend',
       label: 'GET /api/todos',
       source: { file: 'backend/src/routes/todos.ts', line: 11 },
     },
     {
       id: 'todo-service',
       kind: 'service',
+      system: 'backend',
       label: 'TodoService.list',
       source: { file: 'backend/src/services/TodoService.ts', line: 12 },
     },
-    { id: 'todo-cache', kind: 'cache', label: 'Redis todos:all' },
+    { id: 'todo-cache', kind: 'cache', system: 'redis', label: 'Redis todos:all' },
     {
       id: 'todo-repository',
       kind: 'service',
+      system: 'backend',
       label: 'TodoRepository.findAll',
       source: { file: 'backend/src/repositories/TodoRepository.ts', line: 21 },
     },
-    { id: 'postgres', kind: 'db', label: 'Postgres todos' },
+    { id: 'postgres', kind: 'db', system: 'postgres', label: 'Postgres todos' },
   ],
   edges: [
     {
