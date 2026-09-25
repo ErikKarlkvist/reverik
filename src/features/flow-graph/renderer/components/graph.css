@@ -327,12 +327,18 @@ button.crumb:hover:not(:disabled) {
 }
 
 .graph-edge-label.is-open {
-  z-index: 10;
+  z-index: 1000;
   opacity: 1;
   border-radius: 8px;
   white-space: normal;
-  max-width: 320px;
+  max-width: 420px;
   overflow: visible;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 18%);
+}
+
+/* Vald kant lyfts också ovanför noderna av React Flow via elevateEdgesOnSelect */
+.graph .react-flow__edge.selected {
+  z-index: 1000;
 }
 
 .graph-edge-label__text {
@@ -357,12 +363,26 @@ button.crumb:hover:not(:disabled) {
   gap: 4px;
 }
 
+.graph-edge-label__row {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 8px;
+  align-items: start;
+}
+
 .graph-edge-label__key {
   color: var(--fg-muted);
   text-transform: uppercase;
   font-size: 9px;
   letter-spacing: 0.06em;
-  margin-right: 4px;
+  padding-top: 2px;
+}
+
+.graph-edge-label__value {
+  margin: 0;
+  font: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* Uppspelning */

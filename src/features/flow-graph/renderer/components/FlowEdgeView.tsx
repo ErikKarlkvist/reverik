@@ -6,6 +6,7 @@ import {
   getBezierPath,
 } from '@xyflow/react';
 import { type JSX, memo } from 'react';
+import { formatPayload } from '../../model/format';
 import { type Direction } from '../../model/layout';
 import { type StepStatus } from '../../model/playback';
 
@@ -83,13 +84,15 @@ export const FlowEdgeView = memo(function FlowEdgeView({
           {showDetails && hasDetails && (
             <div className="graph-edge-label__details">
               {data.payload && (
-                <div>
-                  <span className="graph-edge-label__key">Skickar</span> {data.payload}
+                <div className="graph-edge-label__row">
+                  <span className="graph-edge-label__key">Skickar</span>
+                  <pre className="graph-edge-label__value">{formatPayload(data.payload)}</pre>
                 </div>
               )}
               {data.response && (
-                <div>
-                  <span className="graph-edge-label__key">Svar</span> {data.response}
+                <div className="graph-edge-label__row">
+                  <span className="graph-edge-label__key">Svar</span>
+                  <pre className="graph-edge-label__value">{formatPayload(data.response)}</pre>
                 </div>
               )}
             </div>

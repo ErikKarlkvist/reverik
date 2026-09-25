@@ -76,11 +76,14 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
         .map((edge) => {
           const placement = layout.placements.get(edge.id);
           const backward = placement?.direction === 'backward';
+          const open = hoveredEdge === edge.id;
           return {
             id: edge.id,
             type: 'flow',
             source: edge.from,
             target: edge.to,
+            // Öppen kant lyfts ovanför noder och andra kanter
+            zIndex: open ? 1000 : 0,
             sourceHandle: backward ? 'out-left' : 'out-right',
             targetHandle: backward ? 'in-right' : 'in-left',
             data: {
@@ -90,7 +93,7 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
               status: view.edges.get(edge.id) ?? 'pending',
               offset: placement?.offset ?? 0,
               direction: placement?.direction ?? 'forward',
-              hovered: hoveredEdge === edge.id,
+              hovered: open,
             },
           };
         }),
@@ -150,6 +153,7 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
         maxZoom={2}
         nodesConnectable={false}
         elementsSelectable
+        elevateEdgesOnSelect
         proOptions={{ hideAttribution: true }}
         onEdgeMouseEnter={onEdgeMouseEnter}
         onEdgeMouseLeave={onEdgeMouseLeave}
