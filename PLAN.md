@@ -5,6 +5,20 @@ visa upp för sig. Ordningen är vald så att UI:t kan byggas mot fixture-data
 innan AI-delen finns, och så att AI-delen kan testas i terminalen innan den
 kopplas in i UI:t.
 
+## Status 2026-09-25
+
+Del 0 till 3 är klara. Appen startar, kopplar repo, visar sparade och inbyggda
+analyser, ritar flöden i tre nivåer med uppspelning, kodutdrag och tabeller.
+Nästa steg är Del 4, själva AI-analysen. Det som redan finns att bygga på:
+
+- `validateFlow()` i `src/common/model/flow.ts` ger läsbara fel att skicka tillbaka till modellen
+- `saveAnalysisChannel` i `src/features/analysis/ipc/channels.ts` sparar ett färdigt flöde
+- `defineEvent`/`emitEvent` i common för att strömma framsteg från main till renderer
+- Fliken Logg i nedre panelen är tom och väntar på analysens verktygsanrop
+- `.env.example` visar nyckeln, `requireEnv()` i `src/application/main/env.ts` läser den
+- Fixturerna i `src/common/model/fixtures/` visar exakt vad modellen ska producera,
+  inklusive `systems`, `system` per nod, `tables` med nycklar och `tables` på kanter
+
 ## Avgränsningar
 
 - Statisk analys: AI:n läser koden och förutspår flödet. Ingen runtime-tracing.
@@ -72,13 +86,20 @@ Mål: fixturen renderas snyggt och kan spelas upp steg för steg.
 
 Mål: en riktig fråga mot ett riktigt repo ger en `Flow`.
 
-- [ ] CLI-skript först (`npm run analyze -- <repo> "<fråga>"`) för snabb iteration
-- [ ] Agentloop med Agent SDK: verktygen Read, Grep, Glob mot repots rot
-- [ ] Eget verktyg `emit_flow` som tar en `Flow`, valideras med zod, fel skickas tillbaka till modellen
-- [ ] Systemprompt: följ från UI-händelse till backend till lagring, ange fil och rad på allt
-- [ ] Verifiera att varje `source` faktiskt finns i repot, stryk eller markera det som inte gör det
-- [ ] Koppla in i UI:t: strömma verktygsanrop till loggpanelen så man ser vad AI:n läser
-- [ ] Avbryt-knapp
+Ny feature `analysis` finns redan med lagring och lista. AI-delen läggs i samma
+feature: `model/` för prompt och tolkning, `main/` för agentloopen, `ipc/` för
+kanal och framstegshändelse, `renderer/` för frågefältet.
+
+- [ ] CLI-skript först (`npm run analyze -- <repo> "<fråga>"`) för snabb iteration mot `demo/todo-app`
+- [ ] Agentloop med Claude Agent SDK i main: verktygen Read, Grep, Glob mot repots rot, respektera `.gitignore`
+- [ ] Eget verktyg `emit_flow` som tar en `Flow`, körs genom `validateFlow()`, fel skickas tillbaka till modellen
+- [ ] Systemprompt på engelska: följ från UI-händelse till backend till lagring, ange fil och rad på allt,
+      gruppera noder i `systems`, beskriv tabeller med nycklar, ange `tables` på anrop mot lagring
+- [ ] Verifiera att varje `source` faktiskt finns i repot (jämför `readSource`), stryk eller markera det som inte gör det
+- [ ] Spara resultatet via `AnalysisStore` och välj det i listan
+- [ ] Frågefält i sidopanelen under repot, avbryt-knapp
+- [ ] Strömma verktygsanrop till fliken Logg via `emitEvent` så man ser vad AI:n läser
+- [ ] Mock-bryggan: svara på analyskanalen med en fixture efter en fördröjning så UI:t går att titta på i webbläsare
 
 ## Del 5: Putsning för demo
 
