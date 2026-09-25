@@ -64,13 +64,38 @@ export const addTodoFlow: Flow = {
       label: 'TodoRepository.insert',
       source: { file: 'backend/src/repositories/TodoRepository.ts', line: 28 },
     },
-    { id: 'postgres', kind: 'db', system: 'postgres', label: 'Postgres todos' },
+    {
+      id: 'postgres',
+      kind: 'db',
+      system: 'postgres',
+      label: 'Postgres todos',
+      tables: [
+        {
+          name: 'todos',
+          description: 'En rad per todo',
+          columns: [
+            { name: 'id', type: 'serial', description: 'Primärnyckel' },
+            { name: 'title', type: 'text' },
+            { name: 'completed', type: 'boolean', description: 'Standard false' },
+            { name: 'created_at', type: 'timestamptz', description: 'Sätts av databasen' },
+          ],
+          source: { file: 'backend/src/db/schema.sql', line: 1 },
+        },
+      ],
+    },
     {
       id: 'todo-cache',
       kind: 'cache',
       system: 'redis',
       label: 'Redis todos:all',
       description: 'Hela listan cachad i 60 sekunder',
+      tables: [
+        {
+          name: 'todos:all',
+          description: 'Hela listan som JSON, TTL 60 sekunder',
+          source: { file: 'backend/src/cache/TodoCache.ts', line: 4 },
+        },
+      ],
     },
     {
       id: 'webhook',
@@ -122,6 +147,7 @@ export const addTodoFlow: Flow = {
     },
     {
       id: 'insert',
+      tables: ['todos'],
       from: 'todo-repository',
       to: 'postgres',
       label: 'INSERT INTO todos',
@@ -131,6 +157,7 @@ export const addTodoFlow: Flow = {
     },
     {
       id: 'invalidate',
+      tables: ['todos:all'],
       from: 'todo-service',
       to: 'todo-cache',
       label: 'DEL todos:all',

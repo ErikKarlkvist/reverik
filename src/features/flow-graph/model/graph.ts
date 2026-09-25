@@ -1,4 +1,5 @@
 import {
+  type DataTable,
   type Flow,
   type FlowEdge,
   type FlowStep,
@@ -10,6 +11,11 @@ import {
 export type GraphKind = NodeKind | SystemKind;
 export type GraphLevel = 'system' | 'node';
 
+/** En tabell och de anrop i flödet som rör den. */
+export interface TableInfo extends DataTable {
+  touchedBy: { edgeId: string; label: string }[];
+}
+
 /** En ritad nod: antingen ett helt system eller en enskild nod i koden. */
 export interface GraphNode {
   id: string;
@@ -20,6 +26,8 @@ export interface GraphNode {
   source: SourceRef | undefined;
   /** Systemet noden tillhör eller är */
   systemId: string;
+  /** Tabeller noden lagrar, med anropen som rör dem. Tom för det mesta utom db och cache. */
+  tables: TableInfo[];
 }
 
 /** Ram runt noderna i ett system i detaljvyn. */
@@ -76,6 +84,7 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
         description: system.description,
         source: undefined,
         systemId: system.id,
+        tables: tablesOf(flow, members),
       });
       for (const member of members) nodeToTarget.set(member.id, system.id);
     } else {
@@ -90,6 +99,7 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
           description: member.description,
           source: member.source,
           systemId: system.id,
+          tables: tablesOf(flow, [member]),
         });
         nodeToTarget.set(member.id, member.id);
       }
@@ -130,4 +140,16 @@ export function mapStepIndex(
     if (flow.steps.indexOf(candidate) <= original) best = i;
   });
   return best;
+}
+
+/** Tabellerna hos ett antal noder, med de kanter i flödet som rör varje tabell. */
+function tablesOf(flow: Flow, members: readonly Flow['nodes'][number][]): TableInfo[] {
+  return members.flatMap((member) =>
+    (member.tables ?? []).map((table) => ({
+      ...table,
+      touchedBy: flow.edges
+        .filter((e) => e.to === member.id && e.tables?.includes(table.name))
+        .map((e) => ({ edgeId: e.id, label: e.label })),
+    })),
+  );
 }

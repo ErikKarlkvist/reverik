@@ -64,6 +64,8 @@ Mål: fixturen renderas snyggt och kan spelas upp steg för steg.
 - [x] Aktivt steg och klick på nod eller kant visar kodutdrag i nedre panelen
 - [x] Tomt läge när ingen analys finns
 - [x] Systemvy först: en nod per applikation med ikon per typ. Klick zoomar in i systemet med grannarna kvar i kanten. Detaljvyn grupperar noder per system. Interna steg spelas bara upp när man är inzoomad.
+- [x] Hover på databas och cache visar tabeller, kolumner och vilka anrop i flödet som rör dem
+- [x] Sidopanelens bredd och nedre panelens höjd går att dra i, sparas i localStorage
 
 ## Del 4: AI-analys
 

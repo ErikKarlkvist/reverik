@@ -18,7 +18,10 @@ describe('demo-fixturernas källhänvisningar', () => {
 
   for (const flow of demoFlows) {
     it(`${flow.title}: alla filer och rader finns`, () => {
-      const refs = [...flow.nodes, ...flow.edges].flatMap((x) => (x.source ? [x.source] : []));
+      const tables = flow.nodes.flatMap((n) => n.tables ?? []);
+      const refs = [...flow.nodes, ...flow.edges, ...tables].flatMap((x) =>
+        x.source ? [x.source] : [],
+      );
       expect(refs.length).toBeGreaterThan(0);
       for (const ref of refs) {
         expect(ref.line, `${ref.file}:${ref.line}`).toBeLessThanOrEqual(lineCount(ref.file));

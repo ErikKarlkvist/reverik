@@ -2,7 +2,7 @@ import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
 import { type JSX, memo } from 'react';
 import { NODE_KIND_LABELS, SYSTEM_KIND_LABELS } from '@/common/model/flow';
 import { Icon } from '@/common/renderer/Icon';
-import { type GraphKind, type GraphLevel } from '../../model/graph';
+import { type GraphKind, type GraphLevel, type TableInfo } from '../../model/graph';
 import { type StepStatus } from '../../model/playback';
 
 // React Flow kräver Record<string, unknown>, vilket ett interface inte uppfyller.
@@ -13,6 +13,8 @@ export type GraphNodeData = {
   label: string;
   description: string | undefined;
   status: StepStatus;
+  tables: TableInfo[];
+  hovered: boolean;
 };
 
 export type GraphNode = Node<GraphNodeData, 'flow'>;
@@ -45,6 +47,49 @@ export const FlowNodeView = memo(function FlowNodeView({
         <span className="graph-node__kind">{KIND_LABELS[data.kind]}</span>
         <span className="graph-node__label">{data.label}</span>
       </span>
+      {data.hovered && data.tables.length > 0 && <TablesPopover tables={data.tables} />}
     </div>
   );
 });
+
+function TablesPopover({ tables }: { tables: TableInfo[] }): JSX.Element {
+  return (
+    <div className="graph-tables">
+      {tables.map((table) => (
+        <div key={table.name} className="graph-tables__table">
+          <div className="graph-tables__name">
+            <Icon name="db" size="sm" /> {table.name}
+            {table.source && (
+              <span className="graph-tables__source">
+                {table.source.file}:{table.source.line}
+              </span>
+            )}
+          </div>
+          {table.description && <div className="graph-tables__desc">{table.description}</div>}
+          {table.columns && table.columns.length > 0 && (
+            <table className="graph-tables__columns">
+              <tbody>
+                {table.columns.map((column) => (
+                  <tr key={column.name}>
+                    <td className="graph-tables__col">{column.name}</td>
+                    <td className="graph-tables__type">{column.type}</td>
+                    <td className="graph-tables__coldesc">{column.description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {table.touchedBy.length > 0 && (
+            <div className="graph-tables__touched">
+              {table.touchedBy.map((t) => (
+                <span key={t.edgeId} className="graph-tables__op">
+                  {t.label}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}

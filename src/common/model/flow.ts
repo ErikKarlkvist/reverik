@@ -51,6 +51,21 @@ export const sourceRefSchema = z.object({
   endLine: z.number().int().positive().optional(),
 });
 
+export const tableColumnSchema = z.object({
+  name: z.string().min(1),
+  type: z.string().min(1),
+  description: z.string().optional(),
+});
+
+/** En tabell, collection eller nyckelrymd i en lagringsnod. */
+export const dataTableSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  columns: z.array(tableColumnSchema).optional(),
+  /** Var schemat definieras, t.ex. en migration eller schema.sql */
+  source: sourceRefSchema.optional(),
+});
+
 export const flowNodeSchema = z.object({
   id: z.string().min(1),
   kind: nodeKindSchema,
@@ -60,6 +75,8 @@ export const flowNodeSchema = z.object({
   description: z.string().optional(),
   /** Krävs för allt som finns i repot. Valfritt för db, cache, external och queue. */
   source: sourceRefSchema.optional(),
+  /** Tabeller eller nycklar som noden lagrar. Främst för db och cache. */
+  tables: z.array(dataTableSchema).optional(),
 });
 
 export const flowEdgeSchema = z.object({
@@ -74,6 +91,8 @@ export const flowEdgeSchema = z.object({
   response: z.string().optional(),
   /** Raden där anropet görs. */
   source: sourceRefSchema,
+  /** Tabeller som anropet rör, refererar `tables[].name` på målnoden. */
+  tables: z.array(z.string().min(1)).optional(),
 });
 
 export const flowStepSchema = z.object({
@@ -153,8 +172,20 @@ export const flowSchema = z
       }
     });
 
+    const tablesByNode = new Map(
+      flow.nodes.map((n) => [n.id, new Set(n.tables?.map((t) => t.name))]),
+    );
     const edgeIds = new Set<string>();
     flow.edges.forEach((edge, i) => {
+      for (const table of edge.tables ?? []) {
+        if (!tablesByNode.get(edge.to)?.has(table)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['edges', i, 'tables'],
+            message: `Kanten "${edge.id}" rör tabellen "${table}" som inte finns på noden "${edge.to}"`,
+          });
+        }
+      }
       if (edgeIds.has(edge.id)) {
         ctx.addIssue({
           code: 'custom',
@@ -190,6 +221,8 @@ export type SystemKind = z.infer<typeof systemKindSchema>;
 export type FlowSystem = z.infer<typeof flowSystemSchema>;
 export type SourceRef = z.infer<typeof sourceRefSchema>;
 export type FlowNode = z.infer<typeof flowNodeSchema>;
+export type DataTable = z.infer<typeof dataTableSchema>;
+export type TableColumn = z.infer<typeof tableColumnSchema>;
 export type FlowEdge = z.infer<typeof flowEdgeSchema>;
 export type FlowStep = z.infer<typeof flowStepSchema>;
 export type Flow = z.infer<typeof flowSchema>;

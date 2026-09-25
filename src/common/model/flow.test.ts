@@ -44,6 +44,16 @@ describe('validateFlow', () => {
     expect(errorsOf(flow)).toContainEqual(expect.stringContaining('"mars" har inga noder'));
   });
 
+  it('avvisar kant som rör tabell som inte finns på målnoden', () => {
+    const insert = base.edges.find((e) => e.id === 'insert');
+    if (!insert) throw new Error('fixturen saknar insert');
+    const flow = {
+      ...base,
+      edges: base.edges.map((e) => (e.id === 'insert' ? { ...e, tables: ['orders'] } : e)),
+    };
+    expect(errorsOf(flow)).toContainEqual(expect.stringContaining('tabellen "orders"'));
+  });
+
   it('avvisar steg som pekar på okänd kant', () => {
     const flow = { ...base, steps: [{ edgeId: 'nope', description: 'x' }] };
     expect(errorsOf(flow)).toContainEqual(expect.stringContaining('okänd kant "nope"'));

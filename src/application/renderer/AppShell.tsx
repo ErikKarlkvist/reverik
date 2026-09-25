@@ -2,12 +2,14 @@ import { type JSX, useCallback, useEffect, useState } from 'react';
 import { type AppInfo, appInfoChannel } from '@/application/ipc/channels';
 import { type FlowEdge, type SourceRef } from '@/common/model/flow';
 import { Icon } from '@/common/renderer/Icon';
+import { Splitter } from '@/common/renderer/Splitter';
 import { invokeChannel } from '@/common/renderer/ipc';
 import { AnalysisList, useAnalyses } from '@/features/analysis';
 import { FlowPlayer } from '@/features/flow-graph';
 import { RepoPanel, SourceView, useRepo } from '@/features/repo';
 import { ThemeSelect } from './ThemeSelect';
 import { useStoredFlag } from './useStoredFlag';
+import { useStoredNumber } from './useStoredNumber';
 
 type PanelTab = 'code' | 'log';
 
@@ -20,6 +22,8 @@ export function AppShell(): JSX.Element {
   const [logOpen, setLogOpen] = useStoredFlag('highai.logOpen', true);
   const [source, setSource] = useState<SourceRef | null>(null);
   const [tab, setTab] = useState<PanelTab>('code');
+  const [sidebarWidth, setSidebarWidth] = useStoredNumber('highai.sidebarWidth', 300);
+  const [bottomHeight, setBottomHeight] = useStoredNumber('highai.bottomHeight', 220);
 
   useEffect(() => {
     void invokeChannel(appInfoChannel, undefined).then(setInfo);
@@ -36,12 +40,23 @@ export function AppShell(): JSX.Element {
   const activeTab: PanelTab = tab === 'code' && !shownSource ? 'log' : tab;
 
   return (
-    <div className={`shell${logOpen ? '' : ' shell--log-closed'}`}>
+    <div
+      className={`shell${logOpen ? '' : ' shell--log-closed'}`}
+      style={{ '--sidebar-width': `${sidebarWidth}px`, '--bottom-height': `${bottomHeight}px` }}
+    >
       <aside className="shell__sidebar">
         <div className="shell__drag" />
         <h1 className="shell__title">Highai</h1>
         <RepoPanel />
         {repo && <AnalysisList />}
+        <Splitter
+          orientation="vertical"
+          size={sidebarWidth}
+          min={220}
+          max={600}
+          onResize={setSidebarWidth}
+          label="Ändra sidopanelens bredd"
+        />
       </aside>
 
       <main className="shell__canvas">
@@ -63,6 +78,15 @@ export function AppShell(): JSX.Element {
 
       {logOpen && (
         <section className="shell__bottom">
+          <Splitter
+            orientation="horizontal"
+            size={bottomHeight}
+            min={120}
+            max={700}
+            inverted
+            onResize={setBottomHeight}
+            label="Ändra nedre panelens höjd"
+          />
           <div className="shell__panel-bar">
             <div className="shell__tabs" role="tablist">
               {(Object.keys(TAB_LABELS) as PanelTab[]).map((key) => (

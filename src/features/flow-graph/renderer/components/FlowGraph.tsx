@@ -31,6 +31,7 @@ interface Props {
 
 export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props): JSX.Element {
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const layout = useMemo(() => layoutFlow(model), [model]);
   const view = useMemo(() => stepView(model, stepIndex), [model, stepIndex]);
 
@@ -52,22 +53,29 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
       ];
     });
 
-    const flowNodes: GraphNode[] = model.nodes.map((node) => ({
-      id: node.id,
-      type: 'flow',
-      position: layout.positions.get(node.id) ?? { x: 0, y: 0 },
-      draggable: true,
-      data: {
-        kind: node.kind,
-        level: node.level,
-        label: node.label,
-        description: node.description,
-        status: view.nodes.get(node.id) ?? 'pending',
-      },
-    }));
+    const flowNodes: GraphNode[] = model.nodes.map((node) => {
+      const hovered = hoveredNode === node.id;
+      return {
+        id: node.id,
+        type: 'flow',
+        position: layout.positions.get(node.id) ?? { x: 0, y: 0 },
+        draggable: true,
+        // Nod med öppen ruta lyfts ovanför grannarna
+        zIndex: hovered ? 1000 : 0,
+        data: {
+          kind: node.kind,
+          level: node.level,
+          label: node.label,
+          description: node.description,
+          status: view.nodes.get(node.id) ?? 'pending',
+          tables: node.tables,
+          hovered,
+        },
+      };
+    });
 
     return [...groups, ...flowNodes];
-  }, [model, layout, view]);
+  }, [model, layout, view, hoveredNode]);
 
   const edges = useMemo<GraphEdge[]>(
     () =>
@@ -105,6 +113,12 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
   }, []);
   const onEdgeMouseLeave = useCallback<EdgeMouseHandler<GraphEdge>>(() => {
     setHoveredEdge(null);
+  }, []);
+  const onNodeMouseEnter = useCallback<NodeMouseHandler<Node>>((_, node) => {
+    setHoveredNode(node.id);
+  }, []);
+  const onNodeMouseLeave = useCallback<NodeMouseHandler<Node>>(() => {
+    setHoveredNode(null);
   }, []);
   const handleNodeClick = useCallback<NodeMouseHandler<Node>>(
     (_, node) => {
@@ -157,6 +171,8 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
         proOptions={{ hideAttribution: true }}
         onEdgeMouseEnter={onEdgeMouseEnter}
         onEdgeMouseLeave={onEdgeMouseLeave}
+        onNodeMouseEnter={onNodeMouseEnter}
+        onNodeMouseLeave={onNodeMouseLeave}
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
       >

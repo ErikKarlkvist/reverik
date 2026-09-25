@@ -146,8 +146,8 @@ select:focus {
 
 .shell {
   display: grid;
-  grid-template-columns: 300px 1fr;
-  grid-template-rows: 1fr 220px 28px;
+  grid-template-columns: var(--sidebar-width, 300px) 1fr;
+  grid-template-rows: 1fr var(--bottom-height, 220px) 28px;
   grid-template-areas:
     'sidebar canvas'
     'sidebar bottom'
@@ -163,6 +163,7 @@ select:focus {
 }
 
 .shell__sidebar {
+  position: relative;
   grid-area: sidebar;
   display: flex;
   flex-direction: column;
@@ -200,6 +201,7 @@ select:focus {
 }
 
 .shell__bottom {
+  position: relative;
   grid-area: bottom;
   display: flex;
   flex-direction: column;
@@ -283,4 +285,33 @@ select:focus {
 .theme-select select {
   padding: 1px 4px;
   font-size: 12px;
+}
+
+/* Dragbara handtag mellan panelerna */
+.splitter {
+  position: absolute;
+  z-index: 5;
+  background: transparent;
+  transition: background 120ms;
+}
+
+.splitter:hover,
+.splitter:active {
+  background: var(--accent);
+}
+
+.splitter--vertical {
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+}
+
+.splitter--horizontal {
+  top: -3px;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  cursor: row-resize;
 }

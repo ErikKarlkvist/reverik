@@ -47,7 +47,19 @@ export const listTodosFlow: Flow = {
       label: 'TodoService.list',
       source: { file: 'backend/src/services/TodoService.ts', line: 12 },
     },
-    { id: 'todo-cache', kind: 'cache', system: 'redis', label: 'Redis todos:all' },
+    {
+      id: 'todo-cache',
+      kind: 'cache',
+      system: 'redis',
+      label: 'Redis todos:all',
+      tables: [
+        {
+          name: 'todos:all',
+          description: 'Hela listan som JSON, TTL 60 sekunder',
+          source: { file: 'backend/src/cache/TodoCache.ts', line: 4 },
+        },
+      ],
+    },
     {
       id: 'todo-repository',
       kind: 'service',
@@ -55,7 +67,25 @@ export const listTodosFlow: Flow = {
       label: 'TodoRepository.findAll',
       source: { file: 'backend/src/repositories/TodoRepository.ts', line: 21 },
     },
-    { id: 'postgres', kind: 'db', system: 'postgres', label: 'Postgres todos' },
+    {
+      id: 'postgres',
+      kind: 'db',
+      system: 'postgres',
+      label: 'Postgres todos',
+      tables: [
+        {
+          name: 'todos',
+          description: 'En rad per todo',
+          columns: [
+            { name: 'id', type: 'serial', description: 'Primärnyckel' },
+            { name: 'title', type: 'text' },
+            { name: 'completed', type: 'boolean', description: 'Standard false' },
+            { name: 'created_at', type: 'timestamptz', description: 'Sätts av databasen' },
+          ],
+          source: { file: 'backend/src/db/schema.sql', line: 1 },
+        },
+      ],
+    },
   ],
   edges: [
     {
@@ -82,6 +112,7 @@ export const listTodosFlow: Flow = {
     },
     {
       id: 'cache-get',
+      tables: ['todos:all'],
       from: 'todo-service',
       to: 'todo-cache',
       label: 'GET todos:all',
@@ -97,6 +128,7 @@ export const listTodosFlow: Flow = {
     },
     {
       id: 'select',
+      tables: ['todos'],
       from: 'todo-repository',
       to: 'postgres',
       label: 'SELECT … FROM todos',
@@ -105,6 +137,7 @@ export const listTodosFlow: Flow = {
     },
     {
       id: 'cache-set',
+      tables: ['todos:all'],
       from: 'todo-service',
       to: 'todo-cache',
       label: 'SET todos:all EX 60',

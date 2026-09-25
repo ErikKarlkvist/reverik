@@ -29,6 +29,16 @@ describe('buildModel', () => {
     expect(model.nodes.map((n) => n.id)).not.toContain('mars');
   });
 
+  it('samlar tabeller med anropen som rör dem, även på systemnivå', () => {
+    const system = buildModel(addTodoFlow, { kind: 'system' });
+    const postgres = system.nodes.find((n) => n.id === 'postgres');
+    expect(postgres?.tables.map((t) => t.name)).toEqual(['todos']);
+    expect(postgres?.tables[0]?.touchedBy.map((t) => t.edgeId)).toEqual(['insert']);
+    expect(postgres?.tables[0]?.columns?.map((c) => c.name)).toContain('created_at');
+    const frontend = system.nodes.find((n) => n.id === 'frontend');
+    expect(frontend?.tables).toEqual([]);
+  });
+
   it('interna anrop blir självkanter i systemvyn', () => {
     const model = buildModel(addTodoFlow, { kind: 'system' });
     const internal = model.edges.find((e) => e.id === 'route-to-service');
