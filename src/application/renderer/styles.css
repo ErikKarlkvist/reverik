@@ -1,0 +1,66 @@
+:root {
+  --bg: #0f1115;
+  --bg-panel: #161a22;
+  --border: #262c38;
+  --fg: #e6e8ee;
+  --fg-muted: #8b93a5;
+  --accent: #6ea8fe;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: var(--fg);
+  background: var(--bg);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: 1fr 28px;
+  height: 100vh;
+}
+
+.shell__sidebar {
+  grid-row: 1;
+  padding: 44px 16px 16px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel);
+  -webkit-app-region: drag;
+}
+
+.shell__title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.shell__hint {
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+.shell__canvas {
+  display: grid;
+  place-items: center;
+}
+
+.shell__empty {
+  color: var(--fg-muted);
+}
+
+.shell__footer {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-top: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 12px;
+}

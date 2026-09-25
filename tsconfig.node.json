@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "types": ["node", "electron-vite/node"],
+    "lib": ["ES2022"]
+  },
+  "include": [
+    "electron.vite.config.ts",
+    "vitest.config.ts",
+    "src/application/main/**/*",
+    "src/application/preload/**/*",
+    "src/application/ipc/**/*",
+    "src/common/model/**/*",
+    "src/common/ipc/**/*",
+    "src/common/main/**/*",
+    "src/features/*/model/**/*",
+    "src/features/*/ipc/**/*",
+    "src/features/*/main/**/*"
+  ]
+}

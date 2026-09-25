@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"]
+  },
+  "include": [
+    "src/application/renderer/**/*",
+    "src/application/ipc/**/*",
+    "src/common/model/**/*",
+    "src/common/ipc/**/*",
+    "src/common/renderer/**/*",
+    "src/features/*/index.ts",
+    "src/features/*/model/**/*",
+    "src/features/*/ipc/**/*",
+    "src/features/*/renderer/**/*"
+  ]
+}

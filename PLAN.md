@@ -24,9 +24,10 @@ kopplas in i UI:t.
 
 Mål: appen startar, renderer och main pratar via IPC, nyckeln läses från `.env`.
 
-- [ ] Scaffolda med electron-vite (React + TS)
-- [ ] Ladda `.env` i main, aldrig exponera nyckeln till renderer
-- [ ] Typad IPC-brygga via preload (`window.api`)
+- [x] Scaffolda med electron-vite (React + TS)
+- [x] Ladda `.env` i main, aldrig exponera nyckeln till renderer
+- [x] Typad IPC-brygga via preload (`window.api`) och `defineChannel`
+- [x] Kodstandard: strikt tsconfig, ESLint med arkitekturgränser, Prettier, husky pre-commit, Vitest
 - [ ] Enkel layout: sidopanel (repo + fråga), huvudyta (graf), nedre panel (logg/kod)
 
 ## Del 1: Koppla repo
