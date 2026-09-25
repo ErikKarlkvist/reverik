@@ -65,6 +65,8 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
 
   for (const system of flow.systems) {
     const members = flow.nodes.filter((n) => n.system === system.id);
+    // Ett system utan noder deltar inte i flödet och ritas inte
+    if (members.length === 0) continue;
     if (shouldCollapse(system.id)) {
       nodes.push({
         id: system.id,

@@ -142,6 +142,17 @@ export const flowSchema = z
       }
     });
 
+    const usedSystems = new Set(flow.nodes.map((n) => n.system));
+    flow.systems.forEach((system, i) => {
+      if (!usedSystems.has(system.id)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['systems', i],
+          message: `Systemet "${system.id}" har inga noder. Ta bort det eller lägg till noder som tillhör det`,
+        });
+      }
+    });
+
     const edgeIds = new Set<string>();
     flow.edges.forEach((edge, i) => {
       if (edgeIds.has(edge.id)) {

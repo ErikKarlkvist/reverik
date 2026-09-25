@@ -20,6 +20,15 @@ describe('buildModel', () => {
     ]);
   });
 
+  it('ritar inte system som saknar noder', () => {
+    const flow = {
+      ...addTodoFlow,
+      systems: [...addTodoFlow.systems, { id: 'mars', kind: 'external' as const, label: 'Mars' }],
+    };
+    const model = buildModel(flow, { kind: 'system' });
+    expect(model.nodes.map((n) => n.id)).not.toContain('mars');
+  });
+
   it('interna anrop blir självkanter i systemvyn', () => {
     const model = buildModel(addTodoFlow, { kind: 'system' });
     const internal = model.edges.find((e) => e.id === 'route-to-service');

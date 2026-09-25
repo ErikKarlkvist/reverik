@@ -16,7 +16,6 @@ export const listTodosFlow: Flow = {
     { id: 'backend', kind: 'api', label: 'Todo-API', description: 'Express-servern' },
     { id: 'postgres', kind: 'db', label: 'Postgres' },
     { id: 'redis', kind: 'cache', label: 'Redis' },
-    { id: 'webhook', kind: 'external', label: 'Webhook' },
   ],
   nodes: [
     {

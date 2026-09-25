@@ -36,6 +36,14 @@ describe('validateFlow', () => {
     expect(errorsOf(flow)).toContainEqual(expect.stringContaining('okänt system "mars"'));
   });
 
+  it('avvisar system som ingen nod tillhör', () => {
+    const flow = {
+      ...base,
+      systems: [...base.systems, { id: 'mars', kind: 'external', label: 'Mars' }],
+    };
+    expect(errorsOf(flow)).toContainEqual(expect.stringContaining('"mars" har inga noder'));
+  });
+
   it('avvisar steg som pekar på okänd kant', () => {
     const flow = { ...base, steps: [{ edgeId: 'nope', description: 'x' }] };
     expect(errorsOf(flow)).toContainEqual(expect.stringContaining('okänd kant "nope"'));
