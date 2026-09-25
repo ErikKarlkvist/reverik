@@ -48,6 +48,11 @@
   height: 100%;
 }
 
+/* xterm.css ger scrollytan svart bakgrund som sticker fram i kanterna */
+.terminal__screen .xterm .xterm-viewport {
+  background-color: var(--bg-panel);
+}
+
 .terminal__empty {
   margin: 0;
   padding: 16px 14px;
