@@ -93,6 +93,13 @@ select:focus {
   height: 100vh;
 }
 
+.shell--log-closed {
+  grid-template-rows: 1fr 28px;
+  grid-template-areas:
+    'sidebar canvas'
+    'footer footer';
+}
+
 .shell__sidebar {
   grid-area: sidebar;
   display: flex;
@@ -133,8 +140,35 @@ select:focus {
   overflow-y: auto;
 }
 
+.shell__panel-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.shell__panel-toggle,
+.shell__footer-button {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.shell__panel-toggle:hover,
+.shell__footer-button:hover {
+  color: var(--fg);
+}
+
+.shell__footer-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .shell__panel-heading {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
