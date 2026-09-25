@@ -3,11 +3,20 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import './styles.css';
 
-const root = document.getElementById('root');
-if (!root) throw new Error('Hittar inte #root');
+async function bootstrap(): Promise<void> {
+  if (import.meta.env.DEV && !('api' in window)) {
+    const { installMockBridge } = await import('./mockBridge');
+    installMockBridge();
+  }
 
-createRoot(root).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+  const root = document.getElementById('root');
+  if (!root) throw new Error('Hittar inte #root');
+
+  createRoot(root).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}
+
+void bootstrap();

@@ -8,6 +8,9 @@ som animerade sekvensdiagram. Arbetsplan i PLAN.md.
 - `npm run dev` startar appen med hot reload
 - `npm run check` kör typecheck, lint, format-check och test, samma som CI bör köra
 - `npm run test` kör Vitest
+- Renderern går att titta på i en vanlig webbläsare medan `npm run dev` kör: öppna
+  Vite-adressen som skrivs ut. Då laddas `src/application/renderer/mockBridge.ts`
+  i stället för preload-bryggan och svarar med demo-repot och fixturerna.
 
 Pre-commit-hooken (husky + lint-staged) kör eslint --fix och prettier på staged filer,
 sedan `tsc -b` och testerna. Committa inte med `--no-verify`.
