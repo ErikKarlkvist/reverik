@@ -1,12 +1,14 @@
 import { type JSX, useEffect, useState } from 'react';
 import { type AppInfo, appInfoChannel } from '@/application/ipc/channels';
 import { invokeChannel } from '@/common/renderer/ipc';
+import { AnalysisList, FlowPreview, useAnalyses } from '@/features/analysis';
 import { RepoPanel, useRepo } from '@/features/repo';
 import { ThemeSelect } from './ThemeSelect';
 
 export function AppShell(): JSX.Element {
   const [info, setInfo] = useState<AppInfo | null>(null);
   const { repo } = useRepo();
+  const { current } = useAnalyses();
 
   useEffect(() => {
     void invokeChannel(appInfoChannel, undefined).then(setInfo);
@@ -18,12 +20,19 @@ export function AppShell(): JSX.Element {
         <div className="shell__drag" />
         <h1 className="shell__title">Highai</h1>
         <RepoPanel />
+        {repo && <AnalysisList />}
       </aside>
 
       <main className="shell__canvas">
-        <p className="shell__empty">
-          {repo ? 'Ställ en fråga om ett flöde för att börja.' : 'Välj ett repo till vänster.'}
-        </p>
+        {current ? (
+          <FlowPreview flow={current.flow} />
+        ) : (
+          <p className="shell__empty">
+            {repo
+              ? 'Välj en analys till vänster, eller ställ en fråga om ett flöde.'
+              : 'Välj ett repo till vänster.'}
+          </p>
+        )}
       </main>
 
       <section className="shell__bottom">

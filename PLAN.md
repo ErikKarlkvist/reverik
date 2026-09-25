@@ -78,7 +78,7 @@ Mål: en riktig fråga mot ett riktigt repo ger en `Flow`.
 
 ## Del 5: Putsning för demo
 
-- [ ] Spara analyser per repo och fråga, lista tidigare analyser
+- [x] Spara analyser per repo, lista och ladda tidigare analyser. Demot har inbyggda grundanalyser.
 - [ ] Felhantering: saknad nyckel, rate limit, tomt resultat
 - [ ] Kostnad och tokens visas efter analys
 - [x] Demo-repo i `demo/todo-app`: React-frontend, Express-backend, Postgres, Redis, webhook

@@ -121,6 +121,8 @@ select:focus {
   grid-area: canvas;
   display: grid;
   place-items: center;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .shell__bottom {

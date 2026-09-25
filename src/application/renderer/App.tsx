@@ -1,11 +1,20 @@
 import { type JSX } from 'react';
-import { RepoProvider } from '@/features/repo';
+import { AnalysisProvider } from '@/features/analysis';
+import { RepoProvider, useRepo } from '@/features/repo';
 import { AppShell } from './AppShell';
 
 export function App(): JSX.Element {
   return (
     <RepoProvider>
-      <AppShell />
+      <Providers>
+        <AppShell />
+      </Providers>
     </RepoProvider>
   );
+}
+
+/** Providers som beror på valt repo. */
+function Providers({ children }: { children: JSX.Element }): JSX.Element {
+  const { repo } = useRepo();
+  return <AnalysisProvider repoPath={repo?.path ?? null}>{children}</AnalysisProvider>;
 }
