@@ -1,5 +1,5 @@
 import '@xterm/xterm/css/xterm.css';
-import { type JSX, type ReactNode, type SubmitEvent, useCallback, useRef, useState } from 'react';
+import { type JSX, type ReactNode, useRef } from 'react';
 import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { useTerminal } from '../hooks/useTerminal';
@@ -13,10 +13,7 @@ interface Props {
   children?: ReactNode;
 }
 
-/**
- * Terminal för valfri AI-agent. Frågefältet skickar texten till programmet
- * som kör i terminalen, med en uppmaning att först läsa guiden i .highai/.
- */
+/** Terminal för valfri AI-agent, startad i repots rot. */
 export function TerminalPanel({ repoPath, onHide, children }: Props): JSX.Element {
   return (
     <section className="terminal">
@@ -65,19 +62,7 @@ function Bar({ onHide, onRestart }: { onHide: () => void; onRestart?: () => void
 
 function Shell({ repoPath, onHide }: { repoPath: string; onHide: () => void }): JSX.Element {
   const screen = useRef<HTMLDivElement | null>(null);
-  const { exitCode, restart, send } = useTerminal(repoPath, screen);
-  const [question, setQuestion] = useState('');
-
-  const ask = useCallback(
-    (event: SubmitEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      const trimmed = question.trim();
-      if (!trimmed) return;
-      send(t('terminal.askPrefix') + trimmed);
-      setQuestion('');
-    },
-    [question, send],
-  );
+  const { exitCode, restart } = useTerminal(repoPath, screen);
 
   return (
     <>
@@ -91,20 +76,6 @@ function Shell({ repoPath, onHide }: { repoPath: string; onHide: () => void }): 
           </button>
         </div>
       )}
-      <form className="terminal__ask" onSubmit={ask}>
-        <input
-          type="text"
-          value={question}
-          placeholder={t('terminal.askPlaceholder')}
-          title={t('terminal.askHint')}
-          onChange={(event) => {
-            setQuestion(event.target.value);
-          }}
-        />
-        <button type="submit" disabled={!question.trim() || exitCode !== null}>
-          {t('terminal.send')}
-        </button>
-      </form>
     </>
   );
 }

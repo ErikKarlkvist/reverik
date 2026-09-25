@@ -91,10 +91,6 @@
   "terminal.restart": "Restart shell",
   "terminal.exited": "The shell exited with code {code}.",
   "terminal.noRepo": "Choose a repository to open a terminal in it.",
-  "terminal.askPlaceholder": "Ask about a flow…",
-  "terminal.askHint": "Sent to the program running in the terminal, e.g. claude, with a note to read .highai/README.md first.",
-  "terminal.askPrefix": "Read .highai/README.md, then: ",
-  "terminal.send": "Send",
 
   "inbox.heading": "Inbox",
   "inbox.idle": "Flows the AI writes to .highai/flows/ in the repository are imported here as they are saved.",

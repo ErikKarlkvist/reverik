@@ -64,15 +64,3 @@
   color: var(--fg-muted);
   font-size: 12px;
 }
-
-.terminal__ask {
-  display: flex;
-  gap: 6px;
-  padding: 8px 10px;
-  border-top: 1px solid var(--border);
-}
-
-.terminal__ask input {
-  flex: 1;
-  min-width: 0;
-}

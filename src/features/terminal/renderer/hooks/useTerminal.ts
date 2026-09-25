@@ -22,8 +22,6 @@ export interface TerminalState {
   /** null tills skalet startat, sedan avslutningskoden när det dött */
   exitCode: number | null;
   restart: () => void;
-  /** Skriver en rad till programmet som kör i terminalen, som om användaren skrivit den. */
-  send: (line: string) => void;
 }
 
 /**
@@ -41,7 +39,6 @@ export function useTerminal(
   const [session, setSession] = useState<Session | null>(null);
   const live = session?.key === key ? session : null;
   const exitCode = live?.exitCode ?? null;
-  const sessionId = live?.id ?? null;
 
   useEffect(() => {
     const element = container.current;
@@ -115,12 +112,5 @@ export function useTerminal(
     setGeneration((g) => g + 1);
   }, []);
 
-  const send = useCallback(
-    (line: string) => {
-      if (sessionId) void invokeChannel(writeTerminalChannel, { id: sessionId, data: `${line}\r` });
-    },
-    [sessionId],
-  );
-
-  return { exitCode, restart, send };
+  return { exitCode, restart };
 }
