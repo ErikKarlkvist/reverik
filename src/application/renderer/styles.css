@@ -223,6 +223,32 @@ select:focus {
   gap: 12px;
 }
 
+.shell__tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.shell__tab {
+  padding: 3px 10px;
+  border: 1px solid transparent;
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+}
+
+.shell__tab.is-active {
+  color: var(--fg);
+  border-color: var(--border);
+  background: var(--bg);
+}
+
+.shell__tab:disabled {
+  opacity: 0.4;
+}
+
 .shell__panel-heading {
   margin: 0;
   font-size: 12px;

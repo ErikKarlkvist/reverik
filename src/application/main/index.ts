@@ -6,6 +6,11 @@ import { createMainWindow } from './window';
 
 loadEnv();
 
+// Sätt HIGHAI_DEBUG_PORT för att kunna styra renderern via Chrome DevTools-protokollet.
+if (process.env.HIGHAI_DEBUG_PORT) {
+  app.commandLine.appendSwitch('remote-debugging-port', process.env.HIGHAI_DEBUG_PORT);
+}
+
 void app.whenReady().then(() => {
   electronApp.setAppUserModelId('se.karlkvist.highai');
   app.on('browser-window-created', (_, window) => {

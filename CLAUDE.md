@@ -11,6 +11,9 @@ som animerade sekvensdiagram. Arbetsplan i PLAN.md.
 - Renderern går att titta på i en vanlig webbläsare medan `npm run dev` kör: öppna
   Vite-adressen som skrivs ut. Då laddas `src/application/renderer/mockBridge.ts`
   i stället för preload-bryggan och svarar med demo-repot och fixturerna.
+- Riktig Electron går att styra utifrån: `HIGHAI_DEBUG_PORT=9333 npm run dev` öppnar
+  DevTools-protokollet, och `node scripts/drive-electron.mjs` klickar igenom appen och
+  rapporterar DOM-tillstånd. Använd det för att verifiera beteende som skiljer sig från webbläsaren.
 
 Pre-commit-hooken (husky + lint-staged) kör eslint --fix och prettier på staged filer,
 sedan `tsc -b` och testerna. Committa inte med `--no-verify`.

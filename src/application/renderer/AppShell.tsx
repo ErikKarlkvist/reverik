@@ -9,12 +9,17 @@ import { RepoPanel, SourceView, useRepo } from '@/features/repo';
 import { ThemeSelect } from './ThemeSelect';
 import { useStoredFlag } from './useStoredFlag';
 
+type PanelTab = 'code' | 'log';
+
+const TAB_LABELS: Readonly<Record<PanelTab, string>> = { code: 'Kod', log: 'Logg' };
+
 export function AppShell(): JSX.Element {
   const [info, setInfo] = useState<AppInfo | null>(null);
   const { repo } = useRepo();
   const { current } = useAnalyses();
   const [logOpen, setLogOpen] = useStoredFlag('highai.logOpen', true);
   const [source, setSource] = useState<SourceRef | null>(null);
+  const [tab, setTab] = useState<PanelTab>('code');
 
   useEffect(() => {
     void invokeChannel(appInfoChannel, undefined).then(setInfo);
@@ -28,6 +33,7 @@ export function AppShell(): JSX.Element {
   }, []);
 
   const shownSource = current ? source : null;
+  const activeTab: PanelTab = tab === 'code' && !shownSource ? 'log' : tab;
 
   return (
     <div className={`shell${logOpen ? '' : ' shell--log-closed'}`}>
@@ -58,7 +64,23 @@ export function AppShell(): JSX.Element {
       {logOpen && (
         <section className="shell__bottom">
           <div className="shell__panel-bar">
-            <h2 className="shell__panel-heading">{shownSource ? 'Kod' : 'Logg'}</h2>
+            <div className="shell__tabs" role="tablist">
+              {(Object.keys(TAB_LABELS) as PanelTab[]).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === key}
+                  className={`shell__tab${activeTab === key ? ' is-active' : ''}`}
+                  disabled={key === 'code' && !shownSource}
+                  onClick={() => {
+                    setTab(key);
+                  }}
+                >
+                  {TAB_LABELS[key]}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               className="icon-button"
@@ -71,11 +93,11 @@ export function AppShell(): JSX.Element {
               <Icon name="chevronDown" />
             </button>
           </div>
-          {shownSource ? (
+          {activeTab === 'code' && shownSource ? (
             <SourceView source={shownSource} />
           ) : (
             <p className="shell__empty">
-              Här visas kodutdrag för aktivt steg och vad analysen läser.
+              Loggen visar vad analysen läser när den körs. Ingen analys körs just nu.
             </p>
           )}
         </section>
@@ -95,7 +117,7 @@ export function AppShell(): JSX.Element {
                 setLogOpen(true);
               }}
             >
-              <Icon name="chevronUp" size="sm" /> {shownSource ? 'Kod' : 'Logg'}
+              <Icon name="chevronUp" size="sm" /> {TAB_LABELS[activeTab]}
             </button>
           )}
           <ThemeSelect />

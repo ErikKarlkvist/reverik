@@ -191,10 +191,24 @@ export default tseslint.config(
     },
   },
 
-  // Konfigfiler i roten: ingen typad lintning
+  // Konfigfiler i roten och skript: ingen typad lintning
   {
-    files: ['*.js', '*.mjs', '*.ts'],
+    files: ['*.js', '*.mjs', '*.ts', 'scripts/**/*.mjs'],
     ...tseslint.configs.disableTypeChecked,
+  },
+  // Node-skript får använda node-globaler och console
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        fetch: 'readonly',
+        WebSocket: 'readonly',
+        setTimeout: 'readonly',
+      },
+    },
+    rules: { 'no-console': 'off' },
   },
 
   prettier,
