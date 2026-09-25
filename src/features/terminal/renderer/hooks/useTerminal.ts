@@ -22,15 +22,19 @@ export interface TerminalState {
   /** null tills skalet startat, sedan avslutningskoden när det dött */
   exitCode: number | null;
   restart: () => void;
+  /** Kör ett kommando i skalet, som om användaren skrivit det och tryckt Enter. */
+  run: (command: string) => void;
 }
 
 /**
  * Äger xterm-instansen och skalet bakom den. Startar om när repot byts eller
- * `restart` anropas. Containern måste finnas när effekten körs.
+ * `restart` anropas. Containern måste finnas när effekten körs. `startCommand`
+ * skrivs in i skalet så fort det öppnats.
  */
 export function useTerminal(
   repoPath: string,
   container: RefObject<HTMLDivElement | null>,
+  startCommand: string | null,
 ): TerminalState {
   const [generation, setGeneration] = useState(0);
   // Taggas med nyckeln för aktuellt skal, så ett byte av repo eller omstart
@@ -39,6 +43,7 @@ export function useTerminal(
   const [session, setSession] = useState<Session | null>(null);
   const live = session?.key === key ? session : null;
   const exitCode = live?.exitCode ?? null;
+  const sessionId = live?.id ?? null;
 
   useEffect(() => {
     const element = container.current;
@@ -72,6 +77,9 @@ export function useTerminal(
       id = opened;
       setSession({ key, id: opened, exitCode: null });
       term.focus();
+      // Skalet läser det köade när det är redo, så kommandot kan skickas direkt.
+      if (startCommand)
+        void invokeChannel(writeTerminalChannel, { id: opened, data: `${startCommand}\r` });
     });
 
     const disposables = [
@@ -106,11 +114,19 @@ export function useTerminal(
       term.dispose();
       if (id) void invokeChannel(closeTerminalChannel, { id });
     };
-  }, [repoPath, key, container]);
+  }, [repoPath, key, container, startCommand]);
 
   const restart = useCallback(() => {
     setGeneration((g) => g + 1);
   }, []);
 
-  return { exitCode, restart };
+  const run = useCallback(
+    (command: string) => {
+      if (sessionId)
+        void invokeChannel(writeTerminalChannel, { id: sessionId, data: `${command}\r` });
+    },
+    [sessionId],
+  );
+
+  return { exitCode, restart, run };
 }

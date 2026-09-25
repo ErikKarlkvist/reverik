@@ -12,6 +12,11 @@ describe('buildGuide', () => {
     }
   });
 
+  it('tells the agent that the file is the only deliverable', () => {
+    expect(guide).toContain('only deliverable');
+    expect(guide).toContain('no Mermaid');
+  });
+
   it('embeds an example that validates against the schema', () => {
     const json = /```json\n([\s\S]*?)\n```/.exec(guide)?.[1];
     expect(json).toBeDefined();

@@ -5,10 +5,10 @@ import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { Splitter } from '@/common/renderer/Splitter';
 import { invokeChannel } from '@/common/renderer/ipc';
-import { AnalysisList, InboxLog, useAnalyses } from '@/features/analysis';
+import { AnalysisList, GUIDE_FILE, InboxLog, useAnalyses } from '@/features/analysis';
 import { FlowPlayer } from '@/features/flow-graph';
 import { RepoPanel, SourceView, useRepo } from '@/features/repo';
-import { TerminalPanel } from '@/features/terminal';
+import { claudeStartCommand, TerminalPanel } from '@/features/terminal';
 import { ThemeSelect } from './ThemeSelect';
 import { useStoredFlag } from './useStoredFlag';
 import { useStoredNumber } from './useStoredNumber';
@@ -153,7 +153,11 @@ export function AppShell(): JSX.Element {
 
       {terminalOpen && (
         <div className="shell__terminal">
-          <TerminalPanel repoPath={repo?.path ?? null} onHide={hideTerminal}>
+          <TerminalPanel
+            repoPath={repo?.path ?? null}
+            startCommand={claudeStartCommand(GUIDE_FILE)}
+            onHide={hideTerminal}
+          >
             <Splitter
               orientation="vertical"
               size={terminalWidth}

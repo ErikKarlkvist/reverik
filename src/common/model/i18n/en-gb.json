@@ -89,6 +89,8 @@
 
   "terminal.heading": "Terminal",
   "terminal.restart": "Restart shell",
+  "terminal.startAgent": "Start Claude",
+  "terminal.startAgentHint": "Runs claude with the Highai guide as its system prompt. Happens automatically when the terminal opens.",
   "terminal.exited": "The shell exited with code {code}.",
   "terminal.noRepo": "Choose a repository to open a terminal in it.",
 
