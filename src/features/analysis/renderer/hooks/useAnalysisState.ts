@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { invokeChannel } from '@/common/renderer/ipc';
+import { readStoredJson, writeStored } from '@/common/renderer/storage';
 import { useIpcEvent } from '@/common/renderer/useIpcEvent';
 import {
   deleteAnalysisChannel,
@@ -39,6 +40,21 @@ interface Tagged<T> {
   value: T;
 }
 
+const LAST_ANALYSIS_KEY = 'highai.lastAnalysis';
+
+function isSelection(value: unknown): value is Tagged<string> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as Tagged<unknown>).repoPath === 'string' &&
+    typeof (value as Tagged<unknown>).value === 'string'
+  );
+}
+
+function rememberSelection(selection: Tagged<string> | null): void {
+  writeStored(LAST_ANALYSIS_KEY, selection ? JSON.stringify(selection) : null);
+}
+
 /**
  * Listan följer repot. Allt state taggas med repots sökväg och härleds mot det
  * aktuella repot, så byte av repo ger tom lista och inget val utan att något
@@ -59,7 +75,12 @@ export function useAnalysisState(repoPath: string | null): AnalysisState {
     };
     invokeChannel(listAnalysesChannel, { repoPath })
       .then((list) => {
-        if (!cancelled) setLoaded({ repoPath, list });
+        if (cancelled) return;
+        setLoaded({ repoPath, list });
+        // Återta analysen som var vald senast, om den fortfarande finns.
+        const last = readStoredJson(LAST_ANALYSIS_KEY, isSelection);
+        if (last?.repoPath === repoPath && list.some((a) => a.id === last.value))
+          setSelection(last);
       })
       .catch(fail);
     invokeChannel(watchInboxChannel, { repoPath }).catch(fail);
@@ -87,8 +108,10 @@ export function useAnalysisState(repoPath: string | null): AnalysisState {
         value: [entry, ...(log?.repoPath === repoPath ? log.value : [])],
       }));
       if (event.type === 'imported') {
+        const selected = { repoPath, value: event.analysis.id };
         setLoaded({ repoPath, list: event.list });
-        setSelection({ repoPath, value: event.analysis.id });
+        setSelection(selected);
+        rememberSelection(selected);
         setRejection(null);
       } else {
         setRejection({ repoPath, value: entry });
@@ -106,7 +129,9 @@ export function useAnalysisState(repoPath: string | null): AnalysisState {
 
   const select = useCallback(
     (id: string | null) => {
-      setSelection(id && repoPath ? { repoPath, value: id } : null);
+      const next = id && repoPath ? { repoPath, value: id } : null;
+      setSelection(next);
+      rememberSelection(next);
     },
     [repoPath],
   );

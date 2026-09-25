@@ -33,7 +33,23 @@
 
 .terminal-panel__tools {
   display: flex;
+  align-items: center;
   gap: 2px;
+}
+
+.terminal-panel__agent {
+  margin-right: 6px;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+
+.terminal-panel__hint {
+  margin: 0;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg-muted);
+  font-size: 12px;
 }
 
 .terminal-panel__screen {

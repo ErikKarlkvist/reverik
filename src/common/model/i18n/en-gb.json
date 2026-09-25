@@ -89,8 +89,13 @@
 
   "terminal.heading": "Terminal",
   "terminal.restart": "Restart shell",
-  "terminal.startAgent": "Start Claude",
-  "terminal.startAgentHint": "Runs claude with the Highai guide as its system prompt. Happens automatically when the terminal opens.",
+  "terminal.startAgent": "Start the agent again",
+  "terminal.agentLabel": "Agent",
+  "terminal.agentHint": "Which agent to start when the terminal opens. Changing it restarts the shell.",
+  "terminal.agent.claude": "Claude Code",
+  "terminal.agent.codex": "Codex",
+  "terminal.agent.shell": "Other agent",
+  "terminal.shellHint": "Start your agent here and ask it to read {guide} first. It explains how to deliver a flow to Highai.",
   "terminal.exited": "The shell exited with code {code}.",
   "terminal.noRepo": "Choose a repository to open a terminal in it.",
 

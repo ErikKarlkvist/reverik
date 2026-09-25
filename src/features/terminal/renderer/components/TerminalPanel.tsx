@@ -2,29 +2,47 @@ import '@xterm/xterm/css/xterm.css';
 import { type JSX, type ReactNode, useCallback, useRef } from 'react';
 import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
+import { useStoredChoice } from '@/common/renderer/useStoredChoice';
+import { type Agent, AGENTS, agentStartCommand } from '../../model/agent';
 import { useTerminal } from '../hooks/useTerminal';
 import './terminal.css';
 
 interface Props {
   /** Skalet startar i den här mappen. */
   repoPath: string | null;
-  /** Körs i skalet så fort det öppnats, t.ex. kommandot som startar agenten. */
-  startCommand: string | null;
+  /** Guiden agenten ska läsa, relativt repots rot. */
+  guideFile: string;
   onHide: () => void;
   /** T.ex. ett draghandtag som ägs av appen. */
   children?: ReactNode;
 }
 
-/** Terminal för valfri AI-agent, startad i repots rot. */
-export function TerminalPanel({ repoPath, startCommand, onHide, children }: Props): JSX.Element {
+const AGENT_LABELS: Readonly<Record<Agent, string>> = {
+  claude: t('terminal.agent.claude'),
+  codex: t('terminal.agent.codex'),
+  shell: t('terminal.agent.shell'),
+};
+
+/** Terminal för valfri AI-agent, startad i repots rot. Vald agent sparas mellan starter. */
+export function TerminalPanel({ repoPath, guideFile, onHide, children }: Props): JSX.Element {
+  const [agent, setAgent] = useStoredChoice<Agent>('highai.agent', AGENTS, 'claude');
+  const startCommand = agentStartCommand(agent, guideFile);
+
   return (
     <section className="terminal-panel">
       {children}
       {repoPath ? (
-        <Shell key={repoPath} repoPath={repoPath} startCommand={startCommand} onHide={onHide} />
+        <Shell
+          key={repoPath}
+          repoPath={repoPath}
+          agent={agent}
+          startCommand={startCommand}
+          onAgentChange={setAgent}
+          onHide={onHide}
+        />
       ) : (
         <>
-          <Bar onHide={onHide} />
+          <Bar agent={agent} onAgentChange={setAgent} onHide={onHide} />
           <p className="terminal-panel__empty">{t('terminal.noRepo')}</p>
         </>
       )}
@@ -33,24 +51,42 @@ export function TerminalPanel({ repoPath, startCommand, onHide, children }: Prop
 }
 
 interface BarProps {
+  agent: Agent;
+  onAgentChange: (next: string) => void;
   onHide: () => void;
-  onRestart?: () => void;
+  onRestart?: (() => void) | undefined;
   onStartAgent?: (() => void) | undefined;
 }
 
-function Bar({ onHide, onRestart, onStartAgent }: BarProps): JSX.Element {
+function Bar({ agent, onAgentChange, onHide, onRestart, onStartAgent }: BarProps): JSX.Element {
   return (
     <header className="terminal-panel__bar">
       <h2 className="terminal-panel__heading">{t('terminal.heading')}</h2>
       <span className="terminal-panel__tools">
+        <select
+          className="terminal-panel__agent"
+          value={agent}
+          title={t('terminal.agentHint')}
+          aria-label={t('terminal.agentLabel')}
+          onChange={(event) => {
+            onAgentChange(event.target.value);
+          }}
+        >
+          {AGENTS.map((key) => (
+            <option key={key} value={key}>
+              {AGENT_LABELS[key]}
+            </option>
+          ))}
+        </select>
         {onStartAgent && (
           <button
             type="button"
-            className="text-button"
-            title={t('terminal.startAgentHint')}
+            className="icon-button icon-button--quiet"
+            title={t('terminal.startAgent')}
+            aria-label={t('terminal.startAgent')}
             onClick={onStartAgent}
           >
-            <Icon name="play" size="sm" /> {t('terminal.startAgent')}
+            <Icon name="play" size="sm" />
           </button>
         )}
         {onRestart && (
@@ -80,11 +116,14 @@ function Bar({ onHide, onRestart, onStartAgent }: BarProps): JSX.Element {
 
 interface ShellProps {
   repoPath: string;
+  agent: Agent;
   startCommand: string | null;
+  onAgentChange: (next: string) => void;
   onHide: () => void;
 }
 
-function Shell({ repoPath, startCommand, onHide }: ShellProps): JSX.Element {
+/** Byte av agent ger nytt startkommando, och hooken startar då om skalet. */
+function Shell({ repoPath, agent, startCommand, onAgentChange, onHide }: ShellProps): JSX.Element {
   const screen = useRef<HTMLDivElement | null>(null);
   const { exitCode, restart, run } = useTerminal(repoPath, screen, startCommand);
   const startAgent = useCallback(() => {
@@ -94,10 +133,17 @@ function Shell({ repoPath, startCommand, onHide }: ShellProps): JSX.Element {
   return (
     <>
       <Bar
+        agent={agent}
+        onAgentChange={onAgentChange}
         onHide={onHide}
         onRestart={restart}
         onStartAgent={startCommand && exitCode === null ? startAgent : undefined}
       />
+      {agent === 'shell' && (
+        <p className="terminal-panel__hint">
+          {t('terminal.shellHint', { guide: '.highai/README.md' })}
+        </p>
+      )}
       <div className="terminal-panel__screen" ref={screen} />
       {exitCode !== null && (
         <div className="terminal-panel__exited">
