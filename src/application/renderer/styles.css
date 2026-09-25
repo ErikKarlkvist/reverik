@@ -18,45 +18,103 @@
 
 body {
   margin: 0;
+  overflow: hidden;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: 6px 10px;
+}
+
+button {
+  cursor: pointer;
+  background: var(--bg-panel);
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .shell {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  grid-template-rows: 1fr 28px;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 1fr 220px 28px;
+  grid-template-areas:
+    'sidebar canvas'
+    'sidebar bottom'
+    'footer footer';
   height: 100vh;
 }
 
 .shell__sidebar {
-  grid-row: 1;
-  padding: 44px 16px 16px;
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 16px 16px;
   border-right: 1px solid var(--border);
   background: var(--bg-panel);
+  overflow-y: auto;
+}
+
+/* Dragbar yta bakom trafikljusen på macOS */
+.shell__drag {
+  height: 38px;
+  flex-shrink: 0;
   -webkit-app-region: drag;
 }
 
 .shell__title {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 16px;
   font-weight: 600;
 }
 
-.shell__hint {
-  margin: 0;
-  color: var(--fg-muted);
-}
-
 .shell__canvas {
+  grid-area: canvas;
   display: grid;
   place-items: center;
 }
 
+.shell__bottom {
+  grid-area: bottom;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  overflow-y: auto;
+}
+
+.shell__panel-heading {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+}
+
 .shell__empty {
+  margin: 0;
   color: var(--fg-muted);
 }
 
 .shell__footer {
-  grid-column: 1 / -1;
+  grid-area: footer;
   display: flex;
   align-items: center;
   padding: 0 12px;

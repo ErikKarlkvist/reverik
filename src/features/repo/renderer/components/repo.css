@@ -1,0 +1,135 @@
+.repo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.repo__heading,
+.repo__subheading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+}
+
+.repo__muted {
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+.repo__error {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgb(255 92 92 / 12%);
+  color: #ff8a8a;
+  cursor: pointer;
+}
+
+.repo__actions,
+.repo__clone {
+  display: flex;
+  gap: 8px;
+}
+
+.repo__clone input {
+  flex: 1;
+  min-width: 0;
+}
+
+.repo__progress {
+  position: relative;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.repo__progress-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 120ms linear;
+}
+
+.repo__progress-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+}
+
+.repo-card {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.repo-card__name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.repo-card__meta,
+.repo-card__origin {
+  color: var(--fg-muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.repo-card__langs {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 12px;
+}
+
+.recent__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recent__item {
+  display: flex;
+  align-items: center;
+}
+
+.recent__open {
+  flex: 1;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 6px 4px;
+  color: var(--fg);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent__open:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.recent__forget {
+  background: none;
+  border: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.recent__forget:hover {
+  color: var(--fg);
+}

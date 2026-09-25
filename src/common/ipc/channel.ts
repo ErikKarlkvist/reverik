@@ -15,3 +15,16 @@ export type ChannelResponse<C> = C extends Channel<unknown, infer Res> ? Res : n
 export function defineChannel<Req = undefined, Res = undefined>(name: string): Channel<Req, Res> {
   return { name };
 }
+
+/**
+ * En typad händelse som main skickar till renderer, t.ex. progress.
+ * Skickas med `emitEvent` i main och lyssnas på med `subscribeEvent` i renderer.
+ */
+export interface IpcEvent<Payload> {
+  readonly name: string;
+  readonly __payload?: Payload;
+}
+
+export function defineEvent<Payload>(name: string): IpcEvent<Payload> {
+  return { name };
+}

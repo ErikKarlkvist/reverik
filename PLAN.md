@@ -28,17 +28,17 @@ Mål: appen startar, renderer och main pratar via IPC, nyckeln läses från `.en
 - [x] Ladda `.env` i main, aldrig exponera nyckeln till renderer
 - [x] Typad IPC-brygga via preload (`window.api`) och `defineChannel`
 - [x] Kodstandard: strikt tsconfig, ESLint med arkitekturgränser, Prettier, husky pre-commit, Vitest
-- [ ] Enkel layout: sidopanel (repo + fråga), huvudyta (graf), nedre panel (logg/kod)
+- [x] Enkel layout: sidopanel (repo + fråga), huvudyta (graf), nedre panel (logg/kod)
 
 ## Del 1: Koppla repo
 
 Mål: användaren väljer ett repo och appen vet var koden ligger.
 
-- [ ] Välj lokal mapp via systemdialog
-- [ ] Klona git-URL till `userData/repos/<namn>` med simple-git, visa progress
-- [ ] Visa grundinfo: sökväg, branch, antal filer, dominerande språk
-- [ ] Kom ihåg senaste repon (electron-store eller JSON i userData)
-- [ ] Respektera `.gitignore` när filer räknas och senare när AI:n söker
+- [x] Välj lokal mapp via systemdialog
+- [x] Klona git-URL till `userData/repos/<namn>` med simple-git, visa progress
+- [x] Visa grundinfo: sökväg, branch, antal filer, dominerande språk
+- [x] Kom ihåg senaste repon (JSON i userData)
+- [x] Respektera `.gitignore` när filer räknas (via `git ls-files`), senare även när AI:n söker
 
 ## Del 2: Grafschema och fixture
 
