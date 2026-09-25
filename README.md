@@ -3,7 +3,7 @@
 PoC: en Electron-app som med hjälp av Claude analyserar dataflöden i en kodbas
 och visar dem som ett animerat sekvensdiagram.
 
-Man kopplar appen till ett repo (lokal mapp eller git-URL), ställer en fråga som
+Man kopplar appen till ett lokalt repo, ställer en fråga som
 "Visa vad som händer när man klickar på lägg till i varukorg", och får en graf
 där requests spelas upp steg för steg. Varje nod och kant pekar på fil och rad
 i koden.

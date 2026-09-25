@@ -17,7 +17,7 @@ export function defineChannel<Req = undefined, Res = undefined>(name: string): C
 }
 
 /**
- * En typad händelse som main skickar till renderer, t.ex. progress.
+ * En typad händelse som main skickar till renderer, t.ex. framsteg under en analys.
  * Skickas med `emitEvent` i main och lyssnas på med `subscribeEvent` i renderer.
  */
 export interface IpcEvent<Payload> {

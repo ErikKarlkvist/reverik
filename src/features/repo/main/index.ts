@@ -1,14 +1,12 @@
 import { BrowserWindow, dialog } from 'electron';
 import { handleChannel } from '@/common/main/ipc';
 import {
-  cloneRepoChannel,
   forgetRepoChannel,
   listRecentReposChannel,
   openRepoChannel,
   pickLocalRepoChannel,
 } from '../ipc/channels';
 import { type RepoInfo } from '../model/repo';
-import { cloneRepo } from './clone';
 import { inspectRepo } from './inspect';
 import { forgetRepo, readRecent, rememberRepo } from './recent';
 
@@ -23,8 +21,6 @@ export function registerRepoHandlers(): void {
     if (result.canceled || !path) return null;
     return openAndRemember(path);
   });
-
-  handleChannel(cloneRepoChannel, async ({ url }) => openAndRemember(await cloneRepo(url)));
 
   handleChannel(openRepoChannel, ({ path }) => openAndRemember(path));
 

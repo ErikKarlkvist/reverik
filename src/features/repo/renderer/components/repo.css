@@ -28,37 +28,9 @@
   cursor: pointer;
 }
 
-.repo__actions,
-.repo__clone {
+.repo__actions {
   display: flex;
   gap: 8px;
-}
-
-.repo__clone input {
-  flex: 1;
-  min-width: 0;
-}
-
-.repo__progress {
-  position: relative;
-  height: 22px;
-  border-radius: 6px;
-  background: var(--border);
-  overflow: hidden;
-}
-
-.repo__progress-bar {
-  height: 100%;
-  background: var(--accent);
-  transition: width 120ms linear;
-}
-
-.repo__progress-label {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-size: 12px;
 }
 
 .repo-card {

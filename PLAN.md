@@ -18,7 +18,7 @@ kopplas in i UI:t.
 - `@xyflow/react` (React Flow) för grafen, `elkjs` eller `dagre` för layout
 - `@anthropic-ai/claude-agent-sdk` i main-processen för analysen
 - `zod` för att validera grafen AI:n producerar
-- `simple-git` för klona/inspektera repo
+- `simple-git` för att läsa branch och fillista ur repot
 
 ## Del 0: Skelett
 
@@ -32,10 +32,10 @@ Mål: appen startar, renderer och main pratar via IPC, nyckeln läses från `.en
 
 ## Del 1: Koppla repo
 
-Mål: användaren väljer ett repo och appen vet var koden ligger.
+Mål: användaren väljer ett lokalt repo och appen vet var koden ligger. Kloning av
+git-URL:er är bortvalt, repot ska redan finnas på disk.
 
 - [x] Välj lokal mapp via systemdialog
-- [x] Klona git-URL till `userData/repos/<namn>` med simple-git, visa progress
 - [x] Visa grundinfo: sökväg, branch, antal filer, dominerande språk
 - [x] Kom ihåg senaste repon (JSON i userData)
 - [x] Respektera `.gitignore` när filer räknas (via `git ls-files`), senare även när AI:n söker

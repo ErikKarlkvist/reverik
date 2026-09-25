@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { invokeChannel } from '@/common/renderer/ipc';
-import { useIpcEvent } from '@/common/renderer/useIpcEvent';
 import {
-  type CloneProgress,
-  cloneProgressEvent,
-  cloneRepoChannel,
   forgetRepoChannel,
   listRecentReposChannel,
   openRepoChannel,
@@ -17,9 +13,7 @@ export interface RepoState {
   recent: RepoInfo[];
   busy: boolean;
   error: string | null;
-  cloneProgress: CloneProgress | null;
   pickLocal: () => Promise<void>;
-  clone: (url: string) => Promise<void>;
   open: (path: string) => Promise<void>;
   forget: (path: string) => Promise<void>;
   clearError: () => void;
@@ -30,13 +24,10 @@ export function useRepoState(): RepoState {
   const [recent, setRecent] = useState<RepoInfo[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cloneProgress, setCloneProgress] = useState<CloneProgress | null>(null);
 
   useEffect(() => {
     void invokeChannel(listRecentReposChannel, undefined).then(setRecent);
   }, []);
-
-  useIpcEvent(cloneProgressEvent, setCloneProgress);
 
   const run = useCallback(async (task: () => Promise<RepoInfo | null>) => {
     setBusy(true);
@@ -51,16 +42,11 @@ export function useRepoState(): RepoState {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
-      setCloneProgress(null);
     }
   }, []);
 
   const pickLocal = useCallback(
     () => run(() => invokeChannel(pickLocalRepoChannel, undefined)),
-    [run],
-  );
-  const clone = useCallback(
-    (url: string) => run(() => invokeChannel(cloneRepoChannel, { url })),
     [run],
   );
   const open = useCallback(
@@ -75,5 +61,5 @@ export function useRepoState(): RepoState {
     setError(null);
   }, []);
 
-  return { repo, recent, busy, error, cloneProgress, pickLocal, clone, open, forget, clearError };
+  return { repo, recent, busy, error, pickLocal, open, forget, clearError };
 }
