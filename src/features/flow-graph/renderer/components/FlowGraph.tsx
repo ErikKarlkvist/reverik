@@ -14,6 +14,7 @@ import { layoutFlow } from '../../model/layout';
 import { stepView } from '../../model/playback';
 import { FlowEdgeView, type GraphEdge } from './FlowEdgeView';
 import { FlowNodeView, type GraphNode } from './FlowNodeView';
+import { GraphStateContext } from './GraphStateContext';
 import { GroupNodeView, type GroupNode } from './GroupNodeView';
 
 const nodeTypes: NodeTypes = { flow: FlowNodeView, systemGroup: GroupNodeView };
@@ -53,27 +54,23 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
       ];
     });
 
-    const flowNodes: GraphNode[] = model.nodes.map((node) => {
-      const hovered = hoveredNode === node.id;
-      return {
-        id: node.id,
-        type: 'flow',
-        position: layout.positions.get(node.id) ?? { x: 0, y: 0 },
-        draggable: true,
-        data: {
-          kind: node.kind,
-          level: node.level,
-          label: node.label,
-          description: node.description,
-          status: view.nodes.get(node.id) ?? 'pending',
-          tables: node.tables,
-          hovered,
-        },
-      };
-    });
+    // Bara sådant som är stabilt över hover och uppspelning ligger i noddatan.
+    const flowNodes: GraphNode[] = model.nodes.map((node) => ({
+      id: node.id,
+      type: 'flow',
+      position: layout.positions.get(node.id) ?? { x: 0, y: 0 },
+      draggable: true,
+      data: {
+        kind: node.kind,
+        level: node.level,
+        label: node.label,
+        description: node.description,
+        tables: node.tables,
+      },
+    }));
 
     return [...groups, ...flowNodes];
-  }, [model, layout, view, hoveredNode]);
+  }, [model, layout]);
 
   const edges = useMemo<GraphEdge[]>(
     () =>
@@ -133,49 +130,53 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
     [model, onEdgeClick],
   );
 
+  const graphState = useMemo(() => ({ hoveredNodeId: hoveredNode, view }), [hoveredNode, view]);
+
   return (
     <div className="graph">
-      <svg className="graph__defs">
-        <defs>
-          {STATUSES.map((status) => (
-            <marker
-              key={status}
-              id={`graph-arrow-${status}`}
-              className={`graph-arrow is-${status}`}
-              viewBox="0 0 10 10"
-              refX="9"
-              refY="5"
-              markerWidth="7"
-              markerHeight="7"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 z" />
-            </marker>
-          ))}
-        </defs>
-      </svg>
-      <ReactFlow<AnyNode, GraphEdge>
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.15 }}
-        minZoom={0.3}
-        maxZoom={2}
-        nodesConnectable={false}
-        elementsSelectable
-        elevateEdgesOnSelect
-        proOptions={{ hideAttribution: true }}
-        onEdgeMouseEnter={onEdgeMouseEnter}
-        onEdgeMouseLeave={onEdgeMouseLeave}
-        onNodeMouseEnter={onNodeMouseEnter}
-        onNodeMouseLeave={onNodeMouseLeave}
-        onNodeClick={handleNodeClick}
-        onEdgeClick={handleEdgeClick}
-      >
-        <Background gap={24} size={1} />
-      </ReactFlow>
+      <GraphStateContext.Provider value={graphState}>
+        <svg className="graph__defs">
+          <defs>
+            {STATUSES.map((status) => (
+              <marker
+                key={status}
+                id={`graph-arrow-${status}`}
+                className={`graph-arrow is-${status}`}
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="7"
+                markerHeight="7"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" />
+              </marker>
+            ))}
+          </defs>
+        </svg>
+        <ReactFlow<AnyNode, GraphEdge>
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          fitView
+          fitViewOptions={{ padding: 0.15 }}
+          minZoom={0.3}
+          maxZoom={2}
+          nodesConnectable={false}
+          elementsSelectable
+          elevateEdgesOnSelect
+          proOptions={{ hideAttribution: true }}
+          onEdgeMouseEnter={onEdgeMouseEnter}
+          onEdgeMouseLeave={onEdgeMouseLeave}
+          onNodeMouseEnter={onNodeMouseEnter}
+          onNodeMouseLeave={onNodeMouseLeave}
+          onNodeClick={handleNodeClick}
+          onEdgeClick={handleEdgeClick}
+        >
+          <Background gap={24} size={1} />
+        </ReactFlow>
+      </GraphStateContext.Provider>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { type JSX, memo } from 'react';
 import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { type GraphKind, type GraphLevel, type TableInfo } from '../../model/graph';
-import { type StepStatus } from '../../model/playback';
+import { useNodeState } from './GraphStateContext';
 
 // React Flow kräver Record<string, unknown>, vilket ett interface inte uppfyller.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -12,21 +12,21 @@ export type GraphNodeData = {
   level: GraphLevel;
   label: string;
   description: string | undefined;
-  status: StepStatus;
   tables: TableInfo[];
-  hovered: boolean;
 };
 
 export type GraphNode = Node<GraphNodeData, 'flow'>;
 
 export const FlowNodeView = memo(function FlowNodeView({
+  id,
   data,
   selected,
 }: NodeProps<GraphNode>): JSX.Element {
+  const { status, hovered } = useNodeState(id);
   const system = data.level === 'system';
   return (
     <div
-      className={`graph-node graph-node--${data.kind} graph-node--${data.level} is-${data.status}${selected ? ' is-selected' : ''}`}
+      className={`graph-node graph-node--${data.kind} graph-node--${data.level} is-${status}${selected ? ' is-selected' : ''}`}
       title={
         system ? t('graph.zoomHint', { name: data.description ?? data.label }) : data.description
       }
@@ -42,7 +42,7 @@ export const FlowNodeView = memo(function FlowNodeView({
         <span className="graph-node__kind">{t(`kind.${data.kind}`)}</span>
         <span className="graph-node__label">{data.label}</span>
       </span>
-      {data.hovered && data.tables.length > 0 && <TablesPopover tables={data.tables} />}
+      {hovered && data.tables.length > 0 && <TablesPopover tables={data.tables} />}
     </div>
   );
 });
