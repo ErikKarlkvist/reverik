@@ -10,7 +10,7 @@ import {
 import { type JSX, useCallback, useMemo, useState } from 'react';
 import { type FlowEdge } from '@/common/model/flow';
 import { type GraphModel, type GraphNode as ModelNode } from '../../model/graph';
-import { layoutFlow, NODE_SIZES } from '../../model/layout';
+import { layoutFlow } from '../../model/layout';
 import { stepView } from '../../model/playback';
 import { FlowEdgeView, type GraphEdge } from './FlowEdgeView';
 import { FlowNodeView, type GraphNode } from './FlowNodeView';
@@ -19,8 +19,6 @@ import { GroupNodeView, type GroupNode } from './GroupNodeView';
 const nodeTypes: NodeTypes = { flow: FlowNodeView, systemGroup: GroupNodeView };
 const edgeTypes: EdgeTypes = { flow: FlowEdgeView };
 const STATUSES = ['pending', 'active', 'done'] as const;
-const GROUP_PADDING = 18;
-const GROUP_LABEL_HEIGHT = 30;
 
 type AnyNode = GraphNode | GroupNode;
 
@@ -38,30 +36,14 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
 
   const nodes = useMemo<AnyNode[]>(() => {
     const groups: GroupNode[] = model.groups.flatMap((group) => {
-      const members = model.nodes.filter((n) => n.systemId === group.id && n.level === 'node');
-      if (members.length === 0) return [];
-      let minX = Infinity;
-      let minY = Infinity;
-      let maxX = -Infinity;
-      let maxY = -Infinity;
-      for (const member of members) {
-        const p = layout.positions.get(member.id);
-        if (!p) continue;
-        const size = NODE_SIZES[member.level];
-        minX = Math.min(minX, p.x);
-        minY = Math.min(minY, p.y);
-        maxX = Math.max(maxX, p.x + size.width);
-        maxY = Math.max(maxY, p.y + size.height);
-      }
+      const rect = layout.groupRects.get(group.id);
+      if (!rect) return [];
       return [
         {
           id: `group:${group.id}`,
           type: 'systemGroup',
-          position: { x: minX - GROUP_PADDING, y: minY - GROUP_LABEL_HEIGHT },
-          style: {
-            width: maxX - minX + GROUP_PADDING * 2,
-            height: maxY - minY + GROUP_LABEL_HEIGHT + GROUP_PADDING,
-          },
+          position: { x: rect.x, y: rect.y },
+          style: { width: rect.width, height: rect.height },
           zIndex: -1,
           selectable: false,
           draggable: false,

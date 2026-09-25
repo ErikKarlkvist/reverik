@@ -34,6 +34,24 @@ describe('layoutFlow', () => {
     expect(get).not.toBe(set);
   });
 
+  it('håller ihop grupper och lägger inte fristående system inuti dem', () => {
+    const { positions, groupRects } = layoutFlow(detail);
+    const backend = groupRects.get('backend');
+    expect(backend).toBeDefined();
+    if (!backend) return;
+    for (const node of detail.nodes.filter((n) => n.systemId !== 'backend')) {
+      const p = positions.get(node.id);
+      if (!p) throw new Error(node.id);
+      const size = NODE_SIZES[node.level];
+      const inside =
+        p.x + size.width > backend.x &&
+        p.x < backend.x + backend.width &&
+        p.y + size.height > backend.y &&
+        p.y < backend.y + backend.height;
+      expect(inside, `${node.id} ligger inuti backend-ramen`).toBe(false);
+    }
+  });
+
   it('klarar systemvyn med självkanter', () => {
     const system = buildModel(addTodoFlow, { kind: 'system' });
     const { positions } = layoutFlow(system);
