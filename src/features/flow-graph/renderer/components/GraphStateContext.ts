@@ -11,12 +11,18 @@ export interface GraphState {
   view: StepView;
   /** Döljer en nod med dess kanter, från krysset på noden */
   hide: (nodeId: string) => void;
+  /** Öppnar frågerutan för en nod, från pratbubblan på noden */
+  askNode: (nodeId: string) => void;
+  /** Noden som just nu är utpekad i frågerutan */
+  askingNodeId: string | null;
 }
 
 const EMPTY: GraphState = {
   hoveredNodeId: null,
   view: { nodes: new Map(), edges: new Map(), activeEdgeId: null },
   hide: () => undefined,
+  askNode: () => undefined,
+  askingNodeId: null,
 };
 
 export const GraphStateContext = createContext<GraphState>(EMPTY);
@@ -24,14 +30,20 @@ export const GraphStateContext = createContext<GraphState>(EMPTY);
 export function useNodeState(id: string): {
   status: StepStatus;
   hovered: boolean;
+  asking: boolean;
   hide: () => void;
+  ask: () => void;
 } {
-  const { hoveredNodeId, view, hide } = useContext(GraphStateContext);
+  const { hoveredNodeId, view, hide, askNode, askingNodeId } = useContext(GraphStateContext);
   return {
     status: view.nodes.get(id) ?? 'pending',
     hovered: hoveredNodeId === id,
+    asking: askingNodeId === id,
     hide: () => {
       hide(id);
+    },
+    ask: () => {
+      askNode(id);
     },
   };
 }

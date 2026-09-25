@@ -10,7 +10,9 @@ import {
   hideElements,
   mapStepIndex,
 } from '../../model/graph';
+import { type AskTarget, buildAskPrompt } from '../../model/ask';
 import { type Point } from '../../model/layout';
+import { AskComposer } from './AskComposer';
 import { useFlowPlayback } from '../hooks/useFlowPlayback';
 import { FlowGraph } from './FlowGraph';
 import { PlaybackControls } from './PlaybackControls';
@@ -23,6 +25,10 @@ interface Props {
   onSelectSource?: (source: SourceRef) => void;
   /** Renderas mellan grafen och kontrollerna, t.ex. ett draghandtag som ägs av appen. */
   beforeControls?: ReactNode;
+  /** Filen i repot flödet kom från, så agenten kan uppdatera den */
+  flowFile?: string | undefined;
+  /** Tar emot frågan om en nod eller ett anrop, färdig att skicka till agenten */
+  onAsk?: ((prompt: string) => void) | undefined;
 }
 
 /**
@@ -34,6 +40,8 @@ export function FlowPlayer({
   onActiveEdgeChange,
   onSelectSource,
   beforeControls,
+  flowFile,
+  onAsk,
 }: Props): JSX.Element {
   const [view, setView] = useState<GraphView>({ kind: 'system' });
   // Det användaren dolt gäller i alla vyer. Flyttade noder sparas per vy.
@@ -46,6 +54,17 @@ export function FlowPlayer({
   );
   const playback = useFlowPlayback(model.steps.length);
   const hiddenCount = hiddenNodes.size + hiddenEdges.size;
+  const [asking, setAsking] = useState<AskTarget | null>(null);
+  const cancelAsk = useCallback(() => {
+    setAsking(null);
+  }, []);
+  const sendAsk = useCallback(
+    (question: string) => {
+      if (asking) onAsk?.(buildAskPrompt(flow, asking, question, flowFile));
+      setAsking(null);
+    },
+    [asking, flow, flowFile, onAsk],
+  );
 
   useEffect(() => {
     const step = model.steps[playback.stepIndex];
@@ -158,9 +177,25 @@ export function FlowPlayer({
         onHideEdges={onHideEdges}
         onNodeClick={onNodeClick}
         onEdgeClick={onEdgeClick}
+        asking={onAsk ? asking : null}
+        onAsk={setAsking}
+        overlay={
+          onAsk && asking ? (
+            <AskComposer
+              key={askKey(asking)}
+              target={asking}
+              onSend={sendAsk}
+              onCancel={cancelAsk}
+            />
+          ) : null
+        }
       />
       <div className="player__divider">{beforeControls}</div>
       <PlaybackControls steps={model.steps} playback={playback} />
     </div>
   );
+}
+
+function askKey(target: AskTarget): string {
+  return target.kind === 'node' ? `node:${target.node.id}` : `edge:${target.edge.id}`;
 }

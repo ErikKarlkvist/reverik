@@ -114,6 +114,111 @@ button.crumb:hover:not(:disabled) {
   border-color: var(--accent);
 }
 
+/* Utpekad i frågerutan */
+.graph-node.is-asking,
+.graph-table.is-asking {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.graph .graph-edge.is-asking {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+/* Pratbubblan som öppnar frågerutan, syns vid hover bredvid krysset */
+.graph-node__ask {
+  position: absolute;
+  top: -9px;
+  right: 13px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-panel);
+  color: var(--fg-muted);
+  opacity: 0;
+  transition: opacity 120ms;
+}
+
+.graph-node:hover .graph-node__ask,
+.graph-table:hover .graph-node__ask,
+.graph-node.is-asking .graph-node__ask {
+  opacity: 1;
+}
+
+.graph-node__ask:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* I en öppen kantetikett sitter bubblan i texten */
+.graph-edge-label__text .graph-node__ask {
+  position: static;
+  display: inline-grid;
+  margin-left: 6px;
+  vertical-align: -4px;
+  opacity: 1;
+}
+
+.graph-edge-label__member.is-asking .graph-edge-label__text {
+  color: var(--accent);
+}
+
+/* Frågerutan över grafen */
+.graph-ask {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(640px, calc(100% - 40px));
+  padding: 8px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--bg-panel);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 18%);
+  transform: translateX(-50%);
+}
+
+.graph-ask__target {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  max-width: 40%;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.graph-ask__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.graph-ask__source {
+  color: var(--fg-muted);
+  font-weight: 400;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+.graph-ask__input {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Krysset som döljer en nod, syns vid hover */
 .graph-node__remove {
   position: absolute;

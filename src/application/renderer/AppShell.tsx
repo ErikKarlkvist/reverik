@@ -8,7 +8,7 @@ import { invokeChannel } from '@/common/renderer/ipc';
 import { AnalysisList, GUIDE_FILE, InboxLog, useAnalyses } from '@/features/analysis';
 import { FlowPlayer } from '@/features/flow-graph';
 import { RepoPanel, SourceView, useRepo } from '@/features/repo';
-import { TerminalPanel } from '@/features/terminal';
+import { TerminalPanel, useTerminalApi } from '@/features/terminal';
 import { ThemeSelect } from './ThemeSelect';
 import { useStoredFlag } from './useStoredFlag';
 import { useStoredNumber } from './useStoredNumber';
@@ -45,6 +45,15 @@ export function AppShell(): JSX.Element {
   const hideTerminal = useCallback(() => {
     setTerminalOpen(false);
   }, [setTerminalOpen]);
+  // Frågor från grafen går till agenten i terminalen. Är panelen stängd öppnas den och frågan köas.
+  const terminal = useTerminalApi();
+  const onAsk = useCallback(
+    (prompt: string) => {
+      setTerminalOpen(true);
+      terminal.send(prompt);
+    },
+    [terminal, setTerminalOpen],
+  );
 
   const shownSource = current ? source : null;
   const activeTab: PanelTab = tab === 'code' && !shownSource ? 'log' : tab;
@@ -87,6 +96,8 @@ export function AppShell(): JSX.Element {
             flow={current.flow}
             onActiveEdgeChange={onActiveEdgeChange}
             onSelectSource={onSelectSource}
+            flowFile={current.file}
+            onAsk={onAsk}
             beforeControls={
               logOpen ? (
                 <Splitter

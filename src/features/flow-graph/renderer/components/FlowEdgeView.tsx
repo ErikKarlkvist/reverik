@@ -10,6 +10,7 @@ import { t } from '@/common/model/i18n';
 import { formatPayload } from '../../model/format';
 import { type Direction } from '../../model/layout';
 import { type StepStatus } from '../../model/playback';
+import { AskButton } from './AskButton';
 
 export interface EdgeMemberData {
   id: string;
@@ -29,6 +30,9 @@ export type GraphEdgeData = {
   offset: number;
   direction: Direction;
   hovered: boolean;
+  /** Anropet som är utpekat i frågerutan, om det ligger på den här linjen */
+  askingId: string | null;
+  onAsk: (memberId: string) => void;
 };
 
 /** Hur långt från linjen etiketten sitter, i pixlar */
@@ -61,7 +65,7 @@ export const FlowEdgeView = memo(function FlowEdgeView({
     sourcePosition,
     targetPosition,
   });
-  const open = data.hovered || selected;
+  const open = data.hovered || selected === true || data.askingId !== null;
   const active = data.members.find((m) => m.status === 'active');
   const shown = open ? data.members : active ? [active] : [];
   // Framåtkanter får etiketten ovanför linjen, svar under, så linjen syns.
@@ -73,7 +77,7 @@ export const FlowEdgeView = memo(function FlowEdgeView({
       <BaseEdge
         id={id}
         path={path}
-        className={`graph-edge is-${data.status}${selected ? ' is-selected' : ''}`}
+        className={`graph-edge is-${data.status}${selected ? ' is-selected' : ''}${data.askingId ? ' is-asking' : ''}`}
         markerEnd={`url(#graph-arrow-${data.status})`}
       />
       {shown.length > 0 && (
@@ -99,8 +103,20 @@ export const FlowEdgeView = memo(function FlowEdgeView({
             }}
           >
             {shown.map((member) => (
-              <div key={member.id} className={`graph-edge-label__member is-${member.status}`}>
-                <span className="graph-edge-label__text">{member.label}</span>
+              <div
+                key={member.id}
+                className={`graph-edge-label__member is-${member.status}${member.id === data.askingId ? ' is-asking' : ''}`}
+              >
+                <span className="graph-edge-label__text">
+                  {member.label}
+                  {open && (
+                    <AskButton
+                      onAsk={() => {
+                        data.onAsk(member.id);
+                      }}
+                    />
+                  )}
+                </span>
                 {open && (member.payload ?? member.response) && (
                   <div className="graph-edge-label__details">
                     {member.payload && (

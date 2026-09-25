@@ -86,6 +86,15 @@
   "validation.unknownEdge": "Step {step} points to unknown edge \"{edge}\"",
   "validation.unknownReference": "Column {table}.{column} references unknown table \"{target}\"",
 
+  "ask.button": "Ask the agent about this",
+  "ask.placeholder": "Ask about {label}…",
+  "ask.send": "Ask",
+  "ask.cancel": "Cancel",
+  "ask.nodePrompt": "About the node \"{label}\"{source} in the flow \"{flow}\"{file}: {question}",
+  "ask.edgePrompt": "About the call \"{label}\" from \"{from}\" to \"{to}\"{source} in the flow \"{flow}\"{file}: {question}",
+  "ask.source": " ({file}:{line})",
+  "ask.file": " (saved as {file}, update it if the answer changes the flow)",
+
   "table.primaryKey": "Primary key",
   "table.references": "References {target}",
 

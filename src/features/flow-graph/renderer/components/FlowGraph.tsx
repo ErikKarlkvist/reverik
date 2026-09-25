@@ -9,8 +9,9 @@ import {
   type NodeTypes,
   ReactFlow,
 } from '@xyflow/react';
-import { type JSX, useCallback, useMemo, useState } from 'react';
+import { type JSX, type ReactNode, useCallback, useMemo, useState } from 'react';
 import { type FlowEdge } from '@/common/model/flow';
+import { type AskTarget } from '../../model/ask';
 import {
   type GraphModel,
   type GraphNode as ModelNode,
@@ -55,6 +56,11 @@ interface Props {
   onHideEdges: (edgeIds: string[]) => void;
   onNodeClick?: ((node: ModelNode) => void) | undefined;
   onEdgeClick?: ((edge: FlowEdge) => void) | undefined;
+  /** Det som är utpekat i frågerutan, markeras i grafen */
+  asking: AskTarget | null;
+  onAsk: (target: AskTarget) => void;
+  /** Ritas ovanpå grafen, t.ex. frågerutan */
+  overlay?: ReactNode;
 }
 
 export function FlowGraph({
@@ -66,6 +72,9 @@ export function FlowGraph({
   onHideEdges,
   onNodeClick,
   onEdgeClick,
+  asking,
+  onAsk,
+  overlay,
 }: Props): JSX.Element {
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
@@ -135,6 +144,14 @@ export function FlowGraph({
     return [...groups, ...flowNodes];
   }, [model, positionOf, selected]);
 
+  const askEdge = useCallback(
+    (memberId: string) => {
+      const edge = model.edges.find((e) => e.id === memberId);
+      if (edge) onAsk({ kind: 'edge', edge });
+    },
+    [model, onAsk],
+  );
+
   const edges = useMemo<AnyEdge[]>(() => {
     const relations: RelationEdge[] = model.relations.map((relation) => {
       const placement = layout.placements.get(relation.id);
@@ -154,6 +171,10 @@ export function FlowGraph({
       const placement = layout.placements.get(edge.id);
       const backward = placement?.direction === 'backward';
       const open = hoveredEdge === edge.id;
+      const askingId =
+        asking?.kind === 'edge' && edge.members.some((m) => m.id === asking.edge.id)
+          ? asking.edge.id
+          : null;
       const members: EdgeMemberData[] = edge.members.map((m) => ({
         id: m.id,
         label: m.label,
@@ -177,11 +198,13 @@ export function FlowGraph({
           offset: placement?.offset ?? 0,
           direction: placement?.direction ?? 'forward',
           hovered: open,
+          askingId,
+          onAsk: askEdge,
         },
       };
     });
     return [...relations, ...flowEdges];
-  }, [model, visualEdges, layout, view, hoveredEdge, selected]);
+  }, [model, visualEdges, layout, view, hoveredEdge, selected, asking, askEdge]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<AnyNode>[]) => {
@@ -249,9 +272,17 @@ export function FlowGraph({
     },
     [onHideNodes],
   );
+  const askNode = useCallback(
+    (nodeId: string) => {
+      const node = model.nodes.find((n) => n.id === nodeId);
+      if (node) onAsk({ kind: 'node', node });
+    },
+    [model, onAsk],
+  );
+  const askingNodeId = asking?.kind === 'node' ? asking.node.id : null;
   const graphState = useMemo(
-    () => ({ hoveredNodeId: hoveredNode, view, hide }),
-    [hoveredNode, view, hide],
+    () => ({ hoveredNodeId: hoveredNode, view, hide, askNode, askingNodeId }),
+    [hoveredNode, view, hide, askNode, askingNodeId],
   );
 
   return (
@@ -301,6 +332,7 @@ export function FlowGraph({
         >
           <Background gap={24} size={1} />
         </ReactFlow>
+        {overlay}
       </GraphStateContext.Provider>
     </div>
   );

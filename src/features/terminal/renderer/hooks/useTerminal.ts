@@ -10,6 +10,7 @@ import {
   terminalExitEvent,
   writeTerminalChannel,
 } from '../../ipc/channels';
+import { useTerminalApi } from '../TerminalContext';
 import { readTerminalTheme, watchTheme } from './terminalTheme';
 
 interface Session {
@@ -44,6 +45,7 @@ export function useTerminal(
   const live = session?.key === key ? session : null;
   const exitCode = live?.exitCode ?? null;
   const sessionId = live?.id ?? null;
+  const { register } = useTerminalApi();
 
   useEffect(() => {
     const element = container.current;
@@ -80,6 +82,9 @@ export function useTerminal(
       // Skalet läser det köade när det är redo, så kommandot kan skickas direkt.
       if (startCommand)
         void invokeChannel(writeTerminalChannel, { id: opened, data: `${startCommand}\r` });
+      register((line) => {
+        void invokeChannel(writeTerminalChannel, { id: opened, data: `${line}\r` });
+      });
     });
 
     const disposables = [
@@ -108,13 +113,14 @@ export function useTerminal(
 
     return () => {
       disposed = true;
+      register(null);
       observer.disconnect();
       for (const off of unsubscribe) off();
       for (const d of disposables) d.dispose();
       term.dispose();
       if (id) void invokeChannel(closeTerminalChannel, { id });
     };
-  }, [repoPath, key, container, startCommand]);
+  }, [repoPath, key, container, startCommand, register]);
 
   const restart = useCallback(() => {
     setGeneration((g) => g + 1);

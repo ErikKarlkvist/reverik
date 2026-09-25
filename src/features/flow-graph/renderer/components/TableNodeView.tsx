@@ -5,6 +5,7 @@ import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { type TableInfo } from '../../model/graph';
 import { useNodeState } from './GraphStateContext';
+import { AskButton } from './AskButton';
 import { RemoveButton } from './RemoveButton';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -21,17 +22,18 @@ export const TableNodeView = memo(function TableNodeView({
   data,
   selected,
 }: NodeProps<TableNode>): JSX.Element {
-  const { status, hide } = useNodeState(id);
+  const { status, asking, hide, ask } = useNodeState(id);
   const { table } = data;
   return (
     <div
-      className={`graph-table graph-node--${data.kind} is-${status}${selected ? ' is-selected' : ''}`}
+      className={`graph-table graph-node--${data.kind} is-${status}${selected ? ' is-selected' : ''}${asking ? ' is-asking' : ''}`}
       title={table.description}
     >
       <Handle type="target" position={Position.Left} id="in-left" className="graph-handle" />
       <Handle type="source" position={Position.Right} id="out-right" className="graph-handle" />
       <Handle type="source" position={Position.Left} id="out-left" className="graph-handle" />
       <Handle type="target" position={Position.Right} id="in-right" className="graph-handle" />
+      <AskButton onAsk={ask} />
       <RemoveButton onRemove={hide} />
       <div className="graph-table__header">
         <Icon name="db" size="sm" />

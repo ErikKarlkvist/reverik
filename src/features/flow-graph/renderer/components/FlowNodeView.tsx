@@ -4,6 +4,7 @@ import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { type GraphKind, type GraphLevel, type TableInfo } from '../../model/graph';
 import { useNodeState } from './GraphStateContext';
+import { AskButton } from './AskButton';
 import { RemoveButton } from './RemoveButton';
 
 // React Flow kräver Record<string, unknown>, vilket ett interface inte uppfyller.
@@ -23,11 +24,11 @@ export const FlowNodeView = memo(function FlowNodeView({
   data,
   selected,
 }: NodeProps<GraphNode>): JSX.Element {
-  const { status, hovered, hide } = useNodeState(id);
+  const { status, hovered, asking, hide, ask } = useNodeState(id);
   const system = data.level === 'system';
   return (
     <div
-      className={`graph-node graph-node--${data.kind} graph-node--${data.level} is-${status}${selected ? ' is-selected' : ''}`}
+      className={`graph-node graph-node--${data.kind} graph-node--${data.level} is-${status}${selected ? ' is-selected' : ''}${asking ? ' is-asking' : ''}`}
       title={
         system ? t('graph.zoomHint', { name: data.description ?? data.label }) : data.description
       }
@@ -43,6 +44,7 @@ export const FlowNodeView = memo(function FlowNodeView({
         <span className="graph-node__kind">{t(`kind.${data.kind}`)}</span>
         <span className="graph-node__label">{data.label}</span>
       </span>
+      <AskButton onAsk={ask} />
       <RemoveButton onRemove={hide} />
       {hovered && data.tables.length > 0 && <TablesPopover tables={data.tables} />}
     </div>

@@ -5,6 +5,7 @@ import {
   faChevronDown,
   faChevronRight,
   faChevronUp,
+  faCommentDots,
   faCloud,
   faCode,
   faDatabase,
@@ -50,6 +51,7 @@ const ICONS = {
   external: faCloud,
   queue: faLayerGroup,
   key: faKey,
+  chat: faCommentDots,
   link: faLink,
 } satisfies Record<string, IconDefinition>;
 
