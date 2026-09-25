@@ -1,4 +1,5 @@
 import { type JSX } from 'react';
+import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { useRepo } from '../RepoContext';
 
@@ -9,7 +10,7 @@ export function RecentList(): JSX.Element | null {
 
   return (
     <div className="recent">
-      <h3 className="repo__subheading">Senaste</h3>
+      <h3 className="repo__subheading">{t('repo.recent')}</h3>
       <ul className="recent__list">
         {others.map((r) => (
           <li key={r.path} className="recent__item">
@@ -25,8 +26,8 @@ export function RecentList(): JSX.Element | null {
             <button
               type="button"
               className="icon-button icon-button--quiet"
-              title="Ta bort från listan"
-              aria-label="Ta bort från listan"
+              title={t('repo.forget')}
+              aria-label={t('repo.forget')}
               onClick={() => void forget(r.path)}
             >
               <Icon name="close" size="sm" />

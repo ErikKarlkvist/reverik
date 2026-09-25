@@ -2,18 +2,18 @@ import { type Flow } from '../flow';
 
 /** Visar en cache-miss: Redis är tom, listan hämtas ur Postgres och cachas. */
 export const listTodosFlow: Flow = {
-  question: 'Vad händer när listan laddas?',
-  title: 'Ladda listan',
+  question: 'What happens when the list loads?',
+  title: 'Load the list',
   summary:
-    'Vid start hämtar hooken listan. Backend frågar Redis först, går till Postgres vid miss och fyller cachen i 60 sekunder.',
+    'On start the hook fetches the list. The backend asks Redis first, falls back to Postgres on a miss and fills the cache for 60 seconds.',
   systems: [
     {
       id: 'frontend',
       kind: 'app',
-      label: 'Todo-frontend',
-      description: 'React-appen i webbläsaren',
+      label: 'Todo frontend',
+      description: 'The React app in the browser',
     },
-    { id: 'backend', kind: 'api', label: 'Todo-API', description: 'Express-servern' },
+    { id: 'backend', kind: 'api', label: 'Todo API', description: 'Express-servern' },
     { id: 'postgres', kind: 'db', label: 'Postgres' },
     { id: 'redis', kind: 'cache', label: 'Redis' },
   ],
@@ -23,7 +23,7 @@ export const listTodosFlow: Flow = {
       kind: 'handler',
       system: 'frontend',
       label: 'useTodos',
-      description: 'useEffect vid montering',
+      description: 'useEffect on mount',
       source: { file: 'frontend/src/hooks/useTodos.ts', line: 9 },
     },
     {
@@ -55,7 +55,7 @@ export const listTodosFlow: Flow = {
       tables: [
         {
           name: 'todos:all',
-          description: 'Hela listan som JSON, TTL 60 sekunder',
+          description: 'The whole list as JSON, TTL 60 seconds',
           source: { file: 'backend/src/cache/TodoCache.ts', line: 4 },
         },
       ],
@@ -75,12 +75,12 @@ export const listTodosFlow: Flow = {
       tables: [
         {
           name: 'todos',
-          description: 'En rad per todo',
+          description: 'One row per todo',
           columns: [
-            { name: 'id', type: 'serial', description: 'Primärnyckel' },
+            { name: 'id', type: 'serial', description: 'Primary key' },
             { name: 'title', type: 'text' },
-            { name: 'completed', type: 'boolean', description: 'Standard false' },
-            { name: 'created_at', type: 'timestamptz', description: 'Sätts av databasen' },
+            { name: 'completed', type: 'boolean', description: 'Defaults to false' },
+            { name: 'created_at', type: 'timestamptz', description: 'Set by the database' },
           ],
           source: { file: 'backend/src/db/schema.sql', line: 1 },
         },
@@ -116,7 +116,7 @@ export const listTodosFlow: Flow = {
       from: 'todo-service',
       to: 'todo-cache',
       label: 'GET todos:all',
-      response: 'null, cache-miss',
+      response: 'null, cache miss',
       source: { file: 'backend/src/services/TodoService.ts', line: 13 },
     },
     {
@@ -141,7 +141,7 @@ export const listTodosFlow: Flow = {
       from: 'todo-service',
       to: 'todo-cache',
       label: 'SET todos:all EX 60',
-      payload: 'Hela listan som JSON',
+      payload: 'The whole list as JSON',
       source: { file: 'backend/src/services/TodoService.ts', line: 17 },
     },
     {
@@ -149,18 +149,18 @@ export const listTodosFlow: Flow = {
       from: 'get-route',
       to: 'todos-api',
       label: '200 OK',
-      payload: 'Listan som JSON',
+      payload: 'The list as JSON',
       source: { file: 'backend/src/routes/todos.ts', line: 13 },
     },
   ],
   steps: [
-    { edgeId: 'fetch', description: 'Hooken hämtar listan när komponenten monteras.' },
-    { edgeId: 'get', description: 'Klienten gör en GET.' },
-    { edgeId: 'route-to-service', description: 'Routen anropar tjänsten.' },
-    { edgeId: 'cache-get', description: 'Tjänsten frågar Redis. Nyckeln saknas.' },
-    { edgeId: 'find-all', description: 'Tjänsten går till repositoryt i stället.' },
-    { edgeId: 'select', description: 'Alla rader läses ur Postgres, nyast först.' },
-    { edgeId: 'cache-set', description: 'Listan cachas i 60 sekunder.' },
-    { edgeId: 'respond', description: 'Backend svarar med listan.' },
+    { edgeId: 'fetch', description: 'The hook fetches the list when the component mounts.' },
+    { edgeId: 'get', description: 'The client makes a GET.' },
+    { edgeId: 'route-to-service', description: 'The route calls the service.' },
+    { edgeId: 'cache-get', description: 'The service asks Redis. The key is missing.' },
+    { edgeId: 'find-all', description: 'The service goes to the repository instead.' },
+    { edgeId: 'select', description: 'All rows are read from Postgres, newest first.' },
+    { edgeId: 'cache-set', description: 'The list is cached for 60 seconds.' },
+    { edgeId: 'respond', description: 'The backend responds with the list.' },
   ],
 };

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { t } from '@/common/model/i18n';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
@@ -44,9 +45,9 @@ export function useTheme(): [ThemePreference, (next: ThemePreference) => void] {
 }
 
 export const THEME_LABELS: Readonly<Record<ThemePreference, string>> = {
-  system: 'System',
-  light: 'Ljust',
-  dark: 'Mörkt',
+  system: t('theme.system'),
+  light: t('theme.light'),
+  dark: t('theme.dark'),
 };
 
 export function parsePreference(value: string): ThemePreference {

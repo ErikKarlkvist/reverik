@@ -1,5 +1,6 @@
 import { type JSX, useEffect, useRef, useState } from 'react';
 import { type SourceRef } from '@/common/model/flow';
+import { t } from '@/common/model/i18n';
 import { invokeChannel } from '@/common/renderer/ipc';
 import { readSourceChannel, type SourceExcerpt } from '../../ipc/channels';
 import { useRepo } from '../RepoContext';
@@ -45,7 +46,7 @@ export function SourceView({ source }: Props): JSX.Element {
       <div className="source__path">
         {source.file}:{source.line}
       </div>
-      {!current && <p className="source__muted">Läser…</p>}
+      {!current && <p className="source__muted">{t('source.reading')}</p>}
       {current && 'error' in current && <p className="source__error">{current.error}</p>}
       {current && 'excerpt' in current && (
         <pre className="source__code">

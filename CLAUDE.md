@@ -45,4 +45,6 @@ hanteras i main med `handleChannel` från `@/common/main/ipc` och anropas i rend
 - Explicita returtyper på exporterade funktioner
 - `import { type X }` för typimporter
 - Ingen `console.log` i committad kod, `console.warn`/`error` är ok
-- Svenska i UI-texter och kommentarer, engelska i identifierare
+- UI-texter och felmeddelanden som når användaren eller modellen ligger i
+  `src/common/model/i18n/en-gb.json` och hämtas med `t('nyckel')`. Aldrig inline-strängar i JSX.
+  Kommentarer på svenska, identifierare på engelska

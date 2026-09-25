@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { app } from 'electron';
+import { t } from '@/common/model/i18n';
 
 /**
  * Läser `.env` i projektroten under utveckling. Nyckeln stannar i main-processen
@@ -27,6 +28,6 @@ export function loadEnv(): void {
 
 export function requireEnv(key: string): string {
   const value = process.env[key];
-  if (!value) throw new Error(`Miljövariabeln ${key} saknas. Se .env.example.`);
+  if (!value) throw new Error(t('error.envMissing', { key }));
   return value;
 }

@@ -1,6 +1,6 @@
 import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
 import { type JSX, memo } from 'react';
-import { NODE_KIND_LABELS, SYSTEM_KIND_LABELS } from '@/common/model/flow';
+import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { type GraphKind, type GraphLevel, type TableInfo } from '../../model/graph';
 import { type StepStatus } from '../../model/playback';
@@ -19,11 +19,6 @@ export type GraphNodeData = {
 
 export type GraphNode = Node<GraphNodeData, 'flow'>;
 
-const KIND_LABELS: Readonly<Record<GraphKind, string>> = {
-  ...NODE_KIND_LABELS,
-  ...SYSTEM_KIND_LABELS,
-};
-
 export const FlowNodeView = memo(function FlowNodeView({
   data,
   selected,
@@ -33,7 +28,7 @@ export const FlowNodeView = memo(function FlowNodeView({
     <div
       className={`graph-node graph-node--${data.kind} graph-node--${data.level} is-${data.status}${selected ? ' is-selected' : ''}`}
       title={
-        system ? `${data.description ?? data.label}. Klicka för att zooma in.` : data.description
+        system ? t('graph.zoomHint', { name: data.description ?? data.label }) : data.description
       }
     >
       <Handle type="target" position={Position.Left} id="in-left" className="graph-handle" />
@@ -44,7 +39,7 @@ export const FlowNodeView = memo(function FlowNodeView({
         <Icon name={data.kind} size={system ? 'lg' : 'md'} />
       </span>
       <span className="graph-node__text">
-        <span className="graph-node__kind">{KIND_LABELS[data.kind]}</span>
+        <span className="graph-node__kind">{t(`kind.${data.kind}`)}</span>
         <span className="graph-node__label">{data.label}</span>
       </span>
       {data.hovered && data.tables.length > 0 && <TablesPopover tables={data.tables} />}

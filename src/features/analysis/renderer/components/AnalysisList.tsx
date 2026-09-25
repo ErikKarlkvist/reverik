@@ -1,4 +1,5 @@
 import { type JSX } from 'react';
+import { LOCALE, t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { useAnalyses } from '../AnalysisContext';
 import './analysis.css';
@@ -8,11 +9,9 @@ export function AnalysisList(): JSX.Element {
 
   return (
     <section className="analyses">
-      <h2 className="analyses__heading">Analyser</h2>
+      <h2 className="analyses__heading">{t('analyses.heading')}</h2>
       {error && <p className="analyses__error">{error}</p>}
-      {analyses.length === 0 && !error && (
-        <p className="analyses__muted">Inga analyser ännu. Ställ en fråga för att skapa en.</p>
-      )}
+      {analyses.length === 0 && !error && <p className="analyses__muted">{t('analyses.empty')}</p>}
       <ul className="analyses__list">
         {analyses.map((analysis) => {
           const active = analysis.id === current?.id;
@@ -28,16 +27,18 @@ export function AnalysisList(): JSX.Element {
               >
                 <span className="analyses__title">{analysis.flow.title}</span>
                 <span className="analyses__meta">
-                  {analysis.origin === 'builtin' ? 'Inbyggd' : formatDate(analysis.createdAt)} ·{' '}
-                  {analysis.flow.steps.length} steg
+                  {analysis.origin === 'builtin'
+                    ? t('analyses.builtin')
+                    : formatDate(analysis.createdAt)}{' '}
+                  · {t('analyses.steps', { count: analysis.flow.steps.length })}
                 </span>
               </button>
               {analysis.origin !== 'builtin' && (
                 <button
                   type="button"
                   className="icon-button icon-button--quiet"
-                  title="Ta bort analysen"
-                  aria-label="Ta bort analysen"
+                  title={t('analyses.delete')}
+                  aria-label={t('analyses.delete')}
                   onClick={() => void remove(analysis.id)}
                 >
                   <Icon name="close" size="sm" />
@@ -52,5 +53,5 @@ export function AnalysisList(): JSX.Element {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' });
+  return new Date(iso).toLocaleString(LOCALE, { dateStyle: 'short', timeStyle: 'short' });
 }

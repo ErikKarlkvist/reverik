@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { t } from './i18n';
 
 /**
  * Kontraktet mellan analysen (AI:n) och visualiseringen. AI:n producerar ett
@@ -129,7 +130,7 @@ export const flowSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['systems', i, 'id'],
-          message: `System-id "${system.id}" förekommer mer än en gång`,
+          message: t('validation.duplicateSystem', { id: system.id }),
         });
       }
       systemIds.add(system.id);
@@ -141,14 +142,14 @@ export const flowSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['nodes', i, 'system'],
-          message: `Noden "${node.id}" tillhör okänt system "${node.system}"`,
+          message: t('validation.unknownSystem', { id: node.id, system: node.system }),
         });
       }
       if (nodeIds.has(node.id)) {
         ctx.addIssue({
           code: 'custom',
           path: ['nodes', i, 'id'],
-          message: `Nod-id "${node.id}" förekommer mer än en gång`,
+          message: t('validation.duplicateNode', { id: node.id }),
         });
       }
       nodeIds.add(node.id);
@@ -156,7 +157,7 @@ export const flowSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['nodes', i, 'source'],
-          message: `Noden "${node.id}" av typen ${node.kind} måste ha en källhänvisning`,
+          message: t('validation.missingSource', { id: node.id, kind: node.kind }),
         });
       }
     });
@@ -167,7 +168,7 @@ export const flowSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['systems', i],
-          message: `Systemet "${system.id}" har inga noder. Ta bort det eller lägg till noder som tillhör det`,
+          message: t('validation.emptySystem', { id: system.id }),
         });
       }
     });
@@ -182,7 +183,7 @@ export const flowSchema = z
           ctx.addIssue({
             code: 'custom',
             path: ['edges', i, 'tables'],
-            message: `Kanten "${edge.id}" rör tabellen "${table}" som inte finns på noden "${edge.to}"`,
+            message: t('validation.unknownTable', { id: edge.id, table, node: edge.to }),
           });
         }
       }
@@ -190,7 +191,7 @@ export const flowSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['edges', i, 'id'],
-          message: `Kant-id "${edge.id}" förekommer mer än en gång`,
+          message: t('validation.duplicateEdge', { id: edge.id }),
         });
       }
       edgeIds.add(edge.id);
@@ -199,7 +200,7 @@ export const flowSchema = z
           ctx.addIssue({
             code: 'custom',
             path: ['edges', i, end],
-            message: `Kanten "${edge.id}" pekar på okänd nod "${edge[end]}"`,
+            message: t('validation.unknownNode', { id: edge.id, node: edge[end] }),
           });
         }
       }
@@ -210,7 +211,7 @@ export const flowSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['steps', i, 'edgeId'],
-          message: `Steg ${i + 1} pekar på okänd kant "${step.edgeId}"`,
+          message: t('validation.unknownEdge', { step: i + 1, edge: step.edgeId }),
         });
       }
     });
@@ -244,23 +245,3 @@ export function validateFlow(input: unknown): FlowValidation {
     }),
   };
 }
-
-export const NODE_KIND_LABELS: Readonly<Record<NodeKind, string>> = {
-  ui: 'UI',
-  handler: 'Handler',
-  http: 'HTTP',
-  service: 'Tjänst',
-  db: 'Databas',
-  cache: 'Cache',
-  external: 'Externt',
-  queue: 'Kö',
-};
-
-export const SYSTEM_KIND_LABELS: Readonly<Record<SystemKind, string>> = {
-  app: 'App',
-  api: 'API',
-  db: 'Databas',
-  cache: 'Cache',
-  external: 'Externt',
-  queue: 'Kö',
-};

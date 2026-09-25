@@ -1,6 +1,7 @@
 import '@xyflow/react/dist/style.css';
-import { type JSX, useCallback, useEffect, useMemo, useState } from 'react';
+import { type JSX, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { type Flow, type FlowEdge, type SourceRef } from '@/common/model/flow';
+import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { buildModel, type GraphNode, type GraphView, mapStepIndex } from '../../model/graph';
 import { useFlowPlayback } from '../hooks/useFlowPlayback';
@@ -13,13 +14,20 @@ interface Props {
   /** Anropas när aktivt steg byts, med kanten som steget spelar upp. */
   onActiveEdgeChange?: (edge: FlowEdge | null) => void;
   onSelectSource?: (source: SourceRef) => void;
+  /** Renderas mellan grafen och kontrollerna, t.ex. ett draghandtag som ägs av appen. */
+  beforeControls?: ReactNode;
 }
 
 /**
  * Graf med uppspelning. Börjar i systemvyn, klick på ett system zoomar in i
  * det. Montera om med `key` när flödet byts så uppspelningen börjar om.
  */
-export function FlowPlayer({ flow, onActiveEdgeChange, onSelectSource }: Props): JSX.Element {
+export function FlowPlayer({
+  flow,
+  onActiveEdgeChange,
+  onSelectSource,
+  beforeControls,
+}: Props): JSX.Element {
   const [view, setView] = useState<GraphView>({ kind: 'system' });
   const model = useMemo(() => buildModel(flow, view), [flow, view]);
   const playback = useFlowPlayback(model.steps.length);
@@ -64,7 +72,7 @@ export function FlowPlayer({ flow, onActiveEdgeChange, onSelectSource }: Props):
           <h2 className="player__title">{flow.title}</h2>
           <p className="player__summary">{flow.summary}</p>
         </div>
-        <nav className="player__crumbs" aria-label="Nivå">
+        <nav className="player__crumbs" aria-label={t('graph.levelNav')}>
           <button
             type="button"
             className={`crumb${view.kind === 'system' ? ' is-current' : ''}`}
@@ -72,7 +80,7 @@ export function FlowPlayer({ flow, onActiveEdgeChange, onSelectSource }: Props):
               changeView({ kind: 'system' });
             }}
           >
-            Alla system
+            {t('graph.allSystems')}
           </button>
           {focused && (
             <>
@@ -86,12 +94,12 @@ export function FlowPlayer({ flow, onActiveEdgeChange, onSelectSource }: Props):
           <button
             type="button"
             className={`crumb crumb--toggle${view.kind === 'detail' ? ' is-current' : ''}`}
-            title="Visa alla noder i alla system"
+            title={t('graph.allDetailsHint')}
             onClick={() => {
               changeView(view.kind === 'detail' ? { kind: 'system' } : { kind: 'detail' });
             }}
           >
-            Alla detaljer
+            {t('graph.allDetails')}
           </button>
         </nav>
       </header>
@@ -102,6 +110,7 @@ export function FlowPlayer({ flow, onActiveEdgeChange, onSelectSource }: Props):
         onNodeClick={onNodeClick}
         onEdgeClick={onEdgeClick}
       />
+      <div className="player__divider">{beforeControls}</div>
       <PlaybackControls steps={model.steps} playback={playback} />
     </div>
   );

@@ -1,5 +1,6 @@
 import { type JSX } from 'react';
 import { type FlowStep } from '@/common/model/flow';
+import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { type Playback } from '../hooks/useFlowPlayback';
 
@@ -19,8 +20,8 @@ export function PlaybackControls({ steps, playback }: Props): JSX.Element {
           type="button"
           className="icon-button"
           onClick={playback.restart}
-          title="Från början"
-          aria-label="Från början"
+          title={t('playback.restart')}
+          aria-label={t('playback.restart')}
           disabled={total === 0}
         >
           <Icon name="restart" />
@@ -29,8 +30,8 @@ export function PlaybackControls({ steps, playback }: Props): JSX.Element {
           type="button"
           className="icon-button"
           onClick={playback.prev}
-          title="Föregående steg"
-          aria-label="Föregående steg"
+          title={t('playback.previous')}
+          aria-label={t('playback.previous')}
           disabled={playback.stepIndex <= 0}
         >
           <Icon name="stepBack" />
@@ -39,8 +40,8 @@ export function PlaybackControls({ steps, playback }: Props): JSX.Element {
           type="button"
           className="icon-button icon-button--primary playback__play"
           onClick={playback.toggle}
-          title={playback.playing ? 'Pausa' : 'Spela'}
-          aria-label={playback.playing ? 'Pausa' : 'Spela'}
+          title={playback.playing ? t('playback.pause') : t('playback.play')}
+          aria-label={playback.playing ? t('playback.pause') : t('playback.play')}
           disabled={total === 0}
         >
           <Icon name={playback.playing ? 'pause' : 'play'} size="lg" />
@@ -49,8 +50,8 @@ export function PlaybackControls({ steps, playback }: Props): JSX.Element {
           type="button"
           className="icon-button"
           onClick={playback.next}
-          title="Nästa steg"
-          aria-label="Nästa steg"
+          title={t('playback.next')}
+          aria-label={t('playback.next')}
           disabled={playback.atEnd}
         >
           <Icon name="stepForward" />
@@ -65,7 +66,7 @@ export function PlaybackControls({ steps, playback }: Props): JSX.Element {
         onChange={(e) => {
           playback.goTo(Number(e.target.value));
         }}
-        aria-label="Steg"
+        aria-label={t('playback.step')}
       />
       <div className="playback__text">
         <span className="playback__counter">

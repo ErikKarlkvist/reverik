@@ -2,18 +2,18 @@ import { type Flow } from '../flow';
 
 /** Källhänvisningarna pekar på demo/todo-app och kontrolleras i common/main/demo-fixtures.test.ts. */
 export const addTodoFlow: Flow = {
-  question: 'Vad händer när man lägger till en todo?',
-  title: 'Lägg till todo',
+  question: 'What happens when a todo is added?',
+  title: 'Add todo',
   summary:
-    'Formuläret anropar hooken som skickar en POST till backend. Tjänsten sparar raden i Postgres, invaliderar listan i Redis och pingar en webhook innan svaret uppdaterar listan i klienten.',
+    'The form calls the hook, which POSTs to the backend. The service stores the row in Postgres, invalidates the list in Redis and pings a webhook before the response updates the list in the client.',
   systems: [
     {
       id: 'frontend',
       kind: 'app',
-      label: 'Todo-frontend',
-      description: 'React-appen i webbläsaren',
+      label: 'Todo frontend',
+      description: 'The React app in the browser',
     },
-    { id: 'backend', kind: 'api', label: 'Todo-API', description: 'Express-servern' },
+    { id: 'backend', kind: 'api', label: 'Todo API', description: 'Express-servern' },
     { id: 'postgres', kind: 'db', label: 'Postgres' },
     { id: 'redis', kind: 'cache', label: 'Redis' },
     { id: 'webhook', kind: 'external', label: 'Webhook' },
@@ -24,7 +24,7 @@ export const addTodoFlow: Flow = {
       kind: 'ui',
       system: 'frontend',
       label: 'AddTodoForm',
-      description: 'Formuläret med textfält och knappen Lägg till',
+      description: 'The form with the text field and the Add button',
       source: { file: 'frontend/src/components/AddTodoForm.tsx', line: 7 },
     },
     {
@@ -32,7 +32,7 @@ export const addTodoFlow: Flow = {
       kind: 'handler',
       system: 'frontend',
       label: 'useTodos.addTodo',
-      description: 'Hook som håller listan i state',
+      description: 'Hook that keeps the list in state',
       source: { file: 'frontend/src/hooks/useTodos.ts', line: 15 },
     },
     {
@@ -40,7 +40,7 @@ export const addTodoFlow: Flow = {
       kind: 'handler',
       system: 'frontend',
       label: 'todosApi.createTodo',
-      description: 'Tunn klient över fetch',
+      description: 'Thin client over fetch',
       source: { file: 'frontend/src/api/todosApi.ts', line: 11 },
     },
     {
@@ -72,12 +72,12 @@ export const addTodoFlow: Flow = {
       tables: [
         {
           name: 'todos',
-          description: 'En rad per todo',
+          description: 'One row per todo',
           columns: [
-            { name: 'id', type: 'serial', description: 'Primärnyckel' },
+            { name: 'id', type: 'serial', description: 'Primary key' },
             { name: 'title', type: 'text' },
-            { name: 'completed', type: 'boolean', description: 'Standard false' },
-            { name: 'created_at', type: 'timestamptz', description: 'Sätts av databasen' },
+            { name: 'completed', type: 'boolean', description: 'Defaults to false' },
+            { name: 'created_at', type: 'timestamptz', description: 'Set by the database' },
           ],
           source: { file: 'backend/src/db/schema.sql', line: 1 },
         },
@@ -88,11 +88,11 @@ export const addTodoFlow: Flow = {
       kind: 'cache',
       system: 'redis',
       label: 'Redis todos:all',
-      description: 'Hela listan cachad i 60 sekunder',
+      description: 'The whole list cached for 60 seconds',
       tables: [
         {
           name: 'todos:all',
-          description: 'Hela listan som JSON, TTL 60 sekunder',
+          description: 'The whole list as JSON, TTL 60 seconds',
           source: { file: 'backend/src/cache/TodoCache.ts', line: 4 },
         },
       ],
@@ -102,7 +102,7 @@ export const addTodoFlow: Flow = {
       kind: 'external',
       system: 'webhook',
       label: 'Webhook',
-      description: 'TODO_WEBHOOK_URL, t.ex. Slack',
+      description: 'TODO_WEBHOOK_URL, for example Slack',
     },
   ],
   edges: [
@@ -111,7 +111,7 @@ export const addTodoFlow: Flow = {
       from: 'add-form',
       to: 'use-todos',
       label: 'onAdd(title)',
-      payload: 'title, trimmad',
+      payload: 'title, trimmed',
       source: { file: 'frontend/src/components/AddTodoForm.tsx', line: 16 },
     },
     {
@@ -126,8 +126,8 @@ export const addTodoFlow: Flow = {
       from: 'todos-api',
       to: 'post-route',
       label: 'POST /api/todos',
-      payload: '{ "title": "Handla mjölk" }',
-      response: '201 { "id": 7, "title": "Handla mjölk", "completed": false, "createdAt": "…" }',
+      payload: '{ "title": "Buy milk" }',
+      response: '201 { "id": 7, "title": "Buy milk", "completed": false, "createdAt": "…" }',
       source: { file: 'frontend/src/api/todosApi.ts', line: 12 },
     },
     {
@@ -135,7 +135,7 @@ export const addTodoFlow: Flow = {
       from: 'post-route',
       to: 'todo-service',
       label: 'service.create(parsed.data)',
-      payload: 'Validerat med zod: title 1 till 200 tecken',
+      payload: 'Validated with zod: title 1 to 200 characters',
       source: { file: 'backend/src/routes/todos.ts', line: 22 },
     },
     {
@@ -152,7 +152,7 @@ export const addTodoFlow: Flow = {
       to: 'postgres',
       label: 'INSERT INTO todos',
       payload: '(title) VALUES ($1) RETURNING …',
-      response: 'Raden med id och created_at',
+      response: 'The row with id and created_at',
       source: { file: 'backend/src/repositories/TodoRepository.ts', line: 30 },
     },
     {
@@ -168,7 +168,7 @@ export const addTodoFlow: Flow = {
       from: 'todo-service',
       to: 'webhook',
       label: 'POST webhook',
-      payload: '{ "text": "Ny todo: Handla mjölk" }',
+      payload: '{ "text": "New todo: Buy milk" }',
       source: { file: 'backend/src/services/TodoService.ts', line: 24 },
     },
     {
@@ -176,7 +176,7 @@ export const addTodoFlow: Flow = {
       from: 'post-route',
       to: 'todos-api',
       label: '201 Created',
-      payload: 'Den skapade todon som JSON',
+      payload: 'The created todo as JSON',
       source: { file: 'backend/src/routes/todos.ts', line: 23 },
     },
     {
@@ -184,20 +184,26 @@ export const addTodoFlow: Flow = {
       from: 'use-todos',
       to: 'add-form',
       label: 'setTodos([created, …])',
-      payload: 'Listan uppdateras, fältet töms',
+      payload: 'The list updates and the field is cleared',
       source: { file: 'frontend/src/hooks/useTodos.ts', line: 17 },
     },
   ],
   steps: [
-    { edgeId: 'submit', description: 'Användaren skickar formuläret och hooken får titeln.' },
-    { edgeId: 'create', description: 'Hooken anropar API-klienten.' },
-    { edgeId: 'post', description: 'Klienten skickar en POST med titeln som JSON.' },
-    { edgeId: 'route-to-service', description: 'Routen validerar kroppen och anropar tjänsten.' },
-    { edgeId: 'service-to-repo', description: 'Tjänsten ber repositoryt spara.' },
-    { edgeId: 'insert', description: 'Raden skrivs till Postgres och kommer tillbaka med id.' },
-    { edgeId: 'invalidate', description: 'Den cachade listan tas bort ur Redis.' },
-    { edgeId: 'notify', description: 'Webhooken pingas utan att svaret inväntas.' },
-    { edgeId: 'respond', description: 'Backend svarar 201 med den nya todon.' },
-    { edgeId: 'set-state', description: 'Hooken lägger todon först i listan och formuläret töms.' },
+    { edgeId: 'submit', description: 'The user submits the form and the hook receives the title.' },
+    { edgeId: 'create', description: 'The hook calls the API client.' },
+    { edgeId: 'post', description: 'The client sends a POST with the title as JSON.' },
+    {
+      edgeId: 'route-to-service',
+      description: 'The route validates the body and calls the service.',
+    },
+    { edgeId: 'service-to-repo', description: 'The service asks the repository to save.' },
+    { edgeId: 'insert', description: 'The row is written to Postgres and comes back with an id.' },
+    { edgeId: 'invalidate', description: 'The cached list is removed from Redis.' },
+    { edgeId: 'notify', description: 'The webhook is pinged without awaiting the response.' },
+    { edgeId: 'respond', description: 'The backend responds 201 with the new todo.' },
+    {
+      edgeId: 'set-state',
+      description: 'The hook puts the todo first in the list and the form is cleared.',
+    },
   ],
 };

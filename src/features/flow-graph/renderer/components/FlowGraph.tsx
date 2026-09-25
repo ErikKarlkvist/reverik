@@ -60,8 +60,6 @@ export function FlowGraph({ model, stepIndex, onNodeClick, onEdgeClick }: Props)
         type: 'flow',
         position: layout.positions.get(node.id) ?? { x: 0, y: 0 },
         draggable: true,
-        // Nod med öppen ruta lyfts ovanför grannarna
-        zIndex: hovered ? 1000 : 0,
         data: {
           kind: node.kind,
           level: node.level,

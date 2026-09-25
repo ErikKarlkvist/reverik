@@ -1,5 +1,6 @@
 import { type IpcBridge } from '@/common/ipc/bridge';
 import { DEMO_REPO_RELATIVE_PATH, demoFlows } from '@/common/model/fixtures';
+import { t } from '@/common/model/i18n';
 
 /**
  * Ersätter preload-bryggan när renderern körs i en vanlig webbläsare under
@@ -31,7 +32,7 @@ export function installMockBridge(): void {
   let recent: (typeof demoRepo)[] = [];
 
   const handlers: Record<string, (payload: unknown) => unknown> = {
-    'app:info': () => ({ version: 'mock', electron: 'webbläsare', platform: 'web' }),
+    'app:info': () => ({ version: 'mock', electron: t('app.mockElectron'), platform: 'web' }),
     'repo:list-recent': () => recent,
     'repo:pick-local': () => null,
     'repo:open-demo': () => {
@@ -65,11 +66,11 @@ export function installMockBridge(): void {
   const api: IpcBridge = {
     invoke: (channel, payload) => {
       const handler = handlers[channel];
-      if (!handler) return Promise.reject(new Error(`Mock saknar kanalen ${channel}`));
+      if (!handler) return Promise.reject(new Error(t('error.mockChannel', { channel })));
       return Promise.resolve(handler(payload));
     },
     on: () => () => undefined,
   };
   window.api = api;
-  console.warn('Highai kör med mock-brygga, ingen Electron.');
+  console.warn(t('app.mockBridge'));
 }

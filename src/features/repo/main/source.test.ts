@@ -20,6 +20,8 @@ describe('readSource', () => {
   });
 
   it('vägrar läsa utanför repot', async () => {
-    await expect(readSource(DEMO, '../../package.json', 1)).rejects.toThrow('utanför repot');
+    await expect(readSource(DEMO, '../../package.json', 1)).rejects.toThrow(
+      'outside the repository',
+    );
   });
 });

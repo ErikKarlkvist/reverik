@@ -1,6 +1,6 @@
 .player {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto auto;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -146,6 +146,11 @@ button.crumb:hover:not(:disabled) {
 
 .graph-node--system .graph-node__label {
   font-size: 15px;
+}
+
+/* Nod med öppen tabellruta lyfts ovanför grannarna. React Flow sätter z-index inline. */
+.graph .react-flow__node:has(.graph-tables) {
+  z-index: 1000 !important;
 }
 
 /* Tabellruta vid hover på lagringsnoder */
@@ -465,6 +470,12 @@ button.crumb:hover:not(:disabled) {
   font: inherit;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* Plats för ett draghandtag mellan grafen och kontrollerna */
+.player__divider {
+  position: relative;
+  height: 0;
 }
 
 /* Uppspelning */

@@ -1,6 +1,7 @@
 import { BrowserWindow, dialog } from 'electron';
 import { demoRepoPath } from '@/common/main/demo';
 import { handleChannel } from '@/common/main/ipc';
+import { t } from '@/common/model/i18n';
 import {
   forgetRepoChannel,
   listRecentReposChannel,
@@ -17,7 +18,7 @@ import { readSource } from './source';
 export function registerRepoHandlers(): void {
   handleChannel(pickLocalRepoChannel, async () => {
     const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
-    const options = { properties: ['openDirectory' as const], title: 'Välj repo' };
+    const options = { properties: ['openDirectory' as const], title: t('repo.dialogTitle') };
     const result = window
       ? await dialog.showOpenDialog(window, options)
       : await dialog.showOpenDialog(options);

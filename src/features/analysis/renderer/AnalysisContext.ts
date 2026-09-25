@@ -5,6 +5,6 @@ export const AnalysisContext = createContext<AnalysisState | null>(null);
 
 export function useAnalyses(): AnalysisState {
   const state = useContext(AnalysisContext);
-  if (!state) throw new Error('useAnalyses måste användas inom AnalysisProvider');
+  if (!state) throw new Error('useAnalyses must be used inside AnalysisProvider');
   return state;
 }

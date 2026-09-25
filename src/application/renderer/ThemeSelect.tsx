@@ -1,11 +1,12 @@
 import { type JSX } from 'react';
+import { t } from '@/common/model/i18n';
 import { parsePreference, THEME_LABELS, type ThemePreference, useTheme } from './theme';
 
 export function ThemeSelect(): JSX.Element {
   const [preference, setPreference] = useTheme();
   return (
     <label className="theme-select">
-      Tema
+      {t('theme.label')}
       <select
         value={preference}
         onChange={(e) => {

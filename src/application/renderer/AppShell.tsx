@@ -1,6 +1,7 @@
 import { type JSX, useCallback, useEffect, useState } from 'react';
 import { type AppInfo, appInfoChannel } from '@/application/ipc/channels';
 import { type FlowEdge, type SourceRef } from '@/common/model/flow';
+import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { Splitter } from '@/common/renderer/Splitter';
 import { invokeChannel } from '@/common/renderer/ipc';
@@ -13,7 +14,10 @@ import { useStoredNumber } from './useStoredNumber';
 
 type PanelTab = 'code' | 'log';
 
-const TAB_LABELS: Readonly<Record<PanelTab, string>> = { code: 'Kod', log: 'Logg' };
+const TAB_LABELS: Readonly<Record<PanelTab, string>> = {
+  code: t('panel.code'),
+  log: t('panel.log'),
+};
 
 export function AppShell(): JSX.Element {
   const [info, setInfo] = useState<AppInfo | null>(null);
@@ -55,7 +59,7 @@ export function AppShell(): JSX.Element {
           min={220}
           max={600}
           onResize={setSidebarWidth}
-          label="Ändra sidopanelens bredd"
+          label={t('panel.resizeSidebar')}
         />
       </aside>
 
@@ -66,13 +70,22 @@ export function AppShell(): JSX.Element {
             flow={current.flow}
             onActiveEdgeChange={onActiveEdgeChange}
             onSelectSource={onSelectSource}
+            beforeControls={
+              logOpen ? (
+                <Splitter
+                  orientation="horizontal"
+                  size={bottomHeight}
+                  min={120}
+                  max={700}
+                  inverted
+                  onResize={setBottomHeight}
+                  label={t('panel.resizeBottom')}
+                />
+              ) : null
+            }
           />
         ) : (
-          <p className="shell__empty">
-            {repo
-              ? 'Välj en analys till vänster, eller ställ en fråga om ett flöde.'
-              : 'Välj ett repo till vänster.'}
-          </p>
+          <p className="shell__empty">{repo ? t('app.chooseAnalysis') : t('app.chooseRepo')}</p>
         )}
       </main>
 
@@ -85,7 +98,7 @@ export function AppShell(): JSX.Element {
             max={700}
             inverted
             onResize={setBottomHeight}
-            label="Ändra nedre panelens höjd"
+            label={t('panel.resizeBottom')}
           />
           <div className="shell__panel-bar">
             <div className="shell__tabs" role="tablist">
@@ -108,8 +121,8 @@ export function AppShell(): JSX.Element {
             <button
               type="button"
               className="icon-button"
-              title="Minimera panelen"
-              aria-label="Minimera panelen"
+              title={t('panel.minimise')}
+              aria-label={t('panel.minimise')}
               onClick={() => {
                 setLogOpen(false);
               }}
@@ -120,23 +133,23 @@ export function AppShell(): JSX.Element {
           {activeTab === 'code' && shownSource ? (
             <SourceView source={shownSource} />
           ) : (
-            <p className="shell__empty">
-              Loggen visar vad analysen läser när den körs. Ingen analys körs just nu.
-            </p>
+            <p className="shell__empty">{t('panel.logIdle')}</p>
           )}
         </section>
       )}
 
       <footer className="shell__footer">
         <span>
-          {info ? `v${info.version} · Electron ${info.electron} · ${info.platform}` : 'Startar…'}
+          {info
+            ? `v${info.version} · Electron ${info.electron} · ${info.platform}`
+            : t('app.starting')}
         </span>
         <span className="shell__footer-tools">
           {!logOpen && (
             <button
               type="button"
               className="text-button"
-              title="Visa panelen"
+              title={t('panel.show')}
               onClick={() => {
                 setLogOpen(true);
               }}

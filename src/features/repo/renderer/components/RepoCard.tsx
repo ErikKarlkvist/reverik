@@ -1,4 +1,5 @@
 import { type JSX } from 'react';
+import { t } from '@/common/model/i18n';
 import { type RepoInfo } from '../../model/repo';
 
 export function RepoCard({ repo }: { repo: RepoInfo }): JSX.Element {
@@ -8,7 +9,8 @@ export function RepoCard({ repo }: { repo: RepoInfo }): JSX.Element {
         {repo.name}
       </div>
       <div className="repo-card__meta">
-        {repo.isGit ? (repo.branch ?? 'frånkopplad HEAD') : 'ingen git'} · {repo.fileCount} filer
+        {repo.isGit ? (repo.branch ?? t('repo.detachedHead')) : t('repo.noGit')} ·{' '}
+        {t('repo.files', { count: repo.fileCount })}
       </div>
       {repo.languages.length > 0 && (
         <ul className="repo-card__langs">
