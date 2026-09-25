@@ -64,6 +64,7 @@ export function FlowGraph({ flow, stepIndex, onSelectNode, onSelectEdge }: Props
             response: edge.response,
             status: view.edges.get(edge.id) ?? 'pending',
             offset: placement?.offset ?? 0,
+            direction: placement?.direction ?? 'forward',
             hovered: hoveredEdge === edge.id,
           },
         };

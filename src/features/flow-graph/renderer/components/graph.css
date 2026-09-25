@@ -157,6 +157,21 @@
   fill: var(--accent);
 }
 
+.graph-edge__leader {
+  stroke: var(--fg-muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  opacity: 0.7;
+}
+
+.graph-edge__leader.is-pending {
+  opacity: 0.3;
+}
+
+.graph-edge__leader.is-active {
+  stroke: var(--accent);
+}
+
 .graph-edge__pulse {
   fill: var(--accent);
   filter: drop-shadow(0 0 4px var(--accent));
@@ -173,6 +188,9 @@
   font-size: 11px;
   color: var(--fg);
   white-space: nowrap;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: opacity 200ms;
 }
 
@@ -191,6 +209,18 @@
   border-radius: 8px;
   white-space: normal;
   max-width: 320px;
+  overflow: visible;
+}
+
+.graph-edge-label__text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.graph-edge-label.is-open .graph-edge-label__text {
+  white-space: normal;
+  word-break: break-word;
 }
 
 .graph-edge-label__details {

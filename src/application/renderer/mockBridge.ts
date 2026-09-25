@@ -52,9 +52,12 @@ export function installMockBridge(): void {
         line,
         context = 8,
       } = payload as { file: string; line: number; context?: number };
-      const res = await fetch(`/@fs${__HIGHAI_ROOT__}/${DEMO_REPO_RELATIVE_PATH}/${file}`);
+      // ?raw ger filen som en JS-modul med en strängliteral, annars transpilerar Vite tsx.
+      const res = await fetch(`/@fs${__HIGHAI_ROOT__}/${DEMO_REPO_RELATIVE_PATH}/${file}?raw`);
       if (!res.ok) throw new Error(`Kunde inte läsa ${file}`);
-      const all = (await res.text()).split('\n');
+      const module = await res.text();
+      const literal = module.slice(module.indexOf('"'), module.lastIndexOf('"') + 1);
+      const all = (JSON.parse(literal) as string).split('\n');
       const startLine = Math.max(1, line - context);
       const endLine = Math.min(all.length, line + context);
       return { file, line, startLine, lines: all.slice(startLine - 1, endLine) };

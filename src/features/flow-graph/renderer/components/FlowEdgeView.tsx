@@ -6,6 +6,7 @@ import {
   getBezierPath,
 } from '@xyflow/react';
 import { type JSX, memo } from 'react';
+import { type Direction } from '../../model/layout';
 import { type StepStatus } from '../../model/playback';
 
 // React Flow kräver Record<string, unknown>, vilket ett interface inte uppfyller.
@@ -16,8 +17,12 @@ export type GraphEdgeData = {
   response: string | undefined;
   status: StepStatus;
   offset: number;
+  direction: Direction;
   hovered: boolean;
 };
+
+/** Hur långt från linjen etiketten sitter, i pixlar */
+const LABEL_DISTANCE = 26;
 
 export type GraphEdge = Edge<GraphEdgeData, 'flow'>;
 
@@ -43,6 +48,9 @@ export const FlowEdgeView = memo(function FlowEdgeView({
   });
   const showDetails = data.hovered || selected;
   const hasDetails = Boolean(data.payload ?? data.response);
+  // Framåtkanter får etiketten ovanför linjen, svar under, så linjen syns.
+  const side = data.direction === 'forward' ? -1 : 1;
+  const labelOffsetY = labelY + side * LABEL_DISTANCE;
 
   return (
     <>
@@ -52,6 +60,13 @@ export const FlowEdgeView = memo(function FlowEdgeView({
         className={`graph-edge is-${data.status}${selected ? ' is-selected' : ''}`}
         markerEnd={`url(#graph-arrow-${data.status})`}
       />
+      <line
+        className={`graph-edge__leader is-${data.status}`}
+        x1={labelX}
+        y1={labelY}
+        x2={labelX}
+        y2={labelOffsetY}
+      />
       {data.status === 'active' && (
         <circle r="5" className="graph-edge__pulse">
           <animateMotion dur="1.2s" repeatCount="indefinite" path={path} />
@@ -59,8 +74,10 @@ export const FlowEdgeView = memo(function FlowEdgeView({
       )}
       <EdgeLabelRenderer>
         <div
-          className={`graph-edge-label is-${data.status}${showDetails ? ' is-open' : ''}`}
-          style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}
+          className={`graph-edge-label is-${data.status}${showDetails ? ' is-open' : ''} graph-edge-label--${data.direction}`}
+          style={{
+            transform: `translate(-50%, ${side < 0 ? '-100%' : '0'}) translate(${labelX}px, ${labelOffsetY}px)`,
+          }}
         >
           <span className="graph-edge-label__text">{data.label}</span>
           {showDetails && hasDetails && (

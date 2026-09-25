@@ -29,7 +29,7 @@ const PARALLEL_GAP = 34;
 /** Placerar noderna vänster till höger med dagre och räknar ut kanternas riktning och förskjutning. */
 export function layoutFlow(flow: Flow): Layout {
   const graph = new dagre.graphlib.Graph();
-  graph.setGraph({ rankdir: 'LR', nodesep: 36, ranksep: 90, marginx: 20, marginy: 20 });
+  graph.setGraph({ rankdir: 'LR', nodesep: 44, ranksep: 190, marginx: 20, marginy: 20 });
   graph.setDefaultEdgeLabel(() => ({}));
 
   for (const node of flow.nodes) graph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
