@@ -14,6 +14,8 @@ export const savedAnalysisSchema = z.object({
   repoPath: z.string().min(1),
   origin: analysisOriginSchema,
   createdAt: z.string(),
+  /** Filen i repot analysen importerades från, relativt roten. Sparas om igen när filen ändras. */
+  file: z.string().min(1).optional(),
   flow: flowSchema,
 });
 

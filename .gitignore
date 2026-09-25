@@ -9,3 +9,6 @@ release/
 .DS_Store
 .vite/
 *.tsbuildinfo
+
+# Genereras av appen i varje öppnat repo
+.highai/

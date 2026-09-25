@@ -1,0 +1,78 @@
+.terminal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+}
+
+.terminal__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 6px 14px;
+  border-bottom: 1px solid var(--border);
+  /* Dragbar yta på höjd med trafikljusen */
+  -webkit-app-region: drag;
+}
+
+.terminal__bar button {
+  -webkit-app-region: no-drag;
+}
+
+.terminal__heading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+}
+
+.terminal__tools {
+  display: flex;
+  gap: 2px;
+}
+
+.terminal__screen {
+  flex: 1;
+  min-height: 0;
+  padding: 8px 0 4px 10px;
+  background: var(--bg-panel);
+}
+
+/* xterm sätter egen höjd på sina lager, vi låter containern styra */
+.terminal__screen .xterm {
+  height: 100%;
+}
+
+.terminal__empty {
+  margin: 0;
+  padding: 16px 14px;
+  color: var(--fg-muted);
+}
+
+.terminal__exited {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.terminal__ask {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.terminal__ask input {
+  flex: 1;
+  min-width: 0;
+}

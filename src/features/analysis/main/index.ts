@@ -1,22 +1,37 @@
 import { join } from 'node:path';
 import { app } from 'electron';
-import { handleChannel } from '@/common/main/ipc';
-import { deleteAnalysisChannel, listAnalysesChannel, saveAnalysisChannel } from '../ipc/channels';
+import { emitEvent, handleChannel } from '@/common/main/ipc';
+import {
+  deleteAnalysisChannel,
+  inboxEvent,
+  listAnalysesChannel,
+  saveAnalysisChannel,
+  watchInboxChannel,
+} from '../ipc/channels';
+import { type SavedAnalysis } from '../model/analysis';
 import { builtinAnalyses } from './builtin';
+import { FlowInbox } from './inbox';
 import { AnalysisStore } from './store';
 
 export function registerAnalysisHandlers(): void {
   const store = new AnalysisStore(join(app.getPath('userData'), 'analyses'));
-
-  handleChannel(listAnalysesChannel, async ({ repoPath }) => [
+  const listAll = async (repoPath: string): Promise<SavedAnalysis[]> => [
     ...builtinAnalyses(repoPath),
     ...(await store.list(repoPath)),
-  ]);
+  ];
+  const inbox = new FlowInbox(store, listAll, (event) => {
+    emitEvent(inboxEvent, event);
+  });
 
+  handleChannel(listAnalysesChannel, ({ repoPath }) => listAll(repoPath));
   handleChannel(saveAnalysisChannel, ({ repoPath, flow }) => store.save(repoPath, flow));
+  handleChannel(deleteAnalysisChannel, async ({ repoPath, id }) => {
+    await store.delete(repoPath, id);
+    return listAll(repoPath);
+  });
+  handleChannel(watchInboxChannel, ({ repoPath }) => inbox.watch(repoPath));
 
-  handleChannel(deleteAnalysisChannel, async ({ repoPath, id }) => [
-    ...builtinAnalyses(repoPath),
-    ...(await store.delete(repoPath, id)),
-  ]);
+  app.on('before-quit', () => {
+    inbox.stop();
+  });
 }

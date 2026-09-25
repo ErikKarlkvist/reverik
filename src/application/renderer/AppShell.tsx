@@ -5,9 +5,10 @@ import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { Splitter } from '@/common/renderer/Splitter';
 import { invokeChannel } from '@/common/renderer/ipc';
-import { AnalysisList, useAnalyses } from '@/features/analysis';
+import { AnalysisList, InboxLog, useAnalyses } from '@/features/analysis';
 import { FlowPlayer } from '@/features/flow-graph';
 import { RepoPanel, SourceView, useRepo } from '@/features/repo';
+import { TerminalPanel } from '@/features/terminal';
 import { ThemeSelect } from './ThemeSelect';
 import { useStoredFlag } from './useStoredFlag';
 import { useStoredNumber } from './useStoredNumber';
@@ -24,10 +25,12 @@ export function AppShell(): JSX.Element {
   const { repo } = useRepo();
   const { current } = useAnalyses();
   const [logOpen, setLogOpen] = useStoredFlag('highai.logOpen', true);
+  const [terminalOpen, setTerminalOpen] = useStoredFlag('highai.terminalOpen', true);
   const [source, setSource] = useState<SourceRef | null>(null);
   const [tab, setTab] = useState<PanelTab>('code');
   const [sidebarWidth, setSidebarWidth] = useStoredNumber('highai.sidebarWidth', 300);
   const [bottomHeight, setBottomHeight] = useStoredNumber('highai.bottomHeight', 220);
+  const [terminalWidth, setTerminalWidth] = useStoredNumber('highai.terminalWidth', 460);
 
   useEffect(() => {
     void invokeChannel(appInfoChannel, undefined).then(setInfo);
@@ -39,14 +42,28 @@ export function AppShell(): JSX.Element {
   const onSelectSource = useCallback((selected: SourceRef) => {
     setSource(selected);
   }, []);
+  const hideTerminal = useCallback(() => {
+    setTerminalOpen(false);
+  }, [setTerminalOpen]);
 
   const shownSource = current ? source : null;
   const activeTab: PanelTab = tab === 'code' && !shownSource ? 'log' : tab;
+  const shellClass = [
+    'shell',
+    logOpen ? '' : 'shell--log-closed',
+    terminalOpen ? '' : 'shell--terminal-closed',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div
-      className={`shell${logOpen ? '' : ' shell--log-closed'}`}
-      style={{ '--sidebar-width': `${sidebarWidth}px`, '--bottom-height': `${bottomHeight}px` }}
+      className={shellClass}
+      style={{
+        '--sidebar-width': `${sidebarWidth}px`,
+        '--bottom-height': `${bottomHeight}px`,
+        '--terminal-width': `${terminalWidth}px`,
+      }}
     >
       <aside className="shell__sidebar">
         <div className="shell__drag" />
@@ -130,12 +147,25 @@ export function AppShell(): JSX.Element {
               <Icon name="chevronDown" />
             </button>
           </div>
-          {activeTab === 'code' && shownSource ? (
-            <SourceView source={shownSource} />
-          ) : (
-            <p className="shell__empty">{t('panel.logIdle')}</p>
-          )}
+          {activeTab === 'code' && shownSource ? <SourceView source={shownSource} /> : <InboxLog />}
         </section>
+      )}
+
+      {terminalOpen && (
+        <div className="shell__terminal">
+          <TerminalPanel repoPath={repo?.path ?? null} onHide={hideTerminal}>
+            <Splitter
+              orientation="vertical"
+              size={terminalWidth}
+              min={320}
+              max={900}
+              inverted
+              edge="start"
+              onResize={setTerminalWidth}
+              label={t('panel.resizeTerminal')}
+            />
+          </TerminalPanel>
+        </div>
       )}
 
       <footer className="shell__footer">
@@ -155,6 +185,18 @@ export function AppShell(): JSX.Element {
               }}
             >
               <Icon name="chevronUp" size="sm" /> {TAB_LABELS[activeTab]}
+            </button>
+          )}
+          {!terminalOpen && (
+            <button
+              type="button"
+              className="text-button"
+              title={t('panel.showTerminal')}
+              onClick={() => {
+                setTerminalOpen(true);
+              }}
+            >
+              <Icon name="terminal" size="sm" /> {t('panel.showTerminal')}
             </button>
           )}
           <ThemeSelect />

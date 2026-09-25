@@ -1,7 +1,9 @@
 # Highai
 
-PoC: Electron-app som låter Claude analysera dataflöden i en kodbas och visar dem
-som animerade sekvensdiagram. Arbetsplan i PLAN.md.
+PoC: Electron-app som låter en AI-agent analysera dataflöden i en kodbas och visar dem
+som animerade sekvensdiagram. Agenten (Claude Code eller annan) körs i en terminalpanel
+i appen och levererar flöden som JSON till `.highai/flows/` i repot, som appen bevakar.
+Guiden agenten läser byggs i `src/features/analysis/model/guide.ts`. Arbetsplan i PLAN.md.
 
 ## Kommandon
 
@@ -14,6 +16,9 @@ som animerade sekvensdiagram. Arbetsplan i PLAN.md.
 - Riktig Electron går att styra utifrån: `HIGHAI_DEBUG_PORT=9333 npm run dev` öppnar
   DevTools-protokollet, och `node scripts/drive-electron.mjs` klickar igenom appen och
   rapporterar DOM-tillstånd. Använd det för att verifiera beteende som skiljer sig från webbläsaren.
+
+`node-pty` är ett native-modul med prebuilds. npm tappar körrättigheten på dess
+`spawn-helper`, så `postinstall` kör `scripts/fix-node-pty.mjs` som rättar det.
 
 Pre-commit-hooken (husky + lint-staged) kör eslint --fix och prettier på staged filer,
 sedan `tsc -b` och testerna. Committa inte med `--no-verify`.
@@ -36,8 +41,9 @@ arkitekturen som säger nej, inte lintern som är fel.
 
 Kanaler definieras med `defineChannel<Req, Res>('feature:namn')` i en features `ipc/`,
 hanteras i main med `handleChannel` från `@/common/main/ipc` och anropas i renderer med
-`invokeChannel` från `@/common/renderer/ipc`. Preload exponerar bara en generisk
-`window.api.invoke`. API-nyckeln läses från `.env` i main och når aldrig renderer.
+`invokeChannel` från `@/common/renderer/ipc`. Händelser från main definieras med `defineEvent`,
+skickas med `emitEvent` och lyssnas på med `useIpcEvent`. Preload exponerar bara
+`window.api.invoke` och `window.api.on`.
 
 ## Kodstil
 

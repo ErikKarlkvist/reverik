@@ -7,30 +7,36 @@ kopplas in i UI:t.
 
 ## Status 2026-09-25
 
-Del 0 till 3 är klara. Appen startar, kopplar repo, visar sparade och inbyggda
-analyser, ritar flöden i tre nivåer med uppspelning, kodutdrag och tabeller.
-Nästa steg är Del 4, själva AI-analysen. Det som redan finns att bygga på:
+Del 0 till 3 är klara, och Del 4 har bytt form: i stället för en egen agentloop
+mot API:t kör användaren valfri AI-agent (Claude Code, Codex, Aider) i en
+terminalpanel i appen. Appen och agenten pratar via filer i repot:
 
-- `validateFlow()` i `src/common/model/flow.ts` ger läsbara fel att skicka tillbaka till modellen
-- `saveAnalysisChannel` i `src/features/analysis/ipc/channels.ts` sparar ett färdigt flöde
-- `defineEvent`/`emitEvent` i common för att strömma framsteg från main till renderer
-- Fliken Logg i nedre panelen är tom och väntar på analysens verktygsanrop
-- `.env.example` visar nyckeln, `requireEnv()` i `src/application/main/env.ts` läser den
-- Fixturerna i `src/common/model/fixtures/` visar exakt vad modellen ska producera,
-  inklusive `systems`, `system` per nod, `tables` med nycklar och `tables` på kanter
+- Appen skriver `.highai/README.md` i repot när det öppnas. Den beskriver schemat,
+  reglerna och ett komplett exempel, och säger åt agenten att skriva flöden till
+  `.highai/flows/<namn>.json`.
+- Main bevakar mappen. Varje sparad fil valideras med `validateFlow()`, källhänvisningarna
+  kontrolleras mot repot (fil finns, raden finns), och resultatet sparas via
+  `AnalysisStore` och väljs i listan. Avvisade filer får felen skrivna till
+  `<namn>.errors.json` bredvid sig så agenten kan läsa och rätta.
+- Frågefältet under terminalen skickar frågan till programmet som kör där, med en
+  uppmaning att först läsa guiden.
+
+Det som återstår är att prova mot riktiga repon och putsa guiden efter vad
+agenterna faktiskt gör fel.
 
 ## Avgränsningar
 
 - Statisk analys: AI:n läser koden och förutspår flödet. Ingen runtime-tracing.
 - Ett repo åt gången.
-- Ingen inloggning, ingen molnlagring. API-nyckel läses från `.env`.
+- Ingen inloggning, ingen molnlagring, ingen egen API-nyckel. AI:n körs i terminalen med
+  användarens egen inloggning.
 - Endast macOS behöver fungera.
 
 ## Stack
 
 - Electron + Vite + React + TypeScript (electron-vite)
 - `@xyflow/react` (React Flow) för grafen, `elkjs` eller `dagre` för layout
-- `@anthropic-ai/claude-agent-sdk` i main-processen för analysen
+- `node-pty` i main och `@xterm/xterm` i renderern för terminalen
 - `zod` för att validera grafen AI:n producerar
 - `simple-git` för att läsa branch och fillista ur repot
 
@@ -82,30 +88,32 @@ Mål: fixturen renderas snyggt och kan spelas upp steg för steg.
 - [x] Inzoomad databas visas som ER-diagram: en ruta per tabell med primär- och främmande nycklar, relationslinjer, och flödets anrop pekar på rätt tabell
 - [x] Sidopanelens bredd och nedre panelens höjd går att dra i, sparas i localStorage
 
-## Del 4: AI-analys
+## Del 4: AI-analys via terminal
 
-Mål: en riktig fråga mot ett riktigt repo ger en `Flow`.
+Mål: en riktig fråga mot ett riktigt repo ger en `Flow`, oavsett vilken AI-agent
+användaren har.
 
-Ny feature `analysis` finns redan med lagring och lista. AI-delen läggs i samma
-feature: `model/` för prompt och tolkning, `main/` för agentloopen, `ipc/` för
-kanal och framstegshändelse, `renderer/` för frågefältet.
+Terminalen är en egen feature `terminal`. Inkorgen och guiden ligger i `analysis`:
+`model/guide.ts` bygger `.highai/README.md`, `main/inbox.ts` bevakar och importerar,
+`main/verify.ts` kontrollerar källhänvisningar.
 
-- [ ] CLI-skript först (`npm run analyze -- <repo> "<fråga>"`) för snabb iteration mot `demo/todo-app`
-- [ ] Agentloop med Claude Agent SDK i main: verktygen Read, Grep, Glob mot repots rot, respektera `.gitignore`
-- [ ] Eget verktyg `emit_flow` som tar en `Flow`, körs genom `validateFlow()`, fel skickas tillbaka till modellen
-- [ ] Systemprompt på engelska: följ från UI-händelse till backend till lagring, ange fil och rad på allt,
-      gruppera noder i `systems`, beskriv tabeller med nycklar, ange `tables` på anrop mot lagring
-- [ ] Verifiera att varje `source` faktiskt finns i repot (jämför `readSource`), stryk eller markera det som inte gör det
-- [ ] Spara resultatet via `AnalysisStore` och välj det i listan
-- [ ] Frågefält i sidopanelen under repot, avbryt-knapp
-- [ ] Strömma verktygsanrop till fliken Logg via `emitEvent` så man ser vad AI:n läser
-- [ ] Mock-bryggan: svara på analyskanalen med en fixture efter en fördröjning så UI:t går att titta på i webbläsare
+- [x] Terminalpanel till höger: xterm.js i renderern, node-pty i main, inloggningsskal i repots rot
+- [x] Guiden `.highai/README.md` skrivs i repot när det öppnas, med schema, regler och exempel
+- [x] Main bevakar `.highai/flows/`, validerar med `validateFlow()` och verifierar att varje
+      `source` finns i repot
+- [x] Accepterade flöden sparas via `AnalysisStore` och väljs i listan. Samma filnamn
+      ersätter den tidigare analysen
+- [x] Avvisade flöden får felen skrivna till `<namn>.errors.json` så agenten kan rätta
+- [x] Fliken Logg visar importer och avvisningar, sidopanelen visar senaste avvisningen
+- [x] Frågefält under terminalen som skickar frågan till agenten med hänvisning till guiden
+- [x] Mock-bryggan svarar med ett låtsasskal så terminalpanelen går att titta på i webbläsaren
+- [ ] Prova mot ett par riktiga repon och justera guiden efter vad agenterna gör fel
+- [ ] Knapp som startar `claude` direkt i terminalen
 
 ## Del 5: Putsning för demo
 
 - [x] Spara analyser per repo, lista och ladda tidigare analyser. Demot har inbyggda grundanalyser.
-- [ ] Felhantering: saknad nyckel, rate limit, tomt resultat
-- [ ] Kostnad och tokens visas efter analys
+- [x] Felhantering: avvisade flöden visas i appen och skrivs tillbaka till agenten
 - [x] Demo-repo i `demo/todo-app`: React-frontend, Express-backend, Postgres, Redis, webhook
 
 ## Senare, utanför PoC

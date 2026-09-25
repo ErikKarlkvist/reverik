@@ -1,17 +1,20 @@
 {
   "app.starting": "Starting…",
   "app.chooseRepo": "Choose a repository on the left.",
-  "app.chooseAnalysis": "Choose an analysis on the left, or ask a question about a flow.",
+  "app.chooseAnalysis": "Choose an analysis on the left, or ask for one in the terminal on the right.",
   "app.mockBridge": "Highai is running with the mock bridge, no Electron.",
   "app.mockElectron": "browser",
+  "app.mockShell": "Mock shell: this is the browser, nothing you type here runs.",
 
   "panel.code": "Code",
   "panel.log": "Log",
   "panel.minimise": "Minimise panel",
   "panel.show": "Show panel",
-  "panel.logIdle": "The log shows what the analysis reads while it runs. No analysis is running.",
   "panel.resizeSidebar": "Resize sidebar",
   "panel.resizeBottom": "Resize bottom panel",
+  "panel.minimiseTerminal": "Hide terminal",
+  "panel.showTerminal": "Terminal",
+  "panel.resizeTerminal": "Resize terminal",
 
   "theme.label": "Theme",
   "theme.system": "System",
@@ -82,5 +85,25 @@
   "validation.unknownReference": "Column {table}.{column} references unknown table \"{target}\"",
 
   "table.primaryKey": "Primary key",
-  "table.references": "References {target}"
+  "table.references": "References {target}",
+
+  "terminal.heading": "Terminal",
+  "terminal.restart": "Restart shell",
+  "terminal.exited": "The shell exited with code {code}.",
+  "terminal.noRepo": "Choose a repository to open a terminal in it.",
+  "terminal.askPlaceholder": "Ask about a flow…",
+  "terminal.askHint": "Sent to the program running in the terminal, e.g. claude, with a note to read .highai/README.md first.",
+  "terminal.askPrefix": "Read .highai/README.md, then: ",
+  "terminal.send": "Send",
+
+  "inbox.heading": "Inbox",
+  "inbox.idle": "Flows the AI writes to .highai/flows/ in the repository are imported here as they are saved.",
+  "inbox.imported": "Imported \"{title}\" from {file}",
+  "inbox.rejected": "Rejected {file}",
+  "inbox.errorsWritten": "The errors were written next to the file so the AI can read them.",
+  "inbox.invalidJson": "Not valid JSON: {message}",
+  "inbox.dismiss": "Dismiss",
+
+  "verify.missingFile": "{where}: {file} does not exist in the repository",
+  "verify.lineOutOfRange": "{where}: {file} has {count} lines, line {line} does not exist"
 }

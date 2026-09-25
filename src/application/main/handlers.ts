@@ -3,6 +3,7 @@ import { appInfoChannel } from '@/application/ipc/channels';
 import { handleChannel } from '@/common/main/ipc';
 import { registerAnalysisHandlers } from '@/features/analysis/main';
 import { registerRepoHandlers } from '@/features/repo/main';
+import { registerTerminalHandlers } from '@/features/terminal/main';
 
 export function registerApplicationHandlers(): void {
   handleChannel(appInfoChannel, () => ({
@@ -13,4 +14,5 @@ export function registerApplicationHandlers(): void {
 
   registerRepoHandlers();
   registerAnalysisHandlers();
+  registerTerminalHandlers();
 }

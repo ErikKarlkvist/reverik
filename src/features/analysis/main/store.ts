@@ -27,6 +27,25 @@ export class AnalysisStore {
     return analysis;
   }
 
+  /**
+   * Sparar ett flöde som importerats från en fil i repot. Finns redan en
+   * analys från samma fil ersätts den, så att en rättad fil inte ger dubbletter.
+   */
+  async upsertFromFile(repoPath: string, file: string, flow: Flow): Promise<SavedAnalysis> {
+    const list = await this.read(repoPath);
+    const existing = list.find((a) => a.file === file);
+    const analysis: SavedAnalysis = {
+      id: existing?.id ?? randomUUID(),
+      repoPath,
+      origin: 'ai',
+      createdAt: new Date().toISOString(),
+      file,
+      flow,
+    };
+    await this.write(repoPath, [...list.filter((a) => a.id !== analysis.id), analysis]);
+    return analysis;
+  }
+
   async delete(repoPath: string, id: string): Promise<SavedAnalysis[]> {
     const remaining = (await this.read(repoPath)).filter((a) => a.id !== id);
     await this.write(repoPath, remaining);

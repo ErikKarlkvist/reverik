@@ -5,12 +5,34 @@ import { useAnalyses } from '../AnalysisContext';
 import './analysis.css';
 
 export function AnalysisList(): JSX.Element {
-  const { analyses, current, error, select, remove } = useAnalyses();
+  const { analyses, current, error, rejection, select, remove, dismissRejection } = useAnalyses();
 
   return (
     <section className="analyses">
       <h2 className="analyses__heading">{t('analyses.heading')}</h2>
       {error && <p className="analyses__error">{error}</p>}
+      {rejection?.type === 'rejected' && (
+        <div className="analyses__error analyses__rejection">
+          <div className="analyses__rejection-head">
+            <span>{t('inbox.rejected', { file: rejection.file })}</span>
+            <button
+              type="button"
+              className="icon-button icon-button--quiet"
+              title={t('inbox.dismiss')}
+              aria-label={t('inbox.dismiss')}
+              onClick={dismissRejection}
+            >
+              <Icon name="close" size="sm" />
+            </button>
+          </div>
+          <ul className="analyses__rejection-errors">
+            {rejection.errors.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+          <p className="analyses__rejection-hint">{t('inbox.errorsWritten')}</p>
+        </div>
+      )}
       {analyses.length === 0 && !error && <p className="analyses__muted">{t('analyses.empty')}</p>}
       <ul className="analyses__list">
         {analyses.map((analysis) => {

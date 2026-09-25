@@ -11,6 +11,8 @@ interface Props {
   inverted?: boolean;
   onResize: (size: number) => void;
   label: string;
+  /** Vilken kant av föräldern handtaget sitter på. Standard är slutet (höger/nederkant). */
+  edge?: 'start' | 'end';
 }
 
 /** Dragbart handtag mellan två paneler. Storleken ägs av föräldern. */
@@ -22,6 +24,7 @@ export function Splitter({
   inverted = false,
   onResize,
   label,
+  edge = 'end',
 }: Props): JSX.Element {
   const start = useRef<{ pointer: number; size: number } | null>(null);
 
@@ -59,7 +62,7 @@ export function Splitter({
       aria-valuenow={Math.round(size)}
       aria-valuemin={min}
       aria-valuemax={max}
-      className={`splitter splitter--${orientation}`}
+      className={`splitter splitter--${orientation} splitter--${edge}`}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
