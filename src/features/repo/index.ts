@@ -1,4 +1,5 @@
 export { RepoPanel } from './renderer/components/RepoPanel';
+export { SourceView } from './renderer/components/SourceView';
 export { RepoProvider } from './renderer/RepoProvider';
 export { useRepo } from './renderer/RepoContext';
 export type { RepoInfo } from './model/repo';

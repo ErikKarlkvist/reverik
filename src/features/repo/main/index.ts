@@ -7,10 +7,12 @@ import {
   openDemoRepoChannel,
   openRepoChannel,
   pickLocalRepoChannel,
+  readSourceChannel,
 } from '../ipc/channels';
 import { type RepoInfo } from '../model/repo';
 import { inspectRepo } from './inspect';
 import { forgetRepo, readRecent, rememberRepo } from './recent';
+import { readSource } from './source';
 
 export function registerRepoHandlers(): void {
   handleChannel(pickLocalRepoChannel, async () => {
@@ -31,6 +33,10 @@ export function registerRepoHandlers(): void {
   handleChannel(listRecentReposChannel, () => readRecent());
 
   handleChannel(forgetRepoChannel, ({ path }) => forgetRepo(path));
+
+  handleChannel(readSourceChannel, ({ repoPath, file, line, context }) =>
+    readSource(repoPath, file, line, context),
+  );
 }
 
 async function openAndRemember(path: string): Promise<RepoInfo> {

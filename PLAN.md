@@ -57,12 +57,12 @@ Mål: ett fast kontrakt mellan AI och UI, så att delarna kan byggas oberoende.
 
 Mål: fixturen renderas snyggt och kan spelas upp steg för steg.
 
-- [ ] Rendera `Flow` i React Flow med egen nod-komponent per `kind`
-- [ ] Automatisk layout (vänster till höger, UI först, backend sist)
-- [ ] Hover på kant visar `label` och `payload`
-- [ ] Uppspelning: play/pause/steg, aktiv kant får en puls, passerade kanter tonas
-- [ ] Klick på nod eller kant öppnar `source` i nedre panelen med kodutdrag
-- [ ] Tomt läge när ingen analys finns
+- [x] Rendera `Flow` i React Flow med egen nod-komponent per `kind`
+- [x] Automatisk layout med dagre, vänster till höger, svar ritas tillbaka
+- [x] Hover eller klick på kant visar `payload` och `response`
+- [x] Uppspelning: play, paus, steg, scrubber. Aktiv kant får en puls, kommande tonas ner
+- [x] Aktivt steg och klick på nod eller kant visar kodutdrag i nedre panelen
+- [x] Tomt läge när ingen analys finns
 
 ## Del 4: AI-analys
 

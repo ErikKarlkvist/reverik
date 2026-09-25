@@ -1,0 +1,260 @@
+.player {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.player__header {
+  padding: 14px 20px 8px;
+}
+
+.player__title {
+  margin: 0 0 2px;
+  font-size: 18px;
+}
+
+.player__summary {
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+.graph {
+  position: relative;
+  min-height: 0;
+}
+
+.graph__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.graph .react-flow__background {
+  color: var(--border);
+}
+
+.graph .react-flow__attribution {
+  display: none;
+}
+
+/* Noder */
+.graph-node {
+  position: relative;
+  width: 190px;
+  height: 58px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-left: 4px solid var(--node-color, var(--fg-muted));
+  border-radius: 8px;
+  background: var(--bg-panel);
+  color: var(--fg);
+  transition:
+    opacity 200ms,
+    box-shadow 200ms,
+    border-color 200ms;
+}
+
+.graph-node.is-pending {
+  opacity: 0.55;
+}
+
+.graph-node.is-active {
+  border-color: var(--node-color, var(--accent));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--node-color, var(--accent)) 25%, transparent);
+}
+
+.graph-node.is-selected {
+  border-color: var(--accent);
+}
+
+.graph-node__kind {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--node-color, var(--fg-muted));
+}
+
+.graph-node__label {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-node--ui {
+  --node-color: #8b5cf6;
+}
+.graph-node--handler {
+  --node-color: #3b82f6;
+}
+.graph-node--http {
+  --node-color: #0ea5e9;
+}
+.graph-node--service {
+  --node-color: #10b981;
+}
+.graph-node--db {
+  --node-color: #f59e0b;
+}
+.graph-node--cache {
+  --node-color: #ef4444;
+}
+.graph-node--external {
+  --node-color: #64748b;
+}
+.graph-node--queue {
+  --node-color: #ec4899;
+}
+
+.graph-handle {
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+}
+
+/* Kanter */
+.graph .react-flow__edge-path.graph-edge {
+  stroke: var(--fg-muted);
+  stroke-width: 1.5;
+  transition:
+    stroke 200ms,
+    opacity 200ms;
+}
+
+.graph .graph-edge.is-pending {
+  opacity: 0.35;
+}
+
+.graph .graph-edge.is-active {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.graph .graph-edge.is-selected {
+  stroke: var(--accent);
+}
+
+.graph-arrow path {
+  fill: var(--fg-muted);
+}
+
+.graph-arrow.is-pending path {
+  fill: var(--fg-muted);
+  opacity: 0.35;
+}
+
+.graph-arrow.is-active path {
+  fill: var(--accent);
+}
+
+.graph-edge__pulse {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 4px var(--accent));
+}
+
+.graph-edge-label {
+  position: absolute;
+  pointer-events: all;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-panel);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--fg);
+  white-space: nowrap;
+  transition: opacity 200ms;
+}
+
+.graph-edge-label.is-pending {
+  opacity: 0.5;
+}
+
+.graph-edge-label.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.graph-edge-label.is-open {
+  z-index: 10;
+  opacity: 1;
+  border-radius: 8px;
+  white-space: normal;
+  max-width: 320px;
+}
+
+.graph-edge-label__details {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  color: var(--fg);
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.graph-edge-label__key {
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  margin-right: 4px;
+}
+
+/* Uppspelning */
+.playback {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 6px 16px;
+  padding: 10px 20px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.playback__buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.playback__buttons button {
+  min-width: 34px;
+}
+
+.playback__play {
+  border-color: var(--accent);
+}
+
+.playback__scrubber {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.playback__text {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.playback__counter {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+.playback__description {
+  min-height: 1.4em;
+}

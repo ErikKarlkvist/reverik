@@ -1,8 +1,10 @@
-import { type JSX, useEffect, useState } from 'react';
+import { type JSX, useCallback, useEffect, useState } from 'react';
 import { type AppInfo, appInfoChannel } from '@/application/ipc/channels';
+import { type FlowEdge, type FlowNode, type SourceRef } from '@/common/model/flow';
 import { invokeChannel } from '@/common/renderer/ipc';
-import { AnalysisList, FlowPreview, useAnalyses } from '@/features/analysis';
-import { RepoPanel, useRepo } from '@/features/repo';
+import { AnalysisList, useAnalyses } from '@/features/analysis';
+import { FlowPlayer } from '@/features/flow-graph';
+import { RepoPanel, SourceView, useRepo } from '@/features/repo';
 import { ThemeSelect } from './ThemeSelect';
 import { useStoredFlag } from './useStoredFlag';
 
@@ -11,10 +13,23 @@ export function AppShell(): JSX.Element {
   const { repo } = useRepo();
   const { current } = useAnalyses();
   const [logOpen, setLogOpen] = useStoredFlag('highai.logOpen', true);
+  const [source, setSource] = useState<SourceRef | null>(null);
 
   useEffect(() => {
     void invokeChannel(appInfoChannel, undefined).then(setInfo);
   }, []);
+
+  const onActiveEdgeChange = useCallback((edge: FlowEdge | null) => {
+    setSource(edge?.source ?? null);
+  }, []);
+  const onSelectNode = useCallback((node: FlowNode) => {
+    if (node.source) setSource(node.source);
+  }, []);
+  const onSelectEdge = useCallback((edge: FlowEdge) => {
+    setSource(edge.source);
+  }, []);
+
+  const shownSource = current ? source : null;
 
   return (
     <div className={`shell${logOpen ? '' : ' shell--log-closed'}`}>
@@ -27,7 +42,13 @@ export function AppShell(): JSX.Element {
 
       <main className="shell__canvas">
         {current ? (
-          <FlowPreview flow={current.flow} />
+          <FlowPlayer
+            key={current.id}
+            flow={current.flow}
+            onActiveEdgeChange={onActiveEdgeChange}
+            onSelectNode={onSelectNode}
+            onSelectEdge={onSelectEdge}
+          />
         ) : (
           <p className="shell__empty">
             {repo
@@ -40,11 +61,11 @@ export function AppShell(): JSX.Element {
       {logOpen && (
         <section className="shell__bottom">
           <div className="shell__panel-bar">
-            <h2 className="shell__panel-heading">Logg</h2>
+            <h2 className="shell__panel-heading">{shownSource ? 'Kod' : 'Logg'}</h2>
             <button
               type="button"
               className="shell__panel-toggle"
-              title="Minimera loggen"
+              title="Minimera panelen"
               onClick={() => {
                 setLogOpen(false);
               }}
@@ -52,7 +73,13 @@ export function AppShell(): JSX.Element {
               ▾
             </button>
           </div>
-          <p className="shell__empty">Här visas vad analysen läser och kodutdrag för valda steg.</p>
+          {shownSource ? (
+            <SourceView source={shownSource} />
+          ) : (
+            <p className="shell__empty">
+              Här visas kodutdrag för aktivt steg och vad analysen läser.
+            </p>
+          )}
         </section>
       )}
 
@@ -65,12 +92,12 @@ export function AppShell(): JSX.Element {
             <button
               type="button"
               className="shell__footer-button"
-              title="Visa loggen"
+              title="Visa panelen"
               onClick={() => {
                 setLogOpen(true);
               }}
             >
-              ▴ Logg
+              ▴ {shownSource ? 'Kod' : 'Logg'}
             </button>
           )}
           <ThemeSelect />

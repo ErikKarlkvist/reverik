@@ -129,11 +129,19 @@ select:focus {
   display: grid;
   place-items: center;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
+}
+
+.shell__canvas > .player {
+  place-self: stretch;
 }
 
 .shell__bottom {
   grid-area: bottom;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   padding: 10px 16px;
   border-top: 1px solid var(--border);
   background: var(--bg-panel);

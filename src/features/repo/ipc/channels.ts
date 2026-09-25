@@ -13,3 +13,18 @@ export const openRepoChannel = defineChannel<{ path: string }, RepoInfo>('repo:o
 export const listRecentReposChannel = defineChannel<undefined, RepoInfo[]>('repo:list-recent');
 
 export const forgetRepoChannel = defineChannel<{ path: string }, RepoInfo[]>('repo:forget');
+
+export interface SourceExcerpt {
+  file: string;
+  /** Raden som efterfrågades */
+  line: number;
+  /** Radnummer för första raden i `lines` */
+  startLine: number;
+  lines: string[];
+}
+
+/** Läser rader runt en källhänvisning. Sökvägen måste ligga inom repot. */
+export const readSourceChannel = defineChannel<
+  { repoPath: string; file: string; line: number; context?: number },
+  SourceExcerpt
+>('repo:read-source');
