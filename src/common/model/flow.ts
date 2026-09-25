@@ -17,6 +17,8 @@ export const nodeKindSchema = z.enum([
   'service',
   /** Databas eller annan lagring */
   'db',
+  /** Cache: Redis, minnescache, CDN */
+  'cache',
   /** Externt system utanför repot: betaltjänst, tredjeparts-API */
   'external',
   /** Kö, topic eller eventbuss */
@@ -35,7 +37,7 @@ export const flowNodeSchema = z.object({
   kind: nodeKindSchema,
   label: z.string().min(1),
   description: z.string().optional(),
-  /** Krävs för allt som finns i repot. Valfritt för db, external och queue. */
+  /** Krävs för allt som finns i repot. Valfritt för db, cache, external och queue. */
   source: sourceRefSchema.optional(),
 });
 
@@ -61,6 +63,7 @@ export const flowStepSchema = z.object({
 
 const NODE_KINDS_WITHOUT_SOURCE: ReadonlySet<z.infer<typeof nodeKindSchema>> = new Set([
   'db',
+  'cache',
   'external',
   'queue',
 ]);
@@ -160,6 +163,7 @@ export const NODE_KIND_LABELS: Readonly<Record<NodeKind, string>> = {
   http: 'HTTP',
   service: 'Tjänst',
   db: 'Databas',
+  cache: 'Cache',
   external: 'Externt',
   queue: 'Kö',
 };

@@ -1,0 +1,117 @@
+import { type Flow } from '../flow';
+
+/** Visar en cache-miss: Redis är tom, listan hämtas ur Postgres och cachas. */
+export const listTodosFlow: Flow = {
+  question: 'Vad händer när listan laddas?',
+  title: 'Ladda listan',
+  summary:
+    'Vid start hämtar hooken listan. Backend frågar Redis först, går till Postgres vid miss och fyller cachen i 60 sekunder.',
+  nodes: [
+    {
+      id: 'use-todos',
+      kind: 'handler',
+      label: 'useTodos',
+      description: 'useEffect vid montering',
+      source: { file: 'frontend/src/hooks/useTodos.ts', line: 9 },
+    },
+    {
+      id: 'todos-api',
+      kind: 'handler',
+      label: 'todosApi.fetchTodos',
+      source: { file: 'frontend/src/api/todosApi.ts', line: 5 },
+    },
+    {
+      id: 'get-route',
+      kind: 'http',
+      label: 'GET /api/todos',
+      source: { file: 'backend/src/routes/todos.ts', line: 11 },
+    },
+    {
+      id: 'todo-service',
+      kind: 'service',
+      label: 'TodoService.list',
+      source: { file: 'backend/src/services/TodoService.ts', line: 12 },
+    },
+    { id: 'todo-cache', kind: 'cache', label: 'Redis todos:all' },
+    {
+      id: 'todo-repository',
+      kind: 'service',
+      label: 'TodoRepository.findAll',
+      source: { file: 'backend/src/repositories/TodoRepository.ts', line: 21 },
+    },
+    { id: 'postgres', kind: 'db', label: 'Postgres todos' },
+  ],
+  edges: [
+    {
+      id: 'fetch',
+      from: 'use-todos',
+      to: 'todos-api',
+      label: 'fetchTodos()',
+      source: { file: 'frontend/src/hooks/useTodos.ts', line: 10 },
+    },
+    {
+      id: 'get',
+      from: 'todos-api',
+      to: 'get-route',
+      label: 'GET /api/todos',
+      response: '200 [ { "id": 7, "title": "…", "completed": false, … } ]',
+      source: { file: 'frontend/src/api/todosApi.ts', line: 6 },
+    },
+    {
+      id: 'route-to-service',
+      from: 'get-route',
+      to: 'todo-service',
+      label: 'service.list()',
+      source: { file: 'backend/src/routes/todos.ts', line: 12 },
+    },
+    {
+      id: 'cache-get',
+      from: 'todo-service',
+      to: 'todo-cache',
+      label: 'GET todos:all',
+      response: 'null, cache-miss',
+      source: { file: 'backend/src/services/TodoService.ts', line: 13 },
+    },
+    {
+      id: 'find-all',
+      from: 'todo-service',
+      to: 'todo-repository',
+      label: 'repository.findAll()',
+      source: { file: 'backend/src/services/TodoService.ts', line: 16 },
+    },
+    {
+      id: 'select',
+      from: 'todo-repository',
+      to: 'postgres',
+      label: 'SELECT … FROM todos',
+      payload: 'ORDER BY created_at DESC',
+      source: { file: 'backend/src/repositories/TodoRepository.ts', line: 23 },
+    },
+    {
+      id: 'cache-set',
+      from: 'todo-service',
+      to: 'todo-cache',
+      label: 'SET todos:all EX 60',
+      payload: 'Hela listan som JSON',
+      source: { file: 'backend/src/services/TodoService.ts', line: 17 },
+    },
+    {
+      id: 'respond',
+      from: 'get-route',
+      to: 'todos-api',
+      label: '200 OK',
+      payload: 'Listan som JSON',
+      source: { file: 'backend/src/routes/todos.ts', line: 13 },
+    },
+  ],
+  steps: [
+    { edgeId: 'fetch', description: 'Hooken hämtar listan när komponenten monteras.' },
+    { edgeId: 'get', description: 'Klienten gör en GET.' },
+    { edgeId: 'route-to-service', description: 'Routen anropar tjänsten.' },
+    { edgeId: 'cache-get', description: 'Tjänsten frågar Redis. Nyckeln saknas.' },
+    { edgeId: 'find-all', description: 'Tjänsten går till repositoryt i stället.' },
+    { edgeId: 'select', description: 'Alla rader läses ur Postgres, nyast först.' },
+    { edgeId: 'cache-set', description: 'Listan cachas i 60 sekunder.' },
+    { edgeId: 'respond', description: 'Backend svarar med listan.' },
+  ],
+};

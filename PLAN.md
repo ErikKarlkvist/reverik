@@ -50,7 +50,7 @@ Mål: ett fast kontrakt mellan AI och UI, så att delarna kan byggas oberoende.
   - `steps[]`: ordnad lista av `edgeId` + beskrivning, det är detta som spelas upp
   - `question`, `title`, `summary`
   - `validateFlow()` kontrollerar även referenser och dubbletter och ger läsbara fel för modellen
-- [x] Handgjord fixture (`src/common/model/fixtures/add-to-cart.ts`) som täcker alla nodtyper
+- [x] Handgjorda fixturer i `src/common/model/fixtures/` för demo-appen, med källhänvisningar som testas mot riktiga filer
 - [x] Validera fixturen i ett test
 
 ## Del 3: Visualisering och uppspelning
@@ -81,7 +81,7 @@ Mål: en riktig fråga mot ett riktigt repo ger en `Flow`.
 - [ ] Spara analyser per repo och fråga, lista tidigare analyser
 - [ ] Felhantering: saknad nyckel, rate limit, tomt resultat
 - [ ] Kostnad och tokens visas efter analys
-- [ ] Ett par testrepon att demo:a mot (t.ex. en liten webshop med frontend och backend)
+- [x] Demo-repo i `demo/todo-app`: React-frontend, Express-backend, Postgres, Redis, webhook
 
 ## Senare, utanför PoC
 

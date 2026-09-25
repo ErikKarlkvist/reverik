@@ -1,25 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { addToCartFlow } from './fixtures/add-to-cart';
-import { type Flow, nodeKindSchema, validateFlow } from './flow';
+import { addTodoFlow, demoFlows } from './fixtures';
+import { type Flow, type NodeKind, nodeKindSchema, validateFlow } from './flow';
 
 function errorsOf(input: unknown): string[] {
   const result = validateFlow(input);
   return result.ok ? [] : result.errors;
 }
 
-describe('fixture add-to-cart', () => {
-  it('validerar mot schemat', () => {
-    expect(validateFlow(addToCartFlow)).toEqual({ ok: true, flow: addToCartFlow });
-  });
+describe('fixturer', () => {
+  for (const flow of demoFlows) {
+    it(`${flow.title} validerar`, () => {
+      expect(validateFlow(flow)).toEqual({ ok: true, flow });
+    });
+  }
 
-  it('täcker alla nodtyper', () => {
-    const kinds = new Set(addToCartFlow.nodes.map((n) => n.kind));
-    for (const kind of nodeKindSchema.options) expect(kinds).toContain(kind);
+  it('täcker tillsammans alla nodtyper utom queue', () => {
+    const kinds = new Set<NodeKind>(demoFlows.flatMap((f) => f.nodes.map((n) => n.kind)));
+    for (const kind of nodeKindSchema.options) {
+      if (kind !== 'queue') expect(kinds).toContain(kind);
+    }
   });
 });
 
 describe('validateFlow', () => {
-  const base: Flow = addToCartFlow;
+  const base: Flow = addTodoFlow;
 
   it('avvisar kant som pekar på okänd nod', () => {
     const flow = { ...base, edges: [{ ...base.edges[0], to: 'finns-inte' }] };
@@ -37,14 +41,15 @@ describe('validateFlow', () => {
     expect(errorsOf(flow)).toContainEqual(expect.stringContaining('mer än en gång'));
   });
 
-  it('kräver källhänvisning på kod i repot men inte på externa system', () => {
-    const [button] = base.nodes;
-    const withoutSource = { ...button, source: undefined };
+  it('kräver källhänvisning på kod i repot men inte på db, cache och externa system', () => {
+    const [form] = base.nodes;
+    const withoutSource = { ...form, source: undefined };
     expect(errorsOf({ ...base, nodes: [withoutSource, ...base.nodes.slice(1)] })).toContainEqual(
       expect.stringContaining('måste ha en källhänvisning'),
     );
-    const external = base.nodes.find((n) => n.kind === 'external');
-    expect(external?.source).toBeUndefined();
+    for (const kind of ['db', 'cache', 'external'] as const) {
+      expect(base.nodes.find((n) => n.kind === kind)?.source).toBeUndefined();
+    }
   });
 
   it('ger läsbara fel med sökväg', () => {

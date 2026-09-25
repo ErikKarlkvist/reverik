@@ -8,7 +8,8 @@ Man kopplar appen till ett lokalt repo, ställer en fråga som
 där requests spelas upp steg för steg. Varje nod och kant pekar på fil och rad
 i koden.
 
-Se [PLAN.md](PLAN.md) för arbetsplanen.
+Se [PLAN.md](PLAN.md) för arbetsplanen. I `demo/todo-app` finns en liten app att
+analysera: React-frontend, Express-backend, Postgres och Redis.
 
 ## Kom igång
 
