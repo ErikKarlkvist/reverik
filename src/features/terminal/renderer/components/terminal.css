@@ -1,4 +1,4 @@
-.terminal {
+.terminal-panel {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -8,7 +8,7 @@
   border-left: 1px solid var(--border);
 }
 
-.terminal__bar {
+.terminal-panel__bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -18,11 +18,11 @@
   -webkit-app-region: drag;
 }
 
-.terminal__bar button {
+.terminal-panel__bar button {
   -webkit-app-region: no-drag;
 }
 
-.terminal__heading {
+.terminal-panel__heading {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
@@ -31,12 +31,12 @@
   color: var(--fg-muted);
 }
 
-.terminal__tools {
+.terminal-panel__tools {
   display: flex;
   gap: 2px;
 }
 
-.terminal__screen {
+.terminal-panel__screen {
   flex: 1;
   min-height: 0;
   padding: 8px 0 4px 10px;
@@ -44,22 +44,22 @@
 }
 
 /* xterm sätter egen höjd på sina lager, vi låter containern styra */
-.terminal__screen .xterm {
+.terminal-panel__screen .xterm {
   height: 100%;
 }
 
 /* xterm.css ger scrollytan svart bakgrund som sticker fram i kanterna */
-.terminal__screen .xterm .xterm-viewport {
+.terminal-panel__screen .xterm .xterm-viewport {
   background-color: var(--bg-panel);
 }
 
-.terminal__empty {
+.terminal-panel__empty {
   margin: 0;
   padding: 16px 14px;
   color: var(--fg-muted);
 }
 
-.terminal__exited {
+.terminal-panel__exited {
   display: flex;
   align-items: center;
   justify-content: space-between;

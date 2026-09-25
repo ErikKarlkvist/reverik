@@ -186,7 +186,7 @@ select:focus {
   min-width: 0;
 }
 
-.shell__terminal > .terminal {
+.shell__terminal > .terminal-panel {
   flex: 1;
 }
 

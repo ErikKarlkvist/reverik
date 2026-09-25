@@ -16,14 +16,14 @@ interface Props {
 /** Terminal för valfri AI-agent, startad i repots rot. */
 export function TerminalPanel({ repoPath, onHide, children }: Props): JSX.Element {
   return (
-    <section className="terminal">
+    <section className="terminal-panel">
       {children}
       {repoPath ? (
         <Shell key={repoPath} repoPath={repoPath} onHide={onHide} />
       ) : (
         <>
           <Bar onHide={onHide} />
-          <p className="terminal__empty">{t('terminal.noRepo')}</p>
+          <p className="terminal-panel__empty">{t('terminal.noRepo')}</p>
         </>
       )}
     </section>
@@ -32,9 +32,9 @@ export function TerminalPanel({ repoPath, onHide, children }: Props): JSX.Elemen
 
 function Bar({ onHide, onRestart }: { onHide: () => void; onRestart?: () => void }): JSX.Element {
   return (
-    <header className="terminal__bar">
-      <h2 className="terminal__heading">{t('terminal.heading')}</h2>
-      <span className="terminal__tools">
+    <header className="terminal-panel__bar">
+      <h2 className="terminal-panel__heading">{t('terminal.heading')}</h2>
+      <span className="terminal-panel__tools">
         {onRestart && (
           <button
             type="button"
@@ -67,9 +67,9 @@ function Shell({ repoPath, onHide }: { repoPath: string; onHide: () => void }): 
   return (
     <>
       <Bar onHide={onHide} onRestart={restart} />
-      <div className="terminal__screen" ref={screen} />
+      <div className="terminal-panel__screen" ref={screen} />
       {exitCode !== null && (
-        <div className="terminal__exited">
+        <div className="terminal-panel__exited">
           <span>{t('terminal.exited', { code: exitCode })}</span>
           <button type="button" onClick={restart}>
             {t('terminal.restart')}
