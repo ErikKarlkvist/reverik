@@ -34,17 +34,41 @@
 }
 
 .repo-card {
-  padding: 10px 12px;
+  padding: 4px 4px 4px 6px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
 }
 
+.repo-card__head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.repo-card__toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 4px;
+  border: none;
+  background: none;
+  color: var(--fg-muted);
+  text-align: left;
+}
+
 .repo-card__name {
   font-weight: 600;
+  color: var(--fg);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.repo-card__meta-block {
+  padding: 2px 6px 6px 24px;
 }
 
 .repo-card__meta,

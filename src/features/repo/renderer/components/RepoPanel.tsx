@@ -6,13 +6,17 @@ import './repo.css';
 
 /** Kortet med det valda repot. Val av repo sker i sidfotens meny. */
 export function RepoPanel(): JSX.Element {
-  const { repo, busy, error, clearError } = useRepo();
+  const { repo, busy, error, clearError, fetch } = useRepo();
 
   return (
     <section className="repo">
       <h2 className="repo__heading">{t('repo.heading')}</h2>
 
-      {repo ? <RepoCard repo={repo} /> : <p className="repo__muted">{t('repo.none')}</p>}
+      {repo ? (
+        <RepoCard repo={repo} busy={busy} onReload={() => void fetch()} />
+      ) : (
+        <p className="repo__muted">{t('repo.none')}</p>
+      )}
 
       {busy && <p className="repo__muted">{t('repo.reading')}</p>}
 

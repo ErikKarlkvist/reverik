@@ -32,6 +32,7 @@ export const readSourceChannel = defineChannel<
 export interface BranchList {
   /** Utcheckad branch, null vid detached HEAD eller utan git */
   current: string | null;
+  /** Lokala brancher först, sedan fjärrbrancher som origin/x som inte finns lokalt */
   branches: string[];
 }
 
@@ -39,7 +40,5 @@ export const listBranchesChannel = defineChannel<{ repoPath: string }, BranchLis
   'repo:list-branches',
 );
 
-/** Checkar ut en branch och läser om repot. */
-export const checkoutBranchChannel = defineChannel<{ repoPath: string; branch: string }, RepoInfo>(
-  'repo:checkout',
-);
+/** Kör git fetch och läser om repot, så nya brancher syns. */
+export const fetchRepoChannel = defineChannel<{ repoPath: string }, RepoInfo>('repo:fetch');

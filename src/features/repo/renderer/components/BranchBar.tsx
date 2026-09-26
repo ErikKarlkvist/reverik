@@ -11,31 +11,28 @@ interface Props {
 }
 
 /**
- * Raden ovanför grafen: branchen man står på och den man jämför mot.
- * Byte av den första är en riktig checkout, byte av den andra sparas per repo.
+ * Brancherna under repokortet: den reviewen tittar på och den man jämför mot.
+ * Ingen checkout görs, valen sparas per appflik och repo.
  */
 export function BranchBar({ onRunReview }: Props): JSX.Element | null {
-  const { repo, busy, branches, baseBranch, setBaseBranch, checkout } = useRepo();
+  const { repo, busy, branches, headBranch, setHeadBranch, baseBranch, setBaseBranch } = useRepo();
   if (!repo?.isGit) return null;
-  const current = repo.branch;
-  const others = branches.filter((b) => b !== current);
+  const others = branches.filter((b) => b !== headBranch);
 
   return (
     <div className="branch-bar">
       <label className="branch-bar__field">
         <span>
-          <Icon name="branch" size="sm" /> {t('branch.on')}
+          <Icon name="branch" size="sm" /> {t('branch.from')}
         </span>
         <SearchSelect
           options={branches}
-          value={current}
+          value={headBranch}
           disabled={busy || branches.length === 0}
-          label={t('branch.checkoutHint')}
-          placeholder={current === null ? t('repo.detachedHead') : t('branch.search')}
+          label={t('branch.fromHint')}
+          placeholder={t('branch.search')}
           emptyText={t('branch.noMatch')}
-          onSelect={(branch) => {
-            void checkout(branch);
-          }}
+          onSelect={setHeadBranch}
         />
       </label>
       <label className="branch-bar__field">
@@ -54,10 +51,10 @@ export function BranchBar({ onRunReview }: Props): JSX.Element | null {
         <button
           type="button"
           className="branch-bar__run"
-          disabled={busy || current === null || baseBranch === null}
+          disabled={busy || headBranch === null || baseBranch === null}
           title={t('branch.runReviewHint')}
           onClick={() => {
-            if (current !== null && baseBranch !== null) onRunReview(baseBranch, current);
+            if (headBranch !== null && baseBranch !== null) onRunReview(baseBranch, headBranch);
           }}
         >
           <Icon name="warning" size="sm" /> {t('branch.runReview')}

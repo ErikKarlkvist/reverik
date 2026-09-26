@@ -3,7 +3,7 @@ import { invokeChannel } from '@/common/renderer/ipc';
 import { readStored, useScopedKey, writeStored } from '@/common/renderer/storage';
 import {
   type BranchList,
-  checkoutBranchChannel,
+  fetchRepoChannel,
   forgetRepoChannel,
   listBranchesChannel,
   listRecentReposChannel,
@@ -11,7 +11,7 @@ import {
   openRepoChannel,
   pickLocalRepoChannel,
 } from '../../ipc/channels';
-import { defaultBaseBranch } from '../../model/branches';
+import { defaultBaseBranch, defaultHeadBranch } from '../../model/branches';
 import { type RepoInfo } from '../../model/repo';
 
 export interface RepoState {
@@ -24,22 +24,30 @@ export interface RepoState {
   open: (path: string) => Promise<void>;
   forget: (path: string) => Promise<void>;
   clearError: () => void;
-  /** Lokala brancher i det valda repot, tom lista utan git */
+  /** Brancher i det valda repot, tom lista utan git */
   branches: string[];
+  /** Branchen reviewen tittar på, förvalt den utcheckade */
+  headBranch: string | null;
+  setHeadBranch: (branch: string) => void;
   /** Branchen man jämför mot, null om det bara finns en */
   baseBranch: string | null;
   setBaseBranch: (branch: string) => void;
-  /** Checkar ut en annan branch i det valda repot */
-  checkout: (branch: string) => Promise<void>;
+  /** git fetch och omläsning av repot */
+  fetch: () => Promise<void>;
 }
 
 export function useRepoState(): RepoState {
   // Valt repo och basbranch är per appflik
   const lastRepoKey = useScopedKey('highai.lastRepo');
   const baseBranchPrefix = useScopedKey('highai.baseBranch:');
+  const headBranchPrefix = useScopedKey('highai.headBranch:');
   const baseBranchKey = useCallback(
     (repoPath: string): string => `${baseBranchPrefix}${repoPath}`,
     [baseBranchPrefix],
+  );
+  const headBranchKey = useCallback(
+    (repoPath: string): string => `${headBranchPrefix}${repoPath}`,
+    [headBranchPrefix],
   );
   const [repo, setRepo] = useState<RepoInfo | null>(null);
   const [recent, setRecent] = useState<RepoInfo[]>([]);
@@ -48,6 +56,7 @@ export function useRepoState(): RepoState {
   // Brancherna taggas med repot så ett byte inte visar det gamla repots lista.
   const [branchList, setBranchList] = useState<{ repoPath: string; list: BranchList } | null>(null);
   const [baseChoice, setBaseChoice] = useState<{ repoPath: string; branch: string } | null>(null);
+  const [headChoice, setHeadChoice] = useState<{ repoPath: string; branch: string } | null>(null);
 
   const run = useCallback(
     async (task: () => Promise<RepoInfo | null>, quiet = false) => {
@@ -110,13 +119,29 @@ export function useRepoState(): RepoState {
   }, [repoPath, currentBranch]);
 
   const branches = branchList?.repoPath === repoPath ? branchList.list.branches : [];
+  const headBranch = repoPath
+    ? defaultHeadBranch(
+        branches,
+        currentBranch,
+        headChoice?.repoPath === repoPath ? headChoice.branch : readStored(headBranchKey(repoPath)),
+      )
+    : null;
   const baseBranch = repoPath
     ? defaultBaseBranch(
         branches,
-        currentBranch,
+        headBranch,
         baseChoice?.repoPath === repoPath ? baseChoice.branch : readStored(baseBranchKey(repoPath)),
       )
     : null;
+
+  const setHeadBranch = useCallback(
+    (branch: string) => {
+      if (!repoPath) return;
+      setHeadChoice({ repoPath, branch });
+      writeStored(headBranchKey(repoPath), branch);
+    },
+    [repoPath, headBranchKey],
+  );
 
   const setBaseBranch = useCallback(
     (branch: string) => {
@@ -127,13 +152,10 @@ export function useRepoState(): RepoState {
     [repoPath, baseBranchKey],
   );
 
-  const checkout = useCallback(
-    (branch: string) => {
-      if (!repoPath) return Promise.resolve();
-      return run(() => invokeChannel(checkoutBranchChannel, { repoPath, branch }));
-    },
-    [repoPath, run],
-  );
+  const fetch = useCallback(() => {
+    if (!repoPath) return Promise.resolve();
+    return run(() => invokeChannel(fetchRepoChannel, { repoPath }));
+  }, [repoPath, run]);
 
   const forget = useCallback(
     async (path: string) => {
@@ -158,8 +180,10 @@ export function useRepoState(): RepoState {
     forget,
     clearError,
     branches,
+    headBranch,
+    setHeadBranch,
     baseBranch,
     setBaseBranch,
-    checkout,
+    fetch,
   };
 }
