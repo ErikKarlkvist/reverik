@@ -95,6 +95,9 @@ export function FlowPlayer({
     },
     [changeView],
   );
+  const onZoomOut = useCallback(() => {
+    changeView({ kind: 'system' });
+  }, [changeView]);
   const onEdgeClick = useCallback(
     (edge: FlowEdge) => {
       onSelectSource?.(edge.source);
@@ -186,6 +189,7 @@ export function FlowPlayer({
         asking={onAsk ? asking : null}
         onAsk={setAsking}
         onZoom={onZoom}
+        onZoomOut={onZoomOut}
         overlay={
           onAsk && asking ? (
             <AskComposer

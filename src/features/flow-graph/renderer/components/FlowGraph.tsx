@@ -61,6 +61,8 @@ interface Props {
   onAsk: (target: AskTarget) => void;
   /** Förstoringsglaset på en systemnod */
   onZoom?: ((systemId: string) => void) | undefined;
+  /** Förstoringsglaset på en systemram */
+  onZoomOut?: (() => void) | undefined;
   /** Ritas ovanpå grafen, t.ex. frågerutan */
   overlay?: ReactNode;
 }
@@ -77,6 +79,7 @@ export function FlowGraph({
   asking,
   onAsk,
   onZoom,
+  onZoomOut,
   overlay,
 }: Props): JSX.Element {
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
@@ -292,9 +295,12 @@ export function FlowGraph({
     },
     [onZoom],
   );
+  const zoomOut = useCallback(() => {
+    onZoomOut?.();
+  }, [onZoomOut]);
   const graphState = useMemo(
-    () => ({ hoveredNodeId: hoveredNode, view, hide, askNode, askingNodeId, zoomInto }),
-    [hoveredNode, view, hide, askNode, askingNodeId, zoomInto],
+    () => ({ hoveredNodeId: hoveredNode, view, hide, askNode, askingNodeId, zoomInto, zoomOut }),
+    [hoveredNode, view, hide, askNode, askingNodeId, zoomInto, zoomOut],
   );
 
   return (

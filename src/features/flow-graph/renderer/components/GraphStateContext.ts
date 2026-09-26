@@ -17,6 +17,8 @@ export interface GraphState {
   askingNodeId: string | null;
   /** Zoomar in i ett system, från förstoringsglaset på systemnoden */
   zoomInto: (systemId: string) => void;
+  /** Tillbaka till systemvyn, från förstoringsglaset på en systemram */
+  zoomOut: () => void;
 }
 
 const EMPTY: GraphState = {
@@ -26,6 +28,7 @@ const EMPTY: GraphState = {
   askNode: () => undefined,
   askingNodeId: null,
   zoomInto: () => undefined,
+  zoomOut: () => undefined,
 };
 
 export const GraphStateContext = createContext<GraphState>(EMPTY);
@@ -54,4 +57,8 @@ export function useNodeState(id: string): {
       zoomInto(id);
     },
   };
+}
+
+export function useZoomOut(): () => void {
+  return useContext(GraphStateContext).zoomOut;
 }
