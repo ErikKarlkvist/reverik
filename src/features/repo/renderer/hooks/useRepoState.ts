@@ -100,7 +100,7 @@ export function useRepoState(): RepoState {
     (path: string) => run(() => invokeChannel(openRepoChannel, { path })),
     [run],
   );
-  // Läs om brancherna när repot byts eller när branchen ändrats via checkout.
+  // Läs om brancherna när repot byts eller när det lästs om efter fetch.
   const repoPath = repo?.path ?? null;
   const currentBranch = repo?.branch ?? null;
   useEffect(() => {
