@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { addTodoFlow, listTodosFlow } from '@/common/model/fixtures';
+import {
+  addTodoFlow,
+  addTodoReview,
+  addTodoWithListFlow,
+  listTodosFlow,
+} from '@/common/model/fixtures';
+import { diffFlows, mergeForReview } from '@/common/model/review';
 import { buildModel, groupEdges, hideElements, mapStepIndex } from './graph';
 
 describe('buildModel', () => {
@@ -173,5 +179,35 @@ describe('hideElements', () => {
   it('returnerar samma modell när inget är dolt', () => {
     const model = buildModel(addTodoFlow, { kind: 'system' });
     expect(hideElements(model, new Set(), new Set())).toBe(model);
+  });
+});
+
+describe('buildModel med review', () => {
+  const diff = diffFlows(addTodoReview.base, addTodoWithListFlow);
+  const merged = mergeForReview(addTodoWithListFlow, addTodoReview.base, diff);
+  const annotations = { diff, findings: addTodoReview.findings };
+
+  it('märker noder med ändring och fynd i detaljvyn', () => {
+    const model = buildModel(merged, { kind: 'detail' }, annotations);
+    expect(model.nodes.find((n) => n.id === 'list-repository')?.change).toBe('added');
+    expect(model.nodes.find((n) => n.id === 'add-form')?.change).toBe('changed');
+    expect(model.nodes.find((n) => n.id === 'webhook')?.change).toBeUndefined();
+    expect(model.nodes.find((n) => n.id === 'todo-service')?.findings.map((f) => f.id)).toEqual([
+      'cache-not-invalidated',
+    ]);
+  });
+
+  it('systemet ärver sina noders ändringar och interna fynd', () => {
+    const model = buildModel(merged, { kind: 'system' }, annotations);
+    const backend = model.nodes.find((n) => n.id === 'backend');
+    expect(backend?.change).toBe('changed');
+    // Fyndet på det interna anropet check-list hamnar på systemet
+    expect(backend?.findings.map((f) => f.id)).toContain('list-check-outside-transaction');
+    expect(model.nodes.find((n) => n.id === 'redis')?.change).toBeUndefined();
+  });
+
+  it('utan review saknar noderna ändringar och fynd', () => {
+    const model = buildModel(addTodoFlow, { kind: 'detail' });
+    expect(model.nodes.every((n) => n.change === undefined && n.findings.length === 0)).toBe(true);
   });
 });

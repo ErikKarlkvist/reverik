@@ -7,10 +7,12 @@ import {
 } from '@xyflow/react';
 import { type JSX, memo } from 'react';
 import { t } from '@/common/model/i18n';
+import { type FlowChange, type ReviewFinding } from '@/common/model/review';
 import { formatPayload } from '../../model/format';
 import { type Direction } from '../../model/layout';
 import { type StepStatus } from '../../model/playback';
 import { AskButton } from './AskButton';
+import { FindingFlag } from './FindingFlag';
 
 export interface EdgeMemberData {
   id: string;
@@ -20,6 +22,8 @@ export interface EdgeMemberData {
   status: StepStatus;
   /** Stegnummer (1-baserade) i aktuell vy där anropet spelas upp */
   steps: number[];
+  change: FlowChange | undefined;
+  findings: ReviewFinding[];
 }
 
 // React Flow kräver Record<string, unknown>, vilket ett interface inte uppfyller.
@@ -40,6 +44,10 @@ export type GraphEdgeData = {
   onTogglePinned: (edgeId: string) => void;
   /** Hoppar i uppspelningen, 0-baserat */
   onGoToStep: (index: number) => void;
+  /** Linjens ändring i en review: borttagen om alla anrop är det, annars den första ändringen */
+  change: FlowChange | undefined;
+  /** Ett av linjens fynd är valt i review-fliken */
+  focused: boolean;
 };
 
 /** Hur långt från linjen etiketten sitter, i pixlar */
@@ -74,6 +82,7 @@ export const FlowEdgeView = memo(function FlowEdgeView({
   });
   const open = data.hovered || selected === true || data.askingId !== null || data.pinned;
   const multiple = data.members.length > 1;
+  const findings = data.members.flatMap((m) => m.findings);
   const active = data.members.find((m) => m.status === 'active');
   const shown = open ? data.members : active ? [active] : [];
   // Framåtkanter får etiketten ovanför linjen, svar under, så linjen syns.
@@ -85,7 +94,7 @@ export const FlowEdgeView = memo(function FlowEdgeView({
       <BaseEdge
         id={id}
         path={path}
-        className={`graph-edge is-${data.status}${selected ? ' is-selected' : ''}${data.askingId ? ' is-asking' : ''}`}
+        className={`graph-edge is-${data.status}${selected ? ' is-selected' : ''}${data.askingId ? ' is-asking' : ''}${data.focused ? ' is-focused' : ''}${data.change ? ` is-change-${data.change}` : ''}`}
         markerEnd={`url(#graph-arrow-${data.status})`}
       />
       {shown.length > 0 && (
@@ -103,6 +112,15 @@ export const FlowEdgeView = memo(function FlowEdgeView({
         </circle>
       )}
       <EdgeLabelRenderer>
+        {findings.length > 0 && (
+          <FindingFlag
+            findings={findings}
+            className="graph-edge-flag"
+            style={{
+              transform: `translate(-50%, -50%) translate(${labelX + (multiple ? -18 : 0)}px, ${labelY}px)`,
+            }}
+          />
+        )}
         {multiple && (
           <button
             type="button"
@@ -127,7 +145,7 @@ export const FlowEdgeView = memo(function FlowEdgeView({
             {shown.map((member) => (
               <div
                 key={member.id}
-                className={`graph-edge-label__member is-${member.status}${member.id === data.askingId ? ' is-asking' : ''}`}
+                className={`graph-edge-label__member is-${member.status}${member.id === data.askingId ? ' is-asking' : ''}${member.change ? ` is-change-${member.change}` : ''}`}
               >
                 <span className="graph-edge-label__text">
                   {open && member.steps.length > 0 && (
@@ -144,6 +162,11 @@ export const FlowEdgeView = memo(function FlowEdgeView({
                     </button>
                   )}
                   {member.label}
+                  {open && member.change && (
+                    <span className={`graph-node__change is-${member.change}`}>
+                      {t(`review.${member.change}`)}
+                    </span>
+                  )}
                   {open && (
                     <AskButton
                       onAsk={() => {

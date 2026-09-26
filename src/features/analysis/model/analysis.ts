@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { flowSchema } from '@/common/model/flow';
+import { reviewSchema } from '@/common/model/review';
 
 export const analysisOriginSchema = z.enum([
   /** Inbyggd grundanalys som följer med appen, går inte att ta bort */
@@ -17,6 +18,8 @@ export const savedAnalysisSchema = z.object({
   /** Filen i repot analysen importerades från, relativt roten. Sparas om igen när filen ändras. */
   file: z.string().min(1).optional(),
   flow: flowSchema,
+  /** Finns när analysen är en review: `flow` är då flödet efter ändringen */
+  review: reviewSchema.optional(),
 });
 
 export type AnalysisOrigin = z.infer<typeof analysisOriginSchema>;

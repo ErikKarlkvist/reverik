@@ -52,9 +52,255 @@ button.crumb:hover:not(:disabled) {
   color: var(--accent);
 }
 
+.player__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
 .player__title {
   margin: 0;
   font-size: 18px;
+}
+
+.player__review {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+.player__compare {
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Review: ändringar mot base */
+.graph-node.is-change-added,
+.graph-table.is-change-added {
+  border-color: var(--ok);
+}
+
+.graph-node.is-change-changed,
+.graph-table.is-change-changed {
+  border-color: var(--warn);
+}
+
+.graph-node.is-change-removed,
+.graph-table.is-change-removed {
+  border-style: dashed;
+  border-color: var(--danger);
+  opacity: 0.5;
+}
+
+.graph-node__change {
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--bg-panel);
+  background: var(--fg-muted);
+}
+
+.graph-node__change.is-added {
+  background: var(--ok);
+}
+
+.graph-node__change.is-changed {
+  background: var(--warn);
+}
+
+.graph-node__change.is-removed {
+  background: var(--danger);
+}
+
+.graph .graph-edge.is-change-added {
+  stroke: var(--ok);
+}
+
+.graph .graph-edge.is-change-changed {
+  stroke: var(--warn);
+}
+
+.graph .graph-edge.is-change-removed {
+  stroke: var(--danger);
+  stroke-dasharray: 6 4;
+  opacity: 0.6;
+}
+
+/* Valt fynd ringas in */
+.graph-node.is-focused,
+.graph-table.is-focused {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+.graph .graph-edge.is-focused {
+  stroke-width: 3;
+}
+
+/* Flaggan med fynd */
+.graph-flag {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 3px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1.5px solid currentcolor;
+  border-radius: 999px;
+  background: var(--bg-panel);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fg-muted);
+  pointer-events: all;
+}
+
+.graph-flag.is-error {
+  color: var(--danger);
+}
+
+.graph-flag.is-warning {
+  color: var(--warn);
+}
+
+.graph-flag.is-info {
+  color: var(--accent);
+}
+
+.graph-flag.is-focused,
+.graph-flag:hover {
+  background: currentcolor;
+}
+
+.graph-flag.is-focused .icon,
+.graph-flag.is-focused .graph-flag__count,
+.graph-flag:hover .icon,
+.graph-flag:hover .graph-flag__count {
+  color: var(--bg-panel);
+}
+
+.graph-node__flag {
+  position: absolute;
+  top: -10px;
+  left: -8px;
+}
+
+.graph-edge-flag {
+  position: absolute;
+  z-index: 950;
+}
+
+/* Fliken Review i nedre panelen */
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.review__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.review__compare {
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.review__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.review__item {
+  border: 1px solid transparent;
+  border-left: 3px solid var(--fg-muted);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.review__item.is-error {
+  border-left-color: var(--danger);
+}
+
+.review__item.is-warning {
+  border-left-color: var(--warn);
+}
+
+.review__item.is-info {
+  border-left-color: var(--accent);
+}
+
+.review__item.is-open {
+  border-color: var(--border);
+  border-left-width: 3px;
+  background: var(--bg-panel);
+}
+
+.review__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.review__severity.is-error {
+  color: var(--danger);
+}
+
+.review__severity.is-warning {
+  color: var(--warn);
+}
+
+.review__severity.is-info {
+  color: var(--accent);
+}
+
+.review__title {
+  flex: 1;
+  font-weight: 600;
+}
+
+.review__where {
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+.review__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 10px 10px 32px;
+}
+
+.review__text {
+  margin: 0;
+  line-height: 1.5;
 }
 
 /* Fliken Summary i nedre panelen */

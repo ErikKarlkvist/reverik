@@ -8,6 +8,7 @@
 
   "panel.code": "Code",
   "panel.summary": "Summary",
+  "panel.review": "Review",
   "panel.log": "Log",
   "panel.minimise": "Minimise panel",
   "panel.show": "Show panel",
@@ -41,6 +42,7 @@
   "analyses.builtin": "Built-in",
   "analyses.steps": "{count} steps",
   "analyses.delete": "Delete analysis",
+  "analyses.review": "Review",
 
   "graph.allSystems": "All systems",
   "graph.allDetails": "All details",
@@ -89,6 +91,7 @@
   "validation.unknownNode": "Edge \"{id}\" points to unknown node \"{node}\"",
   "validation.unknownEdge": "Step {step} points to unknown edge \"{edge}\"",
   "validation.unknownReference": "Column {table}.{column} references unknown table \"{target}\"",
+  "validation.duplicateFinding": "Finding id \"{id}\" appears more than once",
 
   "ask.button": "Ask the agent about this",
   "ask.placeholder": "Ask about {label}…",
@@ -100,6 +103,20 @@
   "ask.file": " (saved as {file}, update it if the answer changes the flow)",
 
   "summary.steps": "Steps",
+
+  "review.compare": "{base} → {head}",
+  "review.changes": "{added} added · {removed} removed · {changed} changed",
+  "review.findings": "{count} findings",
+  "review.added": "new",
+  "review.removed": "removed",
+  "review.changed": "changed",
+  "review.severity.error": "Error",
+  "review.severity.warning": "Warning",
+  "review.severity.info": "Info",
+  "review.suggestion": "Suggestion",
+  "review.flag": "{count} findings. Click to open.",
+  "review.showInGraph": "Show in graph",
+  "review.empty": "No findings.",
 
   "table.primaryKey": "Primary key",
   "table.references": "References {target}",

@@ -2,6 +2,7 @@ import '@xyflow/react/dist/style.css';
 import { type JSX, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { type Flow, type FlowEdge, type SourceRef } from '@/common/model/flow';
 import { t } from '@/common/model/i18n';
+import { diffFlows, mergeForReview, type Review } from '@/common/model/review';
 import { Icon } from '@/common/renderer/Icon';
 import {
   buildModel,
@@ -29,6 +30,10 @@ interface Props {
   flowFile?: string | undefined;
   /** Tar emot frågan om en nod eller ett anrop, färdig att skicka till agenten */
   onAsk?: ((prompt: string) => void) | undefined;
+  /** Finns när analysen är en review: `flow` är då flödet efter ändringen */
+  review?: Review | undefined;
+  focusedFindingId?: string | null | undefined;
+  onFocusFinding?: ((findingId: string) => void) | undefined;
 }
 
 /**
@@ -42,15 +47,28 @@ export function FlowPlayer({
   beforeControls,
   flowFile,
   onAsk,
+  review,
+  focusedFindingId = null,
+  onFocusFinding,
 }: Props): JSX.Element {
   const [view, setView] = useState<GraphView>({ kind: 'system' });
   // Det användaren dolt gäller i alla vyer. Flyttade noder sparas per vy.
   const [hiddenNodes, setHiddenNodes] = useState<ReadonlySet<string>>(() => new Set());
   const [hiddenEdges, setHiddenEdges] = useState<ReadonlySet<string>>(() => new Set());
   const [moved, setMoved] = useState<ReadonlyMap<string, Point>>(() => new Map());
+  // I en review ritas även det som tagits bort ur base, som spöken.
+  const diff = useMemo(() => (review ? diffFlows(review.base, flow) : null), [review, flow]);
+  const graphFlow = useMemo(
+    () => (review && diff ? mergeForReview(flow, review.base, diff) : flow),
+    [flow, review, diff],
+  );
+  const annotations = useMemo(
+    () => (review && diff ? { diff, findings: review.findings } : undefined),
+    [review, diff],
+  );
   const model = useMemo(
-    () => hideElements(buildModel(flow, view), hiddenNodes, hiddenEdges),
-    [flow, view, hiddenNodes, hiddenEdges],
+    () => hideElements(buildModel(graphFlow, view, annotations), hiddenNodes, hiddenEdges),
+    [graphFlow, view, annotations, hiddenNodes, hiddenEdges],
   );
   const playback = useFlowPlayback(model.steps.length);
   const hiddenCount = hiddenNodes.size + hiddenEdges.size;
@@ -68,18 +86,18 @@ export function FlowPlayer({
 
   useEffect(() => {
     const step = model.steps[playback.stepIndex];
-    const edge = step ? flow.edges.find((e) => e.id === step.edgeId) : undefined;
+    const edge = step ? graphFlow.edges.find((e) => e.id === step.edgeId) : undefined;
     onActiveEdgeChange?.(edge ?? null);
-  }, [flow, model, playback.stepIndex, onActiveEdgeChange]);
+  }, [graphFlow, model, playback.stepIndex, onActiveEdgeChange]);
 
   /** Byter vy och flyttar uppspelningen till motsvarande steg i den nya vyn. */
   const changeView = useCallback(
     (next: GraphView) => {
-      const nextModel = buildModel(flow, next);
-      playback.goTo(mapStepIndex(flow, model, playback.stepIndex, nextModel));
+      const nextModel = buildModel(graphFlow, next, annotations);
+      playback.goTo(mapStepIndex(graphFlow, model, playback.stepIndex, nextModel));
       setView(next);
     },
-    [flow, model, playback],
+    [graphFlow, annotations, model, playback],
   );
 
   // Klick visar koden. Inzoomning sker via förstoringsglaset på systemnoden.
@@ -98,6 +116,12 @@ export function FlowPlayer({
   const onZoomOut = useCallback(() => {
     changeView({ kind: 'system' });
   }, [changeView]);
+  const focusFinding = useCallback(
+    (findingId: string) => {
+      onFocusFinding?.(findingId);
+    },
+    [onFocusFinding],
+  );
   const onEdgeClick = useCallback(
     (edge: FlowEdge) => {
       onSelectSource?.(edge.source);
@@ -136,9 +160,21 @@ export function FlowPlayer({
   return (
     <div className="player">
       <header className="player__header">
-        <h2 className="player__title" title={flow.summary}>
-          {flow.title}
-        </h2>
+        <div className="player__heading">
+          <h2 className="player__title" title={flow.summary}>
+            {flow.title}
+          </h2>
+          {review && (
+            <span className="player__review">
+              <span className="player__compare">
+                {t('review.compare', { base: review.baseLabel, head: review.headLabel })}
+              </span>
+              <span className="player__findings">
+                {t('review.findings', { count: review.findings.length })}
+              </span>
+            </span>
+          )}
+        </div>
         <nav className="player__crumbs" aria-label={t('graph.levelNav')}>
           <button
             type="button"
@@ -190,6 +226,10 @@ export function FlowPlayer({
         onZoom={onZoom}
         onZoomOut={onZoomOut}
         onGoToStep={playback.goTo}
+        diff={diff}
+        findings={review?.findings ?? []}
+        focusedFindingId={focusedFindingId}
+        onFocusFinding={focusFinding}
         overlay={
           onAsk && asking ? (
             <AskComposer

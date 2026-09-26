@@ -7,6 +7,7 @@ import {
   type SourceRef,
   type SystemKind,
 } from '@/common/model/flow';
+import { type FlowChange, type FlowDiff, type ReviewFinding } from '@/common/model/review';
 
 export type GraphKind = NodeKind | SystemKind;
 /** system: ett helt system. node: en nod i koden. table: en tabell i en inzoomad lagringsnod. */
@@ -35,7 +36,22 @@ export interface GraphNode {
   table?: TableInfo;
   /** För level table: antal kolumner, styr nodens höjd i layouten */
   columnCount?: number;
+  /** I en review: hur noden skiljer sig från base. Ett system ärver sina noders ändringar. */
+  change: FlowChange | undefined;
+  /** I en review: fynd som gäller noden, eller för ett system dess noder och interna anrop */
+  findings: ReviewFinding[];
 }
+
+/** Det en review lägger ovanpå flödet när grafen byggs. */
+export interface ReviewAnnotations {
+  diff: FlowDiff;
+  findings: readonly ReviewFinding[];
+}
+
+const NO_ANNOTATIONS: ReviewAnnotations = {
+  diff: { nodes: new Map(), edges: new Map() },
+  findings: [],
+};
 
 /** Relation mellan två tabellnoder, från kolumnen med främmande nyckel till tabellen den pekar på. */
 export interface GraphRelation {
@@ -70,19 +86,29 @@ export interface GraphModel {
 export type GraphView =
   { kind: 'system' } | { kind: 'focus'; systemId: string } | { kind: 'detail' };
 
-export function buildModel(flow: Flow, view: GraphView): GraphModel {
+export function buildModel(
+  flow: Flow,
+  view: GraphView,
+  annotations: ReviewAnnotations = NO_ANNOTATIONS,
+): GraphModel {
   switch (view.kind) {
     case 'system':
-      return collapse(flow, () => true);
+      return collapse(flow, () => true, annotations);
     case 'focus':
-      return collapse(flow, (systemId) => systemId !== view.systemId);
+      return collapse(flow, (systemId) => systemId !== view.systemId, annotations);
     case 'detail':
-      return collapse(flow, () => false);
+      return collapse(flow, () => false, annotations);
   }
 }
 
 /** Slår ihop noderna i de system `shouldCollapse` säger ja till, till en nod per system. */
-function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): GraphModel {
+function collapse(
+  flow: Flow,
+  shouldCollapse: (systemId: string) => boolean,
+  annotations: ReviewAnnotations,
+): GraphModel {
+  const { diff, findings } = annotations;
+  const nodeFindings = (id: string): ReviewFinding[] => findings.filter((f) => f.nodeId === id);
   const nodeToTarget = new Map<string, string>();
   const nodes: GraphNode[] = [];
   const groups: GraphGroup[] = [];
@@ -104,6 +130,8 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
         systemId: system.id,
         memberOf: undefined,
         tables: tablesOf(flow, members),
+        change: systemChange(members, diff),
+        findings: systemFindings(flow, members, findings),
       });
       for (const member of members) nodeToTarget.set(member.id, system.id);
     } else {
@@ -126,6 +154,8 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
               tables: [],
               table: info,
               columnCount: info.columns?.length ?? 0,
+              change: diff.nodes.get(member.id),
+              findings: nodeFindings(member.id),
             });
             for (const column of info.columns ?? []) {
               if (!column.references) continue;
@@ -149,6 +179,8 @@ function collapse(flow: Flow, shouldCollapse: (systemId: string) => boolean): Gr
           systemId: system.id,
           memberOf: undefined,
           tables: tablesOf(flow, [member]),
+          change: diff.nodes.get(member.id),
+          findings: nodeFindings(member.id),
         });
         nodeToTarget.set(member.id, member.id);
       }
@@ -189,6 +221,34 @@ export function mapStepIndex(
     if (flow.steps.indexOf(candidate) <= original) best = i;
   });
   return best;
+}
+
+/** Ett system är nytt eller borttaget om alla dess noder är det, annars ändrat om någon är. */
+function systemChange(
+  members: readonly Flow['nodes'][number][],
+  diff: FlowDiff,
+): FlowChange | undefined {
+  const changes = members.map((m) => diff.nodes.get(m.id));
+  if (changes.every((c) => c === 'added')) return 'added';
+  if (changes.every((c) => c === 'removed')) return 'removed';
+  return changes.some((c) => c !== undefined) ? 'changed' : undefined;
+}
+
+/** Fynd på systemets noder och på anrop som stannar inom systemet. */
+function systemFindings(
+  flow: Flow,
+  members: readonly Flow['nodes'][number][],
+  findings: readonly ReviewFinding[],
+): ReviewFinding[] {
+  const memberIds = new Set(members.map((m) => m.id));
+  const internalEdges = new Set(
+    flow.edges.filter((e) => memberIds.has(e.from) && memberIds.has(e.to)).map((e) => e.id),
+  );
+  return findings.filter(
+    (f) =>
+      (f.nodeId !== undefined && memberIds.has(f.nodeId)) ||
+      (f.edgeId !== undefined && internalEdges.has(f.edgeId)),
+  );
 }
 
 function tableNodeId(nodeId: string, table: string): string {

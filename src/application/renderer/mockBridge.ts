@@ -1,5 +1,5 @@
 import { type IpcBridge } from '@/common/ipc/bridge';
-import { DEMO_REPO_RELATIVE_PATH, demoFlows } from '@/common/model/fixtures';
+import { DEMO_REPO_RELATIVE_PATH, demoAnalyses } from '@/common/model/fixtures';
 import { t } from '@/common/model/i18n';
 
 /**
@@ -22,12 +22,13 @@ export function installMockBridge(): void {
     ],
     lastOpenedAt: new Date().toISOString(),
   };
-  const builtin = demoFlows.map((flow, i) => ({
+  const builtin = demoAnalyses.map(({ flow, review }, i) => ({
     id: `builtin:${i}`,
     repoPath: demoPath,
     origin: 'builtin',
     createdAt: '2026-01-01T00:00:00.000Z',
     flow,
+    ...(review ? { review } : {}),
   }));
   let recent: (typeof demoRepo)[] = [];
   const listeners = new Map<string, Set<(payload: unknown) => void>>();

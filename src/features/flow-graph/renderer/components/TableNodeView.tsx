@@ -2,16 +2,20 @@ import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
 import { type JSX, memo } from 'react';
 import { type NodeKind } from '@/common/model/flow';
 import { t } from '@/common/model/i18n';
+import { type FlowChange, type ReviewFinding } from '@/common/model/review';
 import { Icon } from '@/common/renderer/Icon';
 import { type TableInfo } from '../../model/graph';
 import { useNodeState } from './GraphStateContext';
 import { AskButton } from './AskButton';
+import { FindingFlag } from './FindingFlag';
 import { RemoveButton } from './RemoveButton';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type TableNodeData = {
   kind: NodeKind;
   table: TableInfo;
+  change: FlowChange | undefined;
+  findings: ReviewFinding[];
 };
 
 export type TableNode = Node<TableNodeData, 'table'>;
@@ -22,11 +26,11 @@ export const TableNodeView = memo(function TableNodeView({
   data,
   selected,
 }: NodeProps<TableNode>): JSX.Element {
-  const { status, asking, hide, ask } = useNodeState(id);
+  const { status, asking, focused, hide, ask } = useNodeState(id, data.findings);
   const { table } = data;
   return (
     <div
-      className={`graph-table graph-node--${data.kind} is-${status}${selected ? ' is-selected' : ''}${asking ? ' is-asking' : ''}`}
+      className={`graph-table graph-node--${data.kind} is-${status}${selected ? ' is-selected' : ''}${asking ? ' is-asking' : ''}${focused ? ' is-focused' : ''}${data.change ? ` is-change-${data.change}` : ''}`}
       title={table.description}
     >
       <Handle type="target" position={Position.Left} id="in-left" className="graph-handle" />
@@ -35,6 +39,7 @@ export const TableNodeView = memo(function TableNodeView({
       <Handle type="target" position={Position.Right} id="in-right" className="graph-handle" />
       <AskButton onAsk={ask} />
       <RemoveButton onRemove={hide} />
+      <FindingFlag findings={data.findings} className="graph-node__flag" />
       <div className="graph-table__header">
         <Icon name="db" size="sm" />
         <span className="graph-table__name">{table.name}</span>

@@ -11,6 +11,7 @@ import {
 } from '@xyflow/react';
 import { type JSX, type ReactNode, useCallback, useMemo, useState } from 'react';
 import { type FlowEdge } from '@/common/model/flow';
+import { type FlowChange, type FlowDiff, type ReviewFinding } from '@/common/model/review';
 import { type AskTarget } from '../../model/ask';
 import {
   type GraphModel,
@@ -65,6 +66,11 @@ interface Props {
   onZoomOut?: (() => void) | undefined;
   /** Hopp i uppspelningen från listan över anrop på en linje, 0-baserat */
   onGoToStep: (index: number) => void;
+  /** I en review: ändringar och fynd att rita på kanterna. Noderna bär sina i modellen. */
+  diff: FlowDiff | null;
+  findings: readonly ReviewFinding[];
+  focusedFindingId: string | null;
+  onFocusFinding: (findingId: string) => void;
   /** Ritas ovanpå grafen, t.ex. frågerutan */
   overlay?: ReactNode;
 }
@@ -83,6 +89,10 @@ export function FlowGraph({
   onZoom,
   onZoomOut,
   onGoToStep,
+  diff,
+  findings,
+  focusedFindingId,
+  onFocusFinding,
   overlay,
 }: Props): JSX.Element {
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
@@ -141,7 +151,12 @@ export function FlowGraph({
           position,
           draggable: true,
           selected: isSelected,
-          data: { kind: node.kind, table: node.table },
+          data: {
+            kind: node.kind,
+            table: node.table,
+            change: node.change,
+            findings: node.findings,
+          },
         };
       }
       return {
@@ -156,6 +171,8 @@ export function FlowGraph({
           label: node.label,
           description: node.description,
           tables: node.tables,
+          change: node.change,
+          findings: node.findings,
         },
       };
     });
@@ -205,6 +222,8 @@ export function FlowGraph({
         response: m.response,
         status: view.edges.get(m.id) ?? 'pending',
         steps: stepsByEdge.get(m.id) ?? [],
+        change: diff?.edges.get(m.id),
+        findings: findings.filter((f) => f.edgeId === m.id),
       }));
       return {
         id: edge.id,
@@ -227,6 +246,10 @@ export function FlowGraph({
           pinned: pinnedEdge === edge.id,
           onTogglePinned: togglePinned,
           onGoToStep,
+          change: combinedChange(members),
+          focused:
+            focusedFindingId !== null &&
+            members.some((m) => m.findings.some((f) => f.id === focusedFindingId)),
         },
       };
     });
@@ -243,6 +266,9 @@ export function FlowGraph({
     pinnedEdge,
     togglePinned,
     onGoToStep,
+    diff,
+    findings,
+    focusedFindingId,
   ]);
 
   const onNodesChange = useCallback(
@@ -329,8 +355,28 @@ export function FlowGraph({
     onZoomOut?.();
   }, [onZoomOut]);
   const graphState = useMemo(
-    () => ({ hoveredNodeId: hoveredNode, view, hide, askNode, askingNodeId, zoomInto, zoomOut }),
-    [hoveredNode, view, hide, askNode, askingNodeId, zoomInto, zoomOut],
+    () => ({
+      hoveredNodeId: hoveredNode,
+      view,
+      hide,
+      askNode,
+      askingNodeId,
+      zoomInto,
+      zoomOut,
+      focusedFindingId,
+      focusFinding: onFocusFinding,
+    }),
+    [
+      hoveredNode,
+      view,
+      hide,
+      askNode,
+      askingNodeId,
+      zoomInto,
+      zoomOut,
+      focusedFindingId,
+      onFocusFinding,
+    ],
   );
 
   return (
@@ -385,6 +431,13 @@ export function FlowGraph({
       </GraphStateContext.Provider>
     </div>
   );
+}
+
+function combinedChange(
+  members: readonly { change: FlowChange | undefined }[],
+): FlowChange | undefined {
+  if (members.every((m) => m.change === 'removed')) return 'removed';
+  return members.find((m) => m.change !== undefined && m.change !== 'removed')?.change;
 }
 
 function combinedStatus(members: readonly { status: StepStatus }[]): StepStatus {

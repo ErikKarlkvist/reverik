@@ -6,18 +6,19 @@ import { Icon } from '@/common/renderer/Icon';
 import { Splitter } from '@/common/renderer/Splitter';
 import { invokeChannel } from '@/common/renderer/ipc';
 import { AnalysisList, GUIDE_FILE, InboxLog, useAnalyses } from '@/features/analysis';
-import { FlowPlayer, FlowSummary } from '@/features/flow-graph';
+import { FlowPlayer, FlowSummary, ReviewPanel } from '@/features/flow-graph';
 import { RepoPanel, SourceView, useRepo } from '@/features/repo';
 import { TerminalPanel, useTerminalApi } from '@/features/terminal';
 import { ThemeSelect } from './ThemeSelect';
 import { useStoredFlag } from './useStoredFlag';
 import { useStoredNumber } from './useStoredNumber';
 
-type PanelTab = 'code' | 'summary' | 'log';
+type PanelTab = 'code' | 'summary' | 'review' | 'log';
 
 const TAB_LABELS: Readonly<Record<PanelTab, string>> = {
   code: t('panel.code'),
   summary: t('panel.summary'),
+  review: t('panel.review'),
   log: t('panel.log'),
 };
 
@@ -29,6 +30,24 @@ export function AppShell(): JSX.Element {
   const [terminalOpen, setTerminalOpen] = useStoredFlag('highai.terminalOpen', true);
   const [source, setSource] = useState<SourceRef | null>(null);
   const [tab, setTab] = useState<PanelTab>('code');
+  // Valt fynd taggas med analysen, så byte av analys nollställer det.
+  const [focused, setFocused] = useState<{ analysisId: string; findingId: string } | null>(null);
+  const focusedFindingId =
+    focused !== null && focused.analysisId === current?.id ? focused.findingId : null;
+  const setFocusedFinding = useCallback(
+    (findingId: string | null) => {
+      setFocused(findingId && current ? { analysisId: current.id, findingId } : null);
+    },
+    [current],
+  );
+  const onFocusFinding = useCallback(
+    (findingId: string) => {
+      setFocusedFinding(findingId);
+      setTab('review');
+      setLogOpen(true);
+    },
+    [setFocusedFinding, setLogOpen],
+  );
   const [sidebarWidth, setSidebarWidth] = useStoredNumber('highai.sidebarWidth', 300);
   const [bottomHeight, setBottomHeight] = useStoredNumber('highai.bottomHeight', 220);
   const [terminalWidth, setTerminalWidth] = useStoredNumber('highai.terminalWidth', 460);
@@ -61,13 +80,16 @@ export function AppShell(): JSX.Element {
   const enabled: Record<PanelTab, boolean> = {
     code: shownSource !== null,
     summary: current !== null,
+    review: current?.review !== undefined,
     log: true,
   };
   const activeTab: PanelTab = enabled[tab]
     ? tab
-    : tab === 'code' && enabled.summary
-      ? 'summary'
-      : 'log';
+    : tab === 'code' && enabled.review
+      ? 'review'
+      : tab === 'code' && enabled.summary
+        ? 'summary'
+        : 'log';
   const shellClass = [
     'shell',
     logOpen ? '' : 'shell--log-closed',
@@ -109,6 +131,9 @@ export function AppShell(): JSX.Element {
             onSelectSource={onSelectSource}
             flowFile={current.file}
             onAsk={onAsk}
+            review={current.review}
+            focusedFindingId={focusedFindingId}
+            onFocusFinding={onFocusFinding}
             beforeControls={
               logOpen ? (
                 <Splitter
@@ -173,6 +198,13 @@ export function AppShell(): JSX.Element {
             <SourceView source={shownSource} />
           ) : activeTab === 'summary' && current ? (
             <FlowSummary flow={current.flow} />
+          ) : activeTab === 'review' && current?.review ? (
+            <ReviewPanel
+              flow={current.flow}
+              review={current.review}
+              focusedFindingId={focusedFindingId}
+              onFocus={setFocusedFinding}
+            />
           ) : (
             <InboxLog />
           )}

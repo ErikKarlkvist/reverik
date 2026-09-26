@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import { type ReviewFinding } from '@/common/model/review';
 import { type StepStatus, type StepView } from '../../model/playback';
 
 /**
@@ -19,6 +20,10 @@ export interface GraphState {
   zoomInto: (systemId: string) => void;
   /** Tillbaka till systemvyn, från förstoringsglaset på en systemram */
   zoomOut: () => void;
+  /** Fyndet som är valt i review-fliken, elementet det gäller ringas in */
+  focusedFindingId: string | null;
+  /** Klick på en fyndflagga öppnar fyndet i review-fliken */
+  focusFinding: (findingId: string) => void;
 }
 
 const EMPTY: GraphState = {
@@ -29,24 +34,32 @@ const EMPTY: GraphState = {
   askingNodeId: null,
   zoomInto: () => undefined,
   zoomOut: () => undefined,
+  focusedFindingId: null,
+  focusFinding: () => undefined,
 };
 
 export const GraphStateContext = createContext<GraphState>(EMPTY);
 
-export function useNodeState(id: string): {
+export function useNodeState(
+  id: string,
+  findings: readonly ReviewFinding[] = [],
+): {
   status: StepStatus;
   hovered: boolean;
   asking: boolean;
+  /** Ett av nodens fynd är valt i review-fliken */
+  focused: boolean;
   hide: () => void;
   ask: () => void;
   zoom: () => void;
 } {
-  const { hoveredNodeId, view, hide, askNode, askingNodeId, zoomInto } =
+  const { hoveredNodeId, view, hide, askNode, askingNodeId, zoomInto, focusedFindingId } =
     useContext(GraphStateContext);
   return {
     status: view.nodes.get(id) ?? 'pending',
     hovered: hoveredNodeId === id,
     asking: askingNodeId === id,
+    focused: focusedFindingId !== null && findings.some((f) => f.id === focusedFindingId),
     hide: () => {
       hide(id);
     },
@@ -61,4 +74,12 @@ export function useNodeState(id: string): {
 
 export function useZoomOut(): () => void {
   return useContext(GraphStateContext).zoomOut;
+}
+
+export function useFindingState(): {
+  focusedFindingId: string | null;
+  focusFinding: (findingId: string) => void;
+} {
+  const { focusedFindingId, focusFinding } = useContext(GraphStateContext);
+  return { focusedFindingId, focusFinding };
 }

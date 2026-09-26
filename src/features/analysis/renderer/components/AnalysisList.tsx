@@ -1,5 +1,6 @@
 import { type JSX } from 'react';
 import { LOCALE, t } from '@/common/model/i18n';
+import { worstSeverity } from '@/common/model/review';
 import { Icon } from '@/common/renderer/Icon';
 import { useAnalyses } from '../AnalysisContext';
 import './analysis.css';
@@ -47,7 +48,16 @@ export function AnalysisList(): JSX.Element {
                   select(active ? null : analysis.id);
                 }}
               >
-                <span className="analyses__title">{analysis.flow.title}</span>
+                <span className="analyses__title">
+                  {analysis.review && (
+                    <span
+                      className={`analyses__tag is-${worstSeverity(analysis.review.findings) ?? 'none'}`}
+                    >
+                      <Icon name="warning" size="sm" /> {t('analyses.review')}
+                    </span>
+                  )}
+                  {analysis.flow.title}
+                </span>
                 <span className="analyses__meta">
                   {analysis.origin === 'builtin'
                     ? t('analyses.builtin')

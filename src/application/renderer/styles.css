@@ -9,6 +9,8 @@
   --danger: #b42318;
   --danger-bg: rgb(180 35 24 / 10%);
   --selection: rgb(47 111 228 / 25%);
+  --ok: #1a7f37;
+  --warn: #9a6700;
   color-scheme: light;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
@@ -27,6 +29,8 @@
     --danger: #ff8a8a;
     --danger-bg: rgb(255 92 92 / 12%);
     --selection: rgb(110 168 254 / 30%);
+    --ok: #57c76f;
+    --warn: #e3b341;
     color-scheme: dark;
   }
 }
@@ -41,6 +45,8 @@
   --danger: #ff8a8a;
   --danger-bg: rgb(255 92 92 / 12%);
   --selection: rgb(110 168 254 / 30%);
+  --ok: #57c76f;
+  --warn: #e3b341;
   color-scheme: dark;
 }
 
