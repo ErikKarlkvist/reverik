@@ -156,32 +156,17 @@ select:focus {
 .shell {
   display: grid;
   grid-template-columns: var(--sidebar-width, 300px) 1fr var(--terminal-width, 460px);
-  grid-template-rows: 1fr var(--bottom-height, 220px) 28px;
-  grid-template-areas:
-    'sidebar canvas terminal'
-    'sidebar bottom terminal'
-    'footer footer footer';
-  height: 100vh;
-}
-
-.shell--log-closed {
   grid-template-rows: 1fr 28px;
   grid-template-areas:
-    'sidebar canvas terminal'
+    'sidebar work terminal'
     'footer footer footer';
+  height: 100vh;
 }
 
 .shell--terminal-closed {
   grid-template-columns: var(--sidebar-width, 300px) 1fr;
   grid-template-areas:
-    'sidebar canvas'
-    'sidebar bottom'
-    'footer footer';
-}
-
-.shell--log-closed.shell--terminal-closed {
-  grid-template-areas:
-    'sidebar canvas'
+    'sidebar work'
     'footer footer';
 }
 
@@ -194,6 +179,136 @@ select:focus {
 
 .shell__terminal > .terminal-panel {
   flex: 1;
+}
+
+/* Arbetsytan: flikrad och en arbetsyta per flik, alla monterade */
+.shell__work {
+  grid-area: work;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.shell__workspace-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 38px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  overflow-x: auto;
+  /* Dragbar yta på höjd med trafikljusen */
+  -webkit-app-region: drag;
+}
+
+.shell__workspace-tabs button {
+  -webkit-app-region: no-drag;
+}
+
+.workspace-tab {
+  display: flex;
+  align-items: center;
+  max-width: 240px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  color: var(--fg-muted);
+  font-size: 12px;
+  -webkit-app-region: no-drag;
+}
+
+.workspace-tab.is-active {
+  border-color: var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.workspace-tab__open {
+  min-width: 0;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  color: inherit;
+  font-weight: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-tab__close {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  opacity: 0.6;
+}
+
+.workspace-tab__close:hover {
+  opacity: 1;
+  background: var(--border);
+}
+
+.workspace-tab__add {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 4px;
+}
+
+.shell__workspaces {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+/* display: none skulle nolla grafens mått, så inaktiva arbetsytor göms med visibility */
+.workspace {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 1fr var(--bottom-height, 220px);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.workspace.is-active {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.shell--log-closed .workspace {
+  grid-template-rows: 1fr;
+}
+
+.workspace__canvas {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.workspace__canvas > .player {
+  place-self: stretch;
+}
+
+.workspace__bottom {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  overflow-y: auto;
 }
 
 .shell__sidebar {
@@ -219,39 +334,6 @@ select:focus {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-}
-
-.shell__canvas {
-  grid-area: canvas;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.shell__canvas-body {
-  flex: 1;
-  display: grid;
-  place-items: center;
-  min-height: 0;
-  min-width: 0;
-}
-
-.shell__canvas-body > .player {
-  place-self: stretch;
-}
-
-.shell__bottom {
-  position: relative;
-  grid-area: bottom;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 10px 16px;
-  border-top: 1px solid var(--border);
-  background: var(--bg-panel);
-  overflow-y: auto;
 }
 
 .shell__panel-bar {

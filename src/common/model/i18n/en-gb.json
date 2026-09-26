@@ -6,6 +6,10 @@
   "app.mockElectron": "browser",
   "app.mockShell": "Mock shell: this is the browser, nothing you type here runs.",
 
+  "workspace.empty": "New tab",
+  "workspace.new": "New tab",
+  "workspace.close": "Close tab",
+
   "panel.code": "Code",
   "panel.summary": "Summary",
   "panel.review": "Review",

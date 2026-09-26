@@ -1,53 +1,30 @@
 import { type JSX, useCallback, useEffect, useState } from 'react';
 import { type AppInfo, appInfoChannel } from '@/application/ipc/channels';
-import { type FlowEdge, type SourceRef } from '@/common/model/flow';
 import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { Splitter } from '@/common/renderer/Splitter';
 import { invokeChannel } from '@/common/renderer/ipc';
-import { AnalysisList, GUIDE_FILE, InboxLog, useAnalyses } from '@/features/analysis';
-import { FlowPlayer, FlowSummary, ReviewPanel } from '@/features/flow-graph';
-import { BranchBar, RepoMenu, RepoPanel, SourceView, useRepo } from '@/features/repo';
+import { AnalysisList, GUIDE_FILE, useAnalyses } from '@/features/analysis';
+import { BranchBar, RepoMenu, RepoPanel, useRepo } from '@/features/repo';
 import { TerminalPanel, useTerminalApi } from '@/features/terminal';
 import { ThemeSelect } from './ThemeSelect';
 import { useStoredFlag } from './useStoredFlag';
 import { useStoredNumber } from './useStoredNumber';
-
-type PanelTab = 'code' | 'summary' | 'review' | 'log';
-
-const TAB_LABELS: Readonly<Record<PanelTab, string>> = {
-  code: t('panel.code'),
-  summary: t('panel.summary'),
-  review: t('panel.review'),
-  log: t('panel.log'),
-};
+import { Workspace } from './Workspace';
 
 export function AppShell(): JSX.Element {
   const [info, setInfo] = useState<AppInfo | null>(null);
   const { repo } = useRepo();
-  const { current } = useAnalyses();
+  const {
+    workspaces,
+    activeWorkspaceId,
+    analysisFor,
+    openWorkspace,
+    closeWorkspace,
+    activateWorkspace,
+  } = useAnalyses();
   const [logOpen, setLogOpen] = useStoredFlag('highai.logOpen', true);
   const [terminalOpen, setTerminalOpen] = useStoredFlag('highai.terminalOpen', true);
-  const [source, setSource] = useState<SourceRef | null>(null);
-  const [tab, setTab] = useState<PanelTab>('code');
-  // Valt fynd taggas med analysen, så byte av analys nollställer det.
-  const [focused, setFocused] = useState<{ analysisId: string; findingId: string } | null>(null);
-  const focusedFindingId =
-    focused !== null && focused.analysisId === current?.id ? focused.findingId : null;
-  const setFocusedFinding = useCallback(
-    (findingId: string | null) => {
-      setFocused(findingId && current ? { analysisId: current.id, findingId } : null);
-    },
-    [current],
-  );
-  const onFocusFinding = useCallback(
-    (findingId: string) => {
-      setFocusedFinding(findingId);
-      setTab('review');
-      setLogOpen(true);
-    },
-    [setFocusedFinding, setLogOpen],
-  );
   const [sidebarWidth, setSidebarWidth] = useStoredNumber('highai.sidebarWidth', 300);
   const [bottomHeight, setBottomHeight] = useStoredNumber('highai.bottomHeight', 220);
   const [terminalWidth, setTerminalWidth] = useStoredNumber('highai.terminalWidth', 460);
@@ -56,12 +33,6 @@ export function AppShell(): JSX.Element {
     void invokeChannel(appInfoChannel, undefined).then(setInfo);
   }, []);
 
-  const onActiveEdgeChange = useCallback((edge: FlowEdge | null) => {
-    setSource(edge?.source ?? null);
-  }, []);
-  const onSelectSource = useCallback((selected: SourceRef) => {
-    setSource(selected);
-  }, []);
   const hideTerminal = useCallback(() => {
     setTerminalOpen(false);
   }, [setTerminalOpen]);
@@ -81,21 +52,6 @@ export function AppShell(): JSX.Element {
     [onAsk],
   );
 
-  const shownSource = current ? source : null;
-  // Flikar utan innehåll faller tillbaka: kod kräver en källa, sammanfattning en analys.
-  const enabled: Record<PanelTab, boolean> = {
-    code: shownSource !== null,
-    summary: current !== null,
-    review: current?.review !== undefined,
-    log: true,
-  };
-  const activeTab: PanelTab = enabled[tab]
-    ? tab
-    : tab === 'code' && enabled.review
-      ? 'review'
-      : tab === 'code' && enabled.summary
-        ? 'summary'
-        : 'log';
   const shellClass = [
     'shell',
     logOpen ? '' : 'shell--log-closed',
@@ -109,7 +65,6 @@ export function AppShell(): JSX.Element {
       className={shellClass}
       style={{
         '--sidebar-width': `${sidebarWidth}px`,
-        '--bottom-height': `${bottomHeight}px`,
         '--terminal-width': `${terminalWidth}px`,
       }}
     >
@@ -129,96 +84,67 @@ export function AppShell(): JSX.Element {
         />
       </aside>
 
-      <main className="shell__canvas">
-        <div className="shell__canvas-body">
-          {current ? (
-            <FlowPlayer
-              key={current.id}
-              flow={current.flow}
-              onActiveEdgeChange={onActiveEdgeChange}
-              onSelectSource={onSelectSource}
-              flowFile={current.file}
-              onAsk={onAsk}
-              review={current.review}
-              focusedFindingId={focusedFindingId}
-              onFocusFinding={onFocusFinding}
-              beforeControls={
-                logOpen ? (
-                  <Splitter
-                    orientation="horizontal"
-                    size={bottomHeight}
-                    min={120}
-                    max={700}
-                    inverted
-                    onResize={setBottomHeight}
-                    label={t('panel.resizeBottom')}
-                  />
-                ) : null
-              }
-            />
-          ) : (
-            <p className="shell__empty">{repo ? t('app.chooseAnalysis') : t('app.chooseRepo')}</p>
-          )}
-        </div>
-      </main>
-
-      {logOpen && (
-        <section className="shell__bottom">
-          <Splitter
-            orientation="horizontal"
-            size={bottomHeight}
-            min={120}
-            max={700}
-            inverted
-            onResize={setBottomHeight}
-            label={t('panel.resizeBottom')}
-          />
-          <div className="shell__panel-bar">
-            <div className="shell__tabs" role="tablist">
-              {(Object.keys(TAB_LABELS) as PanelTab[]).map((key) => (
+      <div className="shell__work">
+        <div className="shell__workspace-tabs" role="tablist">
+          {workspaces.map((workspace) => {
+            const analysis = analysisFor(workspace);
+            const active = workspace.id === activeWorkspaceId;
+            return (
+              <div key={workspace.id} className={`workspace-tab${active ? ' is-active' : ''}`}>
                 <button
-                  key={key}
                   type="button"
                   role="tab"
-                  aria-selected={activeTab === key}
-                  className={`shell__tab${activeTab === key ? ' is-active' : ''}`}
-                  disabled={!enabled[key]}
+                  aria-selected={active}
+                  className="workspace-tab__open"
+                  title={analysis?.flow.question}
                   onClick={() => {
-                    setTab(key);
+                    activateWorkspace(workspace.id);
                   }}
                 >
-                  {TAB_LABELS[key]}
+                  {analysis?.flow.title ?? t('workspace.empty')}
                 </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              className="icon-button"
-              title={t('panel.minimise')}
-              aria-label={t('panel.minimise')}
-              onClick={() => {
-                setLogOpen(false);
-              }}
-            >
-              <Icon name="chevronDown" />
-            </button>
-          </div>
-          {activeTab === 'code' && shownSource ? (
-            <SourceView source={shownSource} />
-          ) : activeTab === 'summary' && current ? (
-            <FlowSummary flow={current.flow} />
-          ) : activeTab === 'review' && current?.review ? (
-            <ReviewPanel
-              flow={current.flow}
-              review={current.review}
-              focusedFindingId={focusedFindingId}
-              onFocus={setFocusedFinding}
+                <button
+                  type="button"
+                  className="workspace-tab__close"
+                  title={t('workspace.close')}
+                  aria-label={t('workspace.close')}
+                  onClick={() => {
+                    closeWorkspace(workspace.id);
+                  }}
+                >
+                  <Icon name="close" size="sm" />
+                </button>
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            className="icon-button icon-button--quiet workspace-tab__add"
+            title={t('workspace.new')}
+            aria-label={t('workspace.new')}
+            onClick={() => {
+              openWorkspace();
+            }}
+          >
+            <Icon name="plus" size="sm" />
+          </button>
+        </div>
+        <div className="shell__workspaces">
+          {workspaces.map((workspace) => (
+            <Workspace
+              key={workspace.id}
+              analysis={analysisFor(workspace)}
+              hasRepo={repo !== null}
+              active={workspace.id === activeWorkspaceId}
+              logOpen={logOpen}
+              bottomHeight={bottomHeight}
+              onBottomResize={setBottomHeight}
+              onLogOpenChange={setLogOpen}
+              onAsk={onAsk}
             />
-          ) : (
-            <InboxLog />
-          )}
-        </section>
-      )}
+          ))}
+        </div>
+      </div>
 
       {terminalOpen && (
         <div className="shell__terminal">
@@ -256,7 +182,7 @@ export function AppShell(): JSX.Element {
                 setLogOpen(true);
               }}
             >
-              <Icon name="chevronUp" size="sm" /> {TAB_LABELS[activeTab]}
+              <Icon name="chevronUp" size="sm" /> {t('panel.show')}
             </button>
           )}
           {!terminalOpen && (
