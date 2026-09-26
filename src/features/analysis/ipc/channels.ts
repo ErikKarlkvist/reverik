@@ -17,7 +17,7 @@ export const deleteAnalysisChannel = defineChannel<
 >('analysis:delete');
 
 /**
- * Börjar bevaka `.highai/flows/` i repot och skriver guiden AI:n läser.
+ * Börjar bevaka `.reverik/flows/` i repot och skriver guiden AI:n läser.
  * Anropas när ett repo väljs. Resultatet av importer kommer som `inboxEvent`.
  */
 export const watchInboxChannel = defineChannel<{ repoPath: string }>('analysis:watch');

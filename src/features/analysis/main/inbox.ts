@@ -101,7 +101,7 @@ export async function writeGuide(repoPath: string): Promise<void> {
 const DEBOUNCE_MS = 250;
 
 /**
- * Bevakar `.highai/flows/` i det valda repot. Importerar det som redan
+ * Bevakar `.reverik/flows/` i det valda repot. Importerar det som redan
  * ligger där vid start och sedan varje fil som sparas.
  */
 export class FlowInbox {

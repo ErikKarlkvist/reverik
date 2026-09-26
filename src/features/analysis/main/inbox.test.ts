@@ -43,7 +43,7 @@ describe('importFlowFile', () => {
   let store: AnalysisStore;
 
   beforeEach(async () => {
-    repo = await mkdtemp(join(tmpdir(), 'highai-inbox-'));
+    repo = await mkdtemp(join(tmpdir(), 'reverik-inbox-'));
     await writeFile(join(repo, 'a.ts'), 'line1\nline2\nline3\n');
     await writeFile(join(repo, 'b.ts'), 'only line');
     await mkdir(join(repo, FLOWS_DIR), { recursive: true });
@@ -151,15 +151,15 @@ describe('importFlowFile', () => {
 
 describe('writeGuide', () => {
   it('writes the guide with its version marker and rewrites an outdated copy', async () => {
-    const repo = await mkdtemp(join(tmpdir(), 'highai-guide-'));
+    const repo = await mkdtemp(join(tmpdir(), 'reverik-guide-'));
     try {
-      await mkdir(join(repo, '.highai'), { recursive: true });
+      await mkdir(join(repo, '.reverik'), { recursive: true });
       await writeFile(join(repo, GUIDE_FILE), 'old');
       await writeGuide(repo);
       const guide = await readFile(join(repo, GUIDE_FILE), 'utf8');
-      expect(guide).toContain(`highai-guide v${GUIDE_VERSION}`);
-      expect(guide).toContain('.highai/flows/');
-      expect(guide).toContain('.highai/reviews/');
+      expect(guide).toContain(`reverik-guide v${GUIDE_VERSION}`);
+      expect(guide).toContain('.reverik/flows/');
+      expect(guide).toContain('.reverik/reviews/');
       expect(guide).toContain('"title": "Load the list"');
     } finally {
       await rm(repo, { recursive: true, force: true });

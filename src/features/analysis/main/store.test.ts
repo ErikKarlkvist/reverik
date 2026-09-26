@@ -9,7 +9,7 @@ describe('AnalysisStore', () => {
   let store: AnalysisStore;
 
   beforeEach(async () => {
-    store = new AnalysisStore(await mkdtemp(join(tmpdir(), 'highai-analyses-')));
+    store = new AnalysisStore(await mkdtemp(join(tmpdir(), 'reverik-analyses-')));
   });
 
   it('är tom från början', async () => {

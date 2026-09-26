@@ -14,7 +14,7 @@ interface TabsState {
   next: number;
 }
 
-const TABS_KEY = 'highai.tabs';
+const TABS_KEY = 'reverik.tabs';
 const FRESH: TabsState = { ids: [1], active: 1, next: 2 };
 
 function isTabsState(value: unknown): value is TabsState {
@@ -138,7 +138,7 @@ interface TabWindowProps {
 
 /** En fliks hela app, med egna providers och eget lagringsprefix. */
 function TabWindow({ id, active, onTitle }: TabWindowProps): JSX.Element {
-  const scope = `highai.tab:${id}.`;
+  const scope = `reverik.tab:${id}.`;
   const titleApi = useMemo(
     () => ({
       setTitle: (title: string | null) => {

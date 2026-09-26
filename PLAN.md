@@ -11,9 +11,9 @@ Del 0 till 3 är klara, och Del 4 har bytt form: i stället för en egen agentlo
 mot API:t kör användaren valfri AI-agent (Claude Code, Codex, Aider) i en
 terminalpanel i appen. Appen och agenten pratar via filer i repot:
 
-- Appen skriver `.highai/README.md` i repot när det öppnas. Den beskriver schemat,
+- Appen skriver `.reverik/README.md` i repot när det öppnas. Den beskriver schemat,
   reglerna och ett komplett exempel, och säger åt agenten att skriva flöden till
-  `.highai/flows/<namn>.json`.
+  `.reverik/flows/<namn>.json`.
 - Main bevakar mappen. Varje sparad fil valideras med `validateFlow()`, källhänvisningarna
   kontrolleras mot repot (fil finns, raden finns), och resultatet sparas via
   `AnalysisStore` och väljs i listan. Avvisade filer får felen skrivna till
@@ -94,12 +94,12 @@ Mål: en riktig fråga mot ett riktigt repo ger en `Flow`, oavsett vilken AI-age
 användaren har.
 
 Terminalen är en egen feature `terminal`. Inkorgen och guiden ligger i `analysis`:
-`model/guide.ts` bygger `.highai/README.md`, `main/inbox.ts` bevakar och importerar,
+`model/guide.ts` bygger `.reverik/README.md`, `main/inbox.ts` bevakar och importerar,
 `main/verify.ts` kontrollerar källhänvisningar.
 
 - [x] Terminalpanel till höger: xterm.js i renderern, node-pty i main, inloggningsskal i repots rot
-- [x] Guiden `.highai/README.md` skrivs i repot när det öppnas, med schema, regler och exempel
-- [x] Main bevakar `.highai/flows/`, validerar med `validateFlow()` och verifierar att varje
+- [x] Guiden `.reverik/README.md` skrivs i repot när det öppnas, med schema, regler och exempel
+- [x] Main bevakar `.reverik/flows/`, validerar med `validateFlow()` och verifierar att varje
       `source` finns i repot
 - [x] Accepterade flöden sparas via `AnalysisStore` och väljs i listan. Samma filnamn
       ersätter den tidigare analysen

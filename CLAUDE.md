@@ -1,8 +1,8 @@
-# Highai
+# Reverik
 
 PoC: Electron-app som låter en AI-agent analysera dataflöden i en kodbas och visar dem
 som animerade sekvensdiagram. Agenten (Claude Code eller annan) körs i en terminalpanel
-i appen och levererar flöden som JSON till `.highai/flows/` i repot, som appen bevakar.
+i appen och levererar flöden som JSON till `.reverik/flows/` i repot, som appen bevakar.
 Guiden agenten läser byggs i `src/features/analysis/model/guide.ts`. Arbetsplan i PLAN.md.
 
 ## Kommandon
@@ -13,7 +13,7 @@ Guiden agenten läser byggs i `src/features/analysis/model/guide.ts`. Arbetsplan
 - Renderern går att titta på i en vanlig webbläsare medan `npm run dev` kör: öppna
   Vite-adressen som skrivs ut. Då laddas `src/application/renderer/mockBridge.ts`
   i stället för preload-bryggan och svarar med demo-repot och fixturerna.
-- Riktig Electron går att styra utifrån: `HIGHAI_DEBUG_PORT=9333 npm run dev` öppnar
+- Riktig Electron går att styra utifrån: `REVERIK_DEBUG_PORT=9333 npm run dev` öppnar
   DevTools-protokollet, och `node scripts/drive-electron.mjs` klickar igenom appen och
   rapporterar DOM-tillstånd. Använd det för att verifiera beteende som skiljer sig från webbläsaren.
 

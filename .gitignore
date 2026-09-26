@@ -11,4 +11,4 @@ release/
 *.tsbuildinfo
 
 # Genereras av appen i varje öppnat repo
-.highai/
+.reverik/

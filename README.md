@@ -1,4 +1,4 @@
-# Highai
+# Reverik
 
 PoC: en Electron-app som med hjälp av Claude analyserar dataflöden i en kodbas
 och visar dem som ett animerat sekvensdiagram.

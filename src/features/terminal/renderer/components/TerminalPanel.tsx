@@ -28,7 +28,7 @@ const AGENT_LABELS: Readonly<Record<Agent, string>> = {
  * mellan starter. Byte av agent ger nytt startkommando, och skalet startar om.
  */
 export function TerminalPanel({ repoPath, guideFile, onHide, children }: Props): JSX.Element {
-  const [agent, setAgent] = useStoredChoice<Agent>('highai.agent', AGENTS, 'claude');
+  const [agent, setAgent] = useStoredChoice<Agent>('reverik.agent', AGENTS, 'claude');
   const startCommand = agentStartCommand(agent, guideFile);
 
   return (
@@ -143,7 +143,7 @@ function Shell({ repoPath, agent, startCommand, onAgentChange, onHide }: ShellPr
       />
       {agent === 'shell' && (
         <p className="terminal-panel__hint">
-          {t('terminal.shellHint', { guide: '.highai/README.md' })}
+          {t('terminal.shellHint', { guide: '.reverik/README.md' })}
         </p>
       )}
       <div className="terminal-panel__screen" ref={screen} />

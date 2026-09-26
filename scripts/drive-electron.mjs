@@ -1,5 +1,5 @@
 // Styr Electron-renderern via Chrome DevTools-protokollet och rapporterar DOM-tillstånd.
-// Starta appen med HIGHAI_DEBUG_PORT=9333 npm run dev, kör sedan node scripts/drive-electron.mjs.
+// Starta appen med REVERIK_DEBUG_PORT=9333 npm run dev, kör sedan node scripts/drive-electron.mjs.
 const port = process.env.PORT ?? '9333';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -68,7 +68,7 @@ const state = () =>
   evaluate(`JSON.stringify({
   bottom: !!document.querySelector('.shell__bottom'),
   footerButton: document.querySelector('.shell__footer .text-button')?.textContent.trim() ?? null,
-  logOpen: localStorage.getItem('highai.logOpen'),
+  logOpen: localStorage.getItem('reverik.logOpen'),
   tabs: [...document.querySelectorAll('.shell__tab')].map(t => t.textContent.trim() + (t.getAttribute('aria-selected') === 'true' ? '*' : '') + (t.disabled ? '(av)' : '')),
   panelText: document.querySelector('.shell__bottom')?.textContent.trim().slice(0, 60) ?? null,
   viewport: [innerWidth, innerHeight],

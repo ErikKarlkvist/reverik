@@ -50,7 +50,7 @@ export const reviewSchema = z
   });
 
 /**
- * Filen agenten skriver till `.highai/reviews/`: båda flödena och fynden.
+ * Filen agenten skriver till `.reverik/reviews/`: båda flödena och fynden.
  * Importeras som en analys med `flow` = head och `review` = resten.
  */
 export const reviewDocumentSchema = z.object({

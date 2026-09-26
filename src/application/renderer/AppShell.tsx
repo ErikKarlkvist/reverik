@@ -18,11 +18,11 @@ export function AppShell(): JSX.Element {
   const { repo } = useRepo();
   const { current } = useAnalyses();
   useTabTitle(repo ? (current ? `${repo.name} · ${current.flow.title}` : repo.name) : null);
-  const [logOpen, setLogOpen] = useStoredFlag('highai.logOpen', true);
-  const [terminalOpen, setTerminalOpen] = useStoredFlag('highai.terminalOpen', true);
-  const [sidebarWidth, setSidebarWidth] = useStoredNumber('highai.sidebarWidth', 300);
-  const [bottomHeight, setBottomHeight] = useStoredNumber('highai.bottomHeight', 220);
-  const [terminalWidth, setTerminalWidth] = useStoredNumber('highai.terminalWidth', 460);
+  const [logOpen, setLogOpen] = useStoredFlag('reverik.logOpen', true);
+  const [terminalOpen, setTerminalOpen] = useStoredFlag('reverik.terminalOpen', true);
+  const [sidebarWidth, setSidebarWidth] = useStoredNumber('reverik.sidebarWidth', 300);
+  const [bottomHeight, setBottomHeight] = useStoredNumber('reverik.bottomHeight', 220);
+  const [terminalWidth, setTerminalWidth] = useStoredNumber('reverik.terminalWidth', 460);
 
   useEffect(() => {
     void invokeChannel(appInfoChannel, undefined).then(setInfo);
@@ -65,7 +65,7 @@ export function AppShell(): JSX.Element {
     >
       <aside className="shell__sidebar">
         <div className="shell__drag" />
-        <h1 className="shell__title">Highai</h1>
+        <h1 className="shell__title">REVERIK</h1>
         <RepoPanel />
         <BranchBar onRunReview={onRunReview} />
         {repo && <AnalysisList />}

@@ -55,7 +55,7 @@ function isSelection(value: unknown): value is Tagged<string> {
  * behöver nollställas i en effekt. Valet sparas per appflik och återtas vid start.
  */
 export function useAnalysisState(repoPath: string | null): AnalysisState {
-  const lastAnalysisKey = useScopedKey('highai.lastAnalysis');
+  const lastAnalysisKey = useScopedKey('reverik.lastAnalysis');
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [selection, setSelection] = useState<Tagged<string> | null>(null);
   const [loadError, setLoadError] = useState<Tagged<string> | null>(null);

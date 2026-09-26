@@ -23,7 +23,7 @@ export default defineConfig({
     root: resolve(__dirname, 'src/application/renderer'),
     plugins: [react()],
     resolve: { alias },
-    define: { __HIGHAI_ROOT__: JSON.stringify(__dirname) },
+    define: { __REVERIK_ROOT__: JSON.stringify(__dirname) },
     build: {
       rollupOptions: {
         input: { index: resolve(__dirname, 'src/application/renderer/index.html') },

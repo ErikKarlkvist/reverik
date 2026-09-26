@@ -72,7 +72,7 @@ export function installMockBridge(): void {
         context = 8,
       } = payload as { file: string; line: number; context?: number };
       // ?raw ger filen som en ES-modul med texten som default-export, annars transpilerar Vite tsx.
-      const url = `/@fs${__HIGHAI_ROOT__}/${DEMO_REPO_RELATIVE_PATH}/${file}?raw`;
+      const url = `/@fs${__REVERIK_ROOT__}/${DEMO_REPO_RELATIVE_PATH}/${file}?raw`;
       const module = (await import(/* @vite-ignore */ url)) as { default: string };
       const all = module.default.split('\n');
       const startLine = Math.max(1, line - context);

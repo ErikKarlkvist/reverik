@@ -3,7 +3,7 @@ import { LOCALE, t } from '@/common/model/i18n';
 import { useAnalyses } from '../AnalysisContext';
 import './analysis.css';
 
-/** Loggen över flöden som importerats eller avvisats från `.highai/flows/`. */
+/** Loggen över flöden som importerats eller avvisats från `.reverik/flows/`. */
 export function InboxLog(): JSX.Element {
   const { inbox } = useAnalyses();
   if (inbox.length === 0) return <p className="shell__empty">{t('inbox.idle')}</p>;

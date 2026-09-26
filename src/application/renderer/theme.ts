@@ -3,7 +3,7 @@ import { t } from '@/common/model/i18n';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
-const STORAGE_KEY = 'highai.theme';
+const STORAGE_KEY = 'reverik.theme';
 const PREFERENCES: readonly ThemePreference[] = ['system', 'light', 'dark'];
 
 function isPreference(value: unknown): value is ThemePreference {

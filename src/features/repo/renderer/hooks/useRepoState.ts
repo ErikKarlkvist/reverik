@@ -38,9 +38,9 @@ export interface RepoState {
 
 export function useRepoState(): RepoState {
   // Valt repo och basbranch är per appflik
-  const lastRepoKey = useScopedKey('highai.lastRepo');
-  const baseBranchPrefix = useScopedKey('highai.baseBranch:');
-  const headBranchPrefix = useScopedKey('highai.headBranch:');
+  const lastRepoKey = useScopedKey('reverik.lastRepo');
+  const baseBranchPrefix = useScopedKey('reverik.baseBranch:');
+  const headBranchPrefix = useScopedKey('reverik.headBranch:');
   const baseBranchKey = useCallback(
     (repoPath: string): string => `${baseBranchPrefix}${repoPath}`,
     [baseBranchPrefix],

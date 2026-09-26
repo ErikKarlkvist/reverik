@@ -12,10 +12,10 @@ describe('buildAskPrompt', () => {
       addTodoFlow,
       { kind: 'node', node },
       ' what if this throws? ',
-      '.highai/flows/add-todo.json',
+      '.reverik/flows/add-todo.json',
     );
     expect(prompt).toBe(
-      'About the node "TodoService.create" (backend/src/services/TodoService.ts:21) in the flow "Add todo" (saved as .highai/flows/add-todo.json, update it if the answer changes the flow): what if this throws?',
+      'About the node "TodoService.create" (backend/src/services/TodoService.ts:21) in the flow "Add todo" (saved as .reverik/flows/add-todo.json, update it if the answer changes the flow): what if this throws?',
     );
   });
 

@@ -1,7 +1,7 @@
 # Demo: todo-app
 
-En liten men realistisk todo-app som Highai kan analysera. Den är inte en del av
-Highai-appen utan ett målrepo. Välj mappen `demo/todo-app` som repo i Highai.
+En liten men realistisk todo-app som Reverik kan analysera. Den är inte en del av
+Reverik-appen utan ett målrepo. Välj mappen `demo/todo-app` som repo i Reverik.
 
 ```
 frontend/   React + Vite. Formulär och lista, hook som pratar med API:t.

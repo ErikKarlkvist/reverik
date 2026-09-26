@@ -1,6 +1,6 @@
 import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { DEMO_REPO_RELATIVE_PATH } from '@/common/model/fixtures';
 import { inspectRepo } from './inspect';
@@ -10,7 +10,8 @@ describe('inspectRepo', () => {
     const root = resolve(import.meta.dirname, '../../../..');
     const info = await inspectRepo(root);
     expect(info.isGit).toBe(true);
-    expect(info.name).toBe('Highai');
+    // Mappens namn på disk, oberoende av vad appen heter
+    expect(info.name).toBe(basename(root));
     expect(info.branch).toBe('main');
     expect(info.fileCount).toBeGreaterThan(10);
     // node_modules är ignorerat och får inte räknas
@@ -31,7 +32,7 @@ describe('inspectRepo', () => {
   });
 
   it('faller tillbaka på filvandring för mappar utan git', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'highai-'));
+    const dir = await mkdtemp(join(tmpdir(), 'reverik-'));
     await writeFile(join(dir, 'a.py'), '');
     await writeFile(join(dir, 'b.py'), '');
     await writeFile(join(dir, 'c.go'), '');

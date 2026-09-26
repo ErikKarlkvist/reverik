@@ -20,7 +20,7 @@ export const demoAnalyses: readonly DemoAnalysis[] = [
   { flow: addTodoWithListFlow, review: addTodoReview },
 ];
 
-/** Sökväg till demo-repot relativt Highai-roten. */
+/** Sökväg till demo-repot relativt Reverik-roten. */
 export const DEMO_REPO_RELATIVE_PATH = 'demo/todo-app';
 
 export { addTodoFlow, addTodoReview, addTodoWithListFlow, listTodosFlow };
