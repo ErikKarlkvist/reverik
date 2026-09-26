@@ -18,6 +18,8 @@ export interface EdgeMemberData {
   payload: string | undefined;
   response: string | undefined;
   status: StepStatus;
+  /** Stegnummer (1-baserade) i aktuell vy där anropet spelas upp */
+  steps: number[];
 }
 
 // React Flow kräver Record<string, unknown>, vilket ett interface inte uppfyller.
@@ -33,6 +35,11 @@ export type GraphEdgeData = {
   /** Anropet som är utpekat i frågerutan, om det ligger på den här linjen */
   askingId: string | null;
   onAsk: (memberId: string) => void;
+  /** Listan är fäst efter klick på siffran */
+  pinned: boolean;
+  onTogglePinned: (edgeId: string) => void;
+  /** Hoppar i uppspelningen, 0-baserat */
+  onGoToStep: (index: number) => void;
 };
 
 /** Hur långt från linjen etiketten sitter, i pixlar */
@@ -65,7 +72,8 @@ export const FlowEdgeView = memo(function FlowEdgeView({
     sourcePosition,
     targetPosition,
   });
-  const open = data.hovered || selected === true || data.askingId !== null;
+  const open = data.hovered || selected === true || data.askingId !== null || data.pinned;
+  const multiple = data.members.length > 1;
   const active = data.members.find((m) => m.status === 'active');
   const shown = open ? data.members : active ? [active] : [];
   // Framåtkanter får etiketten ovanför linjen, svar under, så linjen syns.
@@ -94,10 +102,24 @@ export const FlowEdgeView = memo(function FlowEdgeView({
           <animateMotion dur="1.2s" repeatCount="indefinite" path={path} />
         </circle>
       )}
-      {shown.length > 0 && (
-        <EdgeLabelRenderer>
+      <EdgeLabelRenderer>
+        {multiple && (
+          <button
+            type="button"
+            className={`graph-edge-badge is-${data.status}${data.pinned ? ' is-pinned' : ''} nodrag nopan`}
+            style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}
+            title={t('graph.callsOnLine', { count: data.members.length })}
+            onClick={(event) => {
+              event.stopPropagation();
+              data.onTogglePinned(id);
+            }}
+          >
+            {data.members.length}
+          </button>
+        )}
+        {shown.length > 0 && (
           <div
-            className={`graph-edge-label is-${data.status}${open ? ' is-open' : ''} graph-edge-label--${data.direction}`}
+            className={`graph-edge-label is-${data.status}${open ? ' is-open' : ''}${data.pinned ? ' is-pinned' : ''} graph-edge-label--${data.direction}`}
             style={{
               transform: `translate(-50%, ${side < 0 ? '-100%' : '0'}) translate(${labelX}px, ${labelOffsetY}px)`,
             }}
@@ -108,6 +130,19 @@ export const FlowEdgeView = memo(function FlowEdgeView({
                 className={`graph-edge-label__member is-${member.status}${member.id === data.askingId ? ' is-asking' : ''}`}
               >
                 <span className="graph-edge-label__text">
+                  {open && member.steps.length > 0 && (
+                    <button
+                      type="button"
+                      className="graph-edge-label__step nodrag nopan"
+                      title={t('graph.goToStep', { step: member.steps[0] ?? 0 })}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        data.onGoToStep((member.steps[0] ?? 1) - 1);
+                      }}
+                    >
+                      {member.steps.map((n) => `#${n}`).join(' ')}
+                    </button>
+                  )}
                   {member.label}
                   {open && (
                     <AskButton
@@ -140,8 +175,8 @@ export const FlowEdgeView = memo(function FlowEdgeView({
               </div>
             ))}
           </div>
-        </EdgeLabelRenderer>
-      )}
+        )}
+      </EdgeLabelRenderer>
     </>
   );
 });

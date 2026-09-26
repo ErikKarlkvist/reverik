@@ -189,6 +189,7 @@ export function FlowPlayer({
         onAsk={setAsking}
         onZoom={onZoom}
         onZoomOut={onZoomOut}
+        onGoToStep={playback.goTo}
         overlay={
           onAsk && asking ? (
             <AskComposer

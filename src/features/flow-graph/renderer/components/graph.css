@@ -785,6 +785,66 @@ button.crumb:hover:not(:disabled) {
   text-overflow: ellipsis;
 }
 
+/* Siffran på en linje med flera anrop */
+.graph-edge-badge {
+  position: absolute;
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border: 1.5px solid var(--fg-muted);
+  border-radius: 999px;
+  background: var(--bg-panel);
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-weight: 700;
+  pointer-events: all;
+}
+
+.graph-edge-badge.is-pending {
+  opacity: 0.6;
+}
+
+.graph-edge-badge.is-active,
+.graph-edge-badge.is-pinned,
+.graph-edge-badge:hover {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Fäst lista efter klick på siffran */
+.graph-edge-label.is-pinned {
+  border-color: var(--accent);
+}
+
+/* Stegnummer i listan, klick hoppar dit */
+.graph-edge-label__step {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--fg-muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  vertical-align: 1px;
+}
+
+.graph-edge-label__step:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.graph-edge-label__member.is-active .graph-edge-label__step {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* Flera anrop på samma linje listas när linjen är öppen */
 .graph-edge-label__member + .graph-edge-label__member {
   margin-top: 4px;

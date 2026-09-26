@@ -48,6 +48,8 @@
   "graph.levelNav": "Level",
   "graph.zoomHint": "Zoom into {name}",
   "graph.zoomOut": "Back to all systems",
+  "graph.callsOnLine": "{count} calls on this line. Click to list them.",
+  "graph.goToStep": "Go to step {step}",
   "graph.sends": "Sends",
   "graph.response": "Response",
   "graph.remove": "Remove from view",

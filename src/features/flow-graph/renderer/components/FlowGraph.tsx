@@ -63,6 +63,8 @@ interface Props {
   onZoom?: ((systemId: string) => void) | undefined;
   /** Förstoringsglaset på en systemram */
   onZoomOut?: (() => void) | undefined;
+  /** Hopp i uppspelningen från listan över anrop på en linje, 0-baserat */
+  onGoToStep: (index: number) => void;
   /** Ritas ovanpå grafen, t.ex. frågerutan */
   overlay?: ReactNode;
 }
@@ -80,9 +82,17 @@ export function FlowGraph({
   onAsk,
   onZoom,
   onZoomOut,
+  onGoToStep,
   overlay,
 }: Props): JSX.Element {
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
+  const [pinnedEdge, setPinnedEdge] = useState<string | null>(null);
+  const togglePinned = useCallback((edgeId: string) => {
+    setPinnedEdge((current) => (current === edgeId ? null : edgeId));
+  }, []);
+  const unpin = useCallback(() => {
+    setPinnedEdge(null);
+  }, []);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set());
   // Nodobjekt som inte ändrats återanvänds, annars mäter React Flow om dem och grafen
@@ -162,6 +172,10 @@ export function FlowGraph({
   );
 
   const edges = useMemo<AnyEdge[]>(() => {
+    const stepsByEdge = new Map<string, number[]>();
+    model.steps.forEach((step, i) => {
+      stepsByEdge.set(step.edgeId, [...(stepsByEdge.get(step.edgeId) ?? []), i + 1]);
+    });
     const relations: RelationEdge[] = model.relations.map((relation) => {
       const placement = layout.placements.get(relation.id);
       const backward = placement?.direction === 'backward';
@@ -190,6 +204,7 @@ export function FlowGraph({
         payload: m.payload,
         response: m.response,
         status: view.edges.get(m.id) ?? 'pending',
+        steps: stepsByEdge.get(m.id) ?? [],
       }));
       return {
         id: edge.id,
@@ -209,11 +224,26 @@ export function FlowGraph({
           hovered: open,
           askingId,
           onAsk: askEdge,
+          pinned: pinnedEdge === edge.id,
+          onTogglePinned: togglePinned,
+          onGoToStep,
         },
       };
     });
     return [...relations, ...flowEdges];
-  }, [model, visualEdges, layout, view, hoveredEdge, selected, asking, askEdge]);
+  }, [
+    model,
+    visualEdges,
+    layout,
+    view,
+    hoveredEdge,
+    selected,
+    asking,
+    askEdge,
+    pinnedEdge,
+    togglePinned,
+    onGoToStep,
+  ]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<AnyNode>[]) => {
@@ -347,6 +377,7 @@ export function FlowGraph({
           onNodeMouseLeave={onNodeMouseLeave}
           onNodeClick={handleNodeClick}
           onEdgeClick={handleEdgeClick}
+          onPaneClick={unpin}
         >
           <Background gap={24} size={1} />
         </ReactFlow>
