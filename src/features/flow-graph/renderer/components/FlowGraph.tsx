@@ -79,6 +79,9 @@ export function FlowGraph({
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set());
+  // Nodobjekt som inte ändrats återanvänds, annars mäter React Flow om dem och grafen
+  // flimrar vid drag. Cachen är en muterbar Map som lever lika länge som komponenten.
+  const [nodeCache] = useState(() => new Map<string, AnyNode>());
   const visualEdges = useMemo(() => groupEdges(model.edges), [model]);
   const layout = useMemo(() => layoutFlow({ ...model, edges: visualEdges }), [model, visualEdges]);
   const view = useMemo(() => stepView(model, stepIndex), [model, stepIndex]);
@@ -141,8 +144,8 @@ export function FlowGraph({
       };
     });
 
-    return [...groups, ...flowNodes];
-  }, [model, positionOf, selected]);
+    return reuseUnchanged(nodeCache, [...groups, ...flowNodes]);
+  }, [model, positionOf, selected, nodeCache]);
 
   const askEdge = useCallback(
     (memberId: string) => {
@@ -360,6 +363,41 @@ function memberIds(visualEdges: readonly VisualEdge[], visualIds: readonly strin
   return visualEdges
     .filter((v) => visualIds.includes(v.id))
     .flatMap((v) => v.members.map((m) => m.id));
+}
+
+/**
+ * Byter ut varje nytt nodobjekt mot det cachade om inget i det ändrats, så
+ * att bara noden som flyttas eller markeras får ny identitet.
+ */
+function reuseUnchanged(cache: Map<string, AnyNode>, next: AnyNode[]): AnyNode[] {
+  const result = next.map((node) => {
+    const cached = cache.get(node.id);
+    return cached && sameNode(cached, node) ? cached : node;
+  });
+  cache.clear();
+  for (const node of result) cache.set(node.id, node);
+  return result;
+}
+
+function sameNode(a: AnyNode, b: AnyNode): boolean {
+  return (
+    a.type === b.type &&
+    a.position.x === b.position.x &&
+    a.position.y === b.position.y &&
+    a.selected === b.selected &&
+    shallowEqual(a.data, b.data) &&
+    shallowEqual(a.style, b.style)
+  );
+}
+
+function shallowEqual(a: object | undefined, b: object | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const keysA = Object.keys(a);
+  if (keysA.length !== Object.keys(b).length) return false;
+  return keysA.every(
+    (key) => (a as Record<string, unknown>)[key] === (b as Record<string, unknown>)[key],
+  );
 }
 
 function boundingRect(rects: readonly Rect[]): Rect | null {
