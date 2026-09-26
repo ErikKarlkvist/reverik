@@ -5,6 +5,7 @@ import { Icon } from '@/common/renderer/Icon';
 import { Splitter } from '@/common/renderer/Splitter';
 import { invokeChannel } from '@/common/renderer/ipc';
 import { AnalysisList, GUIDE_FILE, useAnalyses } from '@/features/analysis';
+import { useTabTitle } from './AppTabsContext';
 import { BranchBar, RepoMenu, RepoPanel, useRepo } from '@/features/repo';
 import { TerminalPanel, useTerminalApi } from '@/features/terminal';
 import { ThemeSelect } from './ThemeSelect';
@@ -15,14 +16,8 @@ import { Workspace } from './Workspace';
 export function AppShell(): JSX.Element {
   const [info, setInfo] = useState<AppInfo | null>(null);
   const { repo } = useRepo();
-  const {
-    workspaces,
-    activeWorkspaceId,
-    analysisFor,
-    openWorkspace,
-    closeWorkspace,
-    activateWorkspace,
-  } = useAnalyses();
+  const { current } = useAnalyses();
+  useTabTitle(repo ? (current ? `${repo.name} · ${current.flow.title}` : repo.name) : null);
   const [logOpen, setLogOpen] = useStoredFlag('highai.logOpen', true);
   const [terminalOpen, setTerminalOpen] = useStoredFlag('highai.terminalOpen', true);
   const [sidebarWidth, setSidebarWidth] = useStoredNumber('highai.sidebarWidth', 300);
@@ -85,65 +80,15 @@ export function AppShell(): JSX.Element {
       </aside>
 
       <div className="shell__work">
-        <div className="shell__workspace-tabs" role="tablist">
-          {workspaces.map((workspace) => {
-            const analysis = analysisFor(workspace);
-            const active = workspace.id === activeWorkspaceId;
-            return (
-              <div key={workspace.id} className={`workspace-tab${active ? ' is-active' : ''}`}>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={active}
-                  className="workspace-tab__open"
-                  title={analysis?.flow.question}
-                  onClick={() => {
-                    activateWorkspace(workspace.id);
-                  }}
-                >
-                  {analysis?.flow.title ?? t('workspace.empty')}
-                </button>
-                <button
-                  type="button"
-                  className="workspace-tab__close"
-                  title={t('workspace.close')}
-                  aria-label={t('workspace.close')}
-                  onClick={() => {
-                    closeWorkspace(workspace.id);
-                  }}
-                >
-                  <Icon name="close" size="sm" />
-                </button>
-              </div>
-            );
-          })}
-          <button
-            type="button"
-            className="icon-button icon-button--quiet workspace-tab__add"
-            title={t('workspace.new')}
-            aria-label={t('workspace.new')}
-            onClick={() => {
-              openWorkspace();
-            }}
-          >
-            <Icon name="plus" size="sm" />
-          </button>
-        </div>
-        <div className="shell__workspaces">
-          {workspaces.map((workspace) => (
-            <Workspace
-              key={workspace.id}
-              analysis={analysisFor(workspace)}
-              hasRepo={repo !== null}
-              active={workspace.id === activeWorkspaceId}
-              logOpen={logOpen}
-              bottomHeight={bottomHeight}
-              onBottomResize={setBottomHeight}
-              onLogOpenChange={setLogOpen}
-              onAsk={onAsk}
-            />
-          ))}
-        </div>
+        <Workspace
+          analysis={current}
+          hasRepo={repo !== null}
+          logOpen={logOpen}
+          bottomHeight={bottomHeight}
+          onBottomResize={setBottomHeight}
+          onLogOpenChange={setLogOpen}
+          onAsk={onAsk}
+        />
       </div>
 
       {terminalOpen && (

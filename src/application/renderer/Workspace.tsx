@@ -19,7 +19,6 @@ const TAB_LABELS: Readonly<Record<PanelTab, string>> = {
 interface Props {
   analysis: SavedAnalysis | null;
   hasRepo: boolean;
-  active: boolean;
   logOpen: boolean;
   bottomHeight: number;
   onBottomResize: (size: number) => void;
@@ -27,15 +26,10 @@ interface Props {
   onAsk: (prompt: string) => void;
 }
 
-/**
- * En arbetsyta: grafen och den nedre panelen för en analys. Varje flik har
- * sin egen, alla hålls monterade och inaktiva göms, så uppspelning, dolda
- * noder och valt fynd finns kvar när man byter flik.
- */
+/** Arbetsytan: grafen och den nedre panelen för den valda analysen. */
 export function Workspace({
   analysis,
   hasRepo,
-  active,
   logOpen,
   bottomHeight,
   onBottomResize,
@@ -90,10 +84,7 @@ export function Workspace({
   );
 
   return (
-    <div
-      className={`workspace${active ? ' is-active' : ''}`}
-      style={{ '--bottom-height': `${bottomHeight}px` }}
-    >
+    <div className="workspace" style={{ '--bottom-height': `${bottomHeight}px` }}>
       <main className="workspace__canvas">
         {analysis ? (
           <FlowPlayer

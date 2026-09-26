@@ -160,7 +160,7 @@ select:focus {
   grid-template-areas:
     'sidebar work terminal'
     'footer footer footer';
-  height: 100vh;
+  height: 100%;
 }
 
 .shell--terminal-closed {
@@ -190,98 +190,15 @@ select:focus {
   min-width: 0;
 }
 
-.shell__workspace-tabs {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 38px;
-  padding: 0 8px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-panel);
-  overflow-x: auto;
-  /* Dragbar yta på höjd med trafikljusen */
-  -webkit-app-region: drag;
-}
-
-.shell__workspace-tabs button {
-  -webkit-app-region: no-drag;
-}
-
-.workspace-tab {
-  display: flex;
-  align-items: center;
-  max-width: 240px;
-  border: 1px solid transparent;
-  border-bottom: none;
-  border-radius: 6px 6px 0 0;
-  color: var(--fg-muted);
-  font-size: 12px;
-  -webkit-app-region: no-drag;
-}
-
-.workspace-tab.is-active {
-  border-color: var(--border);
-  background: var(--bg);
-  color: var(--fg);
-  font-weight: 600;
-}
-
-.workspace-tab__open {
-  min-width: 0;
-  padding: 6px 10px;
-  border: none;
-  background: none;
-  color: inherit;
-  font-weight: inherit;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.workspace-tab__close {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  margin-right: 4px;
-  padding: 0;
-  border: none;
-  border-radius: 999px;
-  background: none;
-  color: inherit;
-  opacity: 0.6;
-}
-
-.workspace-tab__close:hover {
-  opacity: 1;
-  background: var(--border);
-}
-
-.workspace-tab__add {
-  width: 24px;
-  height: 24px;
-  margin-bottom: 4px;
-}
-
-.shell__workspaces {
+.shell__work {
   position: relative;
-  flex: 1;
-  min-height: 0;
 }
 
-/* display: none skulle nolla grafens mått, så inaktiva arbetsytor göms med visibility */
 .workspace {
   position: absolute;
   inset: 0;
   display: grid;
   grid-template-rows: 1fr var(--bottom-height, 220px);
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.workspace.is-active {
-  visibility: visible;
-  pointer-events: auto;
 }
 
 .shell--log-closed .workspace {
@@ -323,11 +240,10 @@ select:focus {
   overflow-y: auto;
 }
 
-/* Dragbar yta bakom trafikljusen på macOS */
+/* Luft överst i sidopanelen, flikraden ovanför bär trafikljusen */
 .shell__drag {
-  height: 38px;
+  height: 8px;
   flex-shrink: 0;
-  -webkit-app-region: drag;
 }
 
 .shell__title {
@@ -432,4 +348,103 @@ select:focus {
   width: 100%;
   height: 6px;
   cursor: row-resize;
+}
+
+/* Appflikar: varje flik är ett eget fönster, alla monterade */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app__tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 38px;
+  /* Plats för trafikljusen på macOS */
+  padding: 0 8px 0 84px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  overflow-x: auto;
+  -webkit-app-region: drag;
+}
+
+.app__tabs button {
+  -webkit-app-region: no-drag;
+}
+
+.app-tab {
+  display: flex;
+  align-items: center;
+  max-width: 260px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  color: var(--fg-muted);
+  font-size: 12px;
+  -webkit-app-region: no-drag;
+}
+
+.app-tab.is-active {
+  border-color: var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.app-tab__open {
+  min-width: 0;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  color: inherit;
+  font-weight: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-tab__close {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  opacity: 0.6;
+}
+
+.app-tab__close:hover {
+  opacity: 1;
+  background: var(--border);
+}
+
+.app-tab__add {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 4px;
+}
+
+.app__windows {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+/* display: none skulle nolla grafens och terminalens mått, så inaktiva göms med visibility */
+.app-window {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.app-window.is-active {
+  visibility: visible;
+  pointer-events: auto;
 }

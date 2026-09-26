@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { invokeChannel } from '@/common/renderer/ipc';
-import { readStored, writeStored } from '@/common/renderer/storage';
+import { readStored, useScopedKey, writeStored } from '@/common/renderer/storage';
 import {
   type BranchList,
   checkoutBranchChannel,
@@ -33,10 +33,14 @@ export interface RepoState {
   checkout: (branch: string) => Promise<void>;
 }
 
-const LAST_REPO_KEY = 'highai.lastRepo';
-const baseBranchKey = (repoPath: string): string => `highai.baseBranch:${repoPath}`;
-
 export function useRepoState(): RepoState {
+  // Valt repo och basbranch är per appflik
+  const lastRepoKey = useScopedKey('highai.lastRepo');
+  const baseBranchPrefix = useScopedKey('highai.baseBranch:');
+  const baseBranchKey = useCallback(
+    (repoPath: string): string => `${baseBranchPrefix}${repoPath}`,
+    [baseBranchPrefix],
+  );
   const [repo, setRepo] = useState<RepoInfo | null>(null);
   const [recent, setRecent] = useState<RepoInfo[]>([]);
   const [busy, setBusy] = useState(false);
@@ -45,32 +49,35 @@ export function useRepoState(): RepoState {
   const [branchList, setBranchList] = useState<{ repoPath: string; list: BranchList } | null>(null);
   const [baseChoice, setBaseChoice] = useState<{ repoPath: string; branch: string } | null>(null);
 
-  const run = useCallback(async (task: () => Promise<RepoInfo | null>, quiet = false) => {
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await task();
-      if (result) {
-        setRepo(result);
-        writeStored(LAST_REPO_KEY, result.path);
-        setRecent(await invokeChannel(listRecentReposChannel, undefined));
+  const run = useCallback(
+    async (task: () => Promise<RepoInfo | null>, quiet = false) => {
+      setBusy(true);
+      setError(null);
+      try {
+        const result = await task();
+        if (result) {
+          setRepo(result);
+          writeStored(lastRepoKey, result.path);
+          setRecent(await invokeChannel(listRecentReposChannel, undefined));
+        }
+      } catch (e) {
+        if (quiet) writeStored(lastRepoKey, null);
+        else setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setBusy(false);
       }
-    } catch (e) {
-      if (quiet) writeStored(LAST_REPO_KEY, null);
-      else setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
-    }
-  }, []);
+    },
+    [lastRepoKey],
+  );
 
   // Vid start: hämta listan och öppna repot som var valt senast, tyst om det försvunnit.
   useEffect(() => {
     void invokeChannel(listRecentReposChannel, undefined).then((list) => {
       setRecent(list);
-      const last = readStored(LAST_REPO_KEY);
+      const last = readStored(lastRepoKey);
       if (last) void run(() => invokeChannel(openRepoChannel, { path: last }), true);
     });
-  }, [run]);
+  }, [run, lastRepoKey]);
 
   const pickLocal = useCallback(
     () => run(() => invokeChannel(pickLocalRepoChannel, undefined)),
@@ -117,7 +124,7 @@ export function useRepoState(): RepoState {
       setBaseChoice({ repoPath, branch });
       writeStored(baseBranchKey(repoPath), branch);
     },
-    [repoPath],
+    [repoPath, baseBranchKey],
   );
 
   const checkout = useCallback(
@@ -128,11 +135,14 @@ export function useRepoState(): RepoState {
     [repoPath, run],
   );
 
-  const forget = useCallback(async (path: string) => {
-    setRecent(await invokeChannel(forgetRepoChannel, { path }));
-    setRepo((current) => (current?.path === path ? null : current));
-    if (readStored(LAST_REPO_KEY) === path) writeStored(LAST_REPO_KEY, null);
-  }, []);
+  const forget = useCallback(
+    async (path: string) => {
+      setRecent(await invokeChannel(forgetRepoChannel, { path }));
+      setRepo((current) => (current?.path === path ? null : current));
+      if (readStored(lastRepoKey) === path) writeStored(lastRepoKey, null);
+    },
+    [lastRepoKey],
+  );
   const clearError = useCallback(() => {
     setError(null);
   }, []);

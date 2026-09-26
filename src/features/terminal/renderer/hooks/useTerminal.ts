@@ -36,7 +36,6 @@ export function useTerminal(
   repoPath: string,
   container: RefObject<HTMLDivElement | null>,
   startCommand: string | null,
-  tabId: number,
 ): TerminalState {
   const [generation, setGeneration] = useState(0);
   // Taggas med nyckeln för aktuellt skal, så ett byte av repo eller omstart
@@ -83,7 +82,7 @@ export function useTerminal(
       // Skalet läser det köade när det är redo, så kommandot kan skickas direkt.
       if (startCommand)
         void invokeChannel(writeTerminalChannel, { id: opened, data: `${startCommand}\r` });
-      register(tabId, (line) => {
+      register((line) => {
         void invokeChannel(writeTerminalChannel, { id: opened, data: `${line}\r` });
       });
     });
@@ -114,14 +113,14 @@ export function useTerminal(
 
     return () => {
       disposed = true;
-      register(tabId, null);
+      register(null);
       observer.disconnect();
       for (const off of unsubscribe) off();
       for (const d of disposables) d.dispose();
       term.dispose();
       if (id) void invokeChannel(closeTerminalChannel, { id });
     };
-  }, [repoPath, key, container, startCommand, register, tabId]);
+  }, [repoPath, key, container, startCommand, register]);
 
   const restart = useCallback(() => {
     setGeneration((g) => g + 1);

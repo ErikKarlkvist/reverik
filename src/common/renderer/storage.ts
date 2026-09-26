@@ -1,3 +1,17 @@
+import { createContext, useContext } from 'react';
+
+/**
+ * Prefix för nycklar som ska vara separata per appflik, t.ex. valt repo.
+ * Tomt utanför flikarna. Sätts av AppTabs.
+ */
+export const StorageScopeContext = createContext('');
+
+/** Nyckeln med aktuell fliks prefix. Globala inställningar använder nyckeln rakt av. */
+export function useScopedKey(key: string): string {
+  const scope = useContext(StorageScopeContext);
+  return scope ? `${scope}${key}` : key;
+}
+
 /**
  * Tunna lager över localStorage som tål att lagringen saknas eller är
  * blockerad. Används för sådant som ska överleva en omstart: paneler,
