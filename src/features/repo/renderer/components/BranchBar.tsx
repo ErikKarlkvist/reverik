@@ -1,6 +1,7 @@
 import { type JSX } from 'react';
 import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
+import { SearchSelect } from '@/common/renderer/SearchSelect';
 import { useRepo } from '../RepoContext';
 import './repo.css';
 
@@ -25,41 +26,29 @@ export function BranchBar({ onRunReview }: Props): JSX.Element | null {
         <span>
           <Icon name="branch" size="sm" /> {t('branch.on')}
         </span>
-        <select
-          className="branch-bar__select"
-          value={current ?? ''}
+        <SearchSelect
+          options={branches}
+          value={current}
           disabled={busy || branches.length === 0}
-          title={t('branch.checkoutHint')}
-          onChange={(event) => {
-            void checkout(event.target.value);
+          label={t('branch.checkoutHint')}
+          placeholder={current === null ? t('repo.detachedHead') : t('branch.search')}
+          emptyText={t('branch.noMatch')}
+          onSelect={(branch) => {
+            void checkout(branch);
           }}
-        >
-          {current === null && <option value="">{t('repo.detachedHead')}</option>}
-          {branches.map((b) => (
-            <option key={b} value={b}>
-              {b}
-            </option>
-          ))}
-        </select>
+        />
       </label>
       <label className="branch-bar__field">
         <span>{t('branch.compare')}</span>
-        <select
-          className="branch-bar__select"
-          value={baseBranch ?? ''}
+        <SearchSelect
+          options={others}
+          value={baseBranch}
           disabled={others.length === 0}
-          title={t('branch.compareHint')}
-          onChange={(event) => {
-            setBaseBranch(event.target.value);
-          }}
-        >
-          {others.length === 0 && <option value="">{t('branch.none')}</option>}
-          {others.map((b) => (
-            <option key={b} value={b}>
-              {b}
-            </option>
-          ))}
-        </select>
+          label={t('branch.compareHint')}
+          placeholder={others.length === 0 ? t('branch.none') : t('branch.search')}
+          emptyText={t('branch.noMatch')}
+          onSelect={setBaseBranch}
+        />
       </label>
       {onRunReview && (
         <button

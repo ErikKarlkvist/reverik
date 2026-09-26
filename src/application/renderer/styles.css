@@ -456,3 +456,78 @@ select:focus {
   visibility: visible;
   pointer-events: auto;
 }
+
+/* Sökbar väljare */
+.search-select {
+  position: relative;
+  min-width: 0;
+}
+
+.search-select__input {
+  width: 100%;
+  padding: 3px 24px 3px 6px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--fg);
+}
+
+.search-select__input::placeholder {
+  color: var(--fg-muted);
+}
+
+.search-select.is-open .search-select__input::placeholder {
+  color: var(--fg-muted);
+  opacity: 0.7;
+}
+
+.search-select__chevron {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  color: var(--fg-muted);
+  pointer-events: none;
+}
+
+.search-select__list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-panel);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 18%);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+
+.search-select__option {
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--fg);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-select__option.is-active {
+  background: var(--bg);
+}
+
+.search-select__option.is-selected {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.search-select__empty {
+  padding: 5px 8px;
+  color: var(--fg-muted);
+}

@@ -45,6 +45,8 @@
   "branch.on": "On",
   "branch.compare": "compare with",
   "branch.none": "no other branch",
+  "branch.search": "Search branches…",
+  "branch.noMatch": "No branch matches",
   "branch.checkoutHint": "Switch branch. Runs git checkout in the repository.",
   "branch.compareHint": "The branch reviews are compared against.",
   "branch.runReview": "Run review",
