@@ -7,7 +7,7 @@ import { Splitter } from '@/common/renderer/Splitter';
 import { invokeChannel } from '@/common/renderer/ipc';
 import { AnalysisList, GUIDE_FILE, InboxLog, useAnalyses } from '@/features/analysis';
 import { FlowPlayer, FlowSummary, ReviewPanel } from '@/features/flow-graph';
-import { BranchBar, RepoPanel, SourceView, useRepo } from '@/features/repo';
+import { BranchBar, RepoMenu, RepoPanel, SourceView, useRepo } from '@/features/repo';
 import { TerminalPanel, useTerminalApi } from '@/features/terminal';
 import { ThemeSelect } from './ThemeSelect';
 import { useStoredFlag } from './useStoredFlag';
@@ -238,10 +238,13 @@ export function AppShell(): JSX.Element {
       )}
 
       <footer className="shell__footer">
-        <span>
-          {info
-            ? `v${info.version} · Electron ${info.electron} · ${info.platform}`
-            : t('app.starting')}
+        <span className="shell__footer-tools">
+          <RepoMenu />
+          <span>
+            {info
+              ? `v${info.version} · Electron ${info.electron} · ${info.platform}`
+              : t('app.starting')}
+          </span>
         </span>
         <span className="shell__footer-tools">
           {!logOpen && (

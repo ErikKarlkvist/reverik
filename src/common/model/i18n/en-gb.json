@@ -1,6 +1,6 @@
 {
   "app.starting": "Starting…",
-  "app.chooseRepo": "Choose a repository on the left.",
+  "app.chooseRepo": "Choose a repository with Folder in the footer.",
   "app.chooseAnalysis": "Choose an analysis on the left, or ask for one in the terminal on the right.",
   "app.mockBridge": "Highai is running with the mock bridge, no Electron.",
   "app.mockElectron": "browser",
@@ -24,7 +24,8 @@
   "theme.dark": "Dark",
 
   "repo.heading": "Repository",
-  "repo.none": "No repository selected.",
+  "repo.none": "No repository selected. Use Folder in the footer.",
+  "repo.folder": "Folder",
   "repo.pickFolder": "Choose folder…",
   "repo.loadDemo": "Load demo",
   "repo.reading": "Reading repository…",
