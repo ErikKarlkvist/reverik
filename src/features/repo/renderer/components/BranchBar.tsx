@@ -21,9 +21,10 @@ export function BranchBar({ onRunReview }: Props): JSX.Element | null {
 
   return (
     <div className="branch-bar">
-      <Icon name="branch" size="sm" />
       <label className="branch-bar__field">
-        {t('branch.on')}
+        <span>
+          <Icon name="branch" size="sm" /> {t('branch.on')}
+        </span>
         <select
           className="branch-bar__select"
           value={current ?? ''}
@@ -42,7 +43,7 @@ export function BranchBar({ onRunReview }: Props): JSX.Element | null {
         </select>
       </label>
       <label className="branch-bar__field">
-        {t('branch.compare')}
+        <span>{t('branch.compare')}</span>
         <select
           className="branch-bar__select"
           value={baseBranch ?? ''}

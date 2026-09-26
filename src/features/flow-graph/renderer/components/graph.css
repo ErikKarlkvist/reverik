@@ -185,15 +185,90 @@ button.crumb:hover:not(:disabled) {
   color: var(--bg-panel);
 }
 
-.graph-node__flag {
+.graph-flag-wrap {
+  display: inline-block;
+}
+
+.graph-flag-wrap.graph-node__flag {
   position: absolute;
   top: -10px;
   left: -8px;
 }
 
-.graph-edge-flag {
+.graph-flag-wrap.graph-edge-flag {
   position: absolute;
   z-index: 950;
+}
+
+.graph-flag.is-pinned {
+  background: currentcolor;
+}
+
+.graph-flag.is-pinned .icon,
+.graph-flag.is-pinned .graph-flag__count {
+  color: var(--bg-panel);
+}
+
+/* Listan med fynd under flaggan */
+.graph-flag-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 1200;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  min-width: 240px;
+  max-width: 340px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-panel);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 18%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  text-align: left;
+  white-space: normal;
+}
+
+.graph-flag-list__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--fg);
+  text-align: left;
+}
+
+.graph-flag-list__item:hover,
+.graph-flag-list__item.is-focused {
+  background: var(--bg);
+}
+
+.graph-flag-list__item.is-error .icon {
+  color: var(--danger);
+}
+
+.graph-flag-list__item.is-warning .icon {
+  color: var(--warn);
+}
+
+.graph-flag-list__item.is-info .icon {
+  color: var(--accent);
+}
+
+.graph-flag-list__title {
+  flex: 1;
+  line-height: 1.3;
+}
+
+/* Nod med öppen fyndlista lyfts ovanför grannarna */
+.graph .react-flow__node:has(.graph-flag-list) {
+  z-index: 1000 !important;
 }
 
 /* Fliken Review i nedre panelen */

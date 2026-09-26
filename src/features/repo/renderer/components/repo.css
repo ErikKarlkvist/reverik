@@ -66,26 +66,25 @@
   font-size: 12px;
 }
 
-/* Branchraden ovanför grafen */
+/* Brancherna under repokortet i sidopanelen */
 .branch-bar {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 6px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-panel);
+  flex-direction: column;
+  gap: 8px;
   color: var(--fg-muted);
   font-size: 12px;
 }
 
 .branch-bar__field {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 84px 1fr;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .branch-bar__select {
-  padding: 2px 6px;
+  min-width: 0;
+  padding: 3px 6px;
   font-size: 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   color: var(--fg);
@@ -94,9 +93,9 @@
 .branch-bar__run {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  margin-left: auto;
-  padding: 3px 10px;
+  padding: 5px 10px;
   font-size: 12px;
   border-color: var(--accent);
   color: var(--accent);

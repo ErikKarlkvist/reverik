@@ -124,7 +124,8 @@
   "review.severity.warning": "Warning",
   "review.severity.info": "Info",
   "review.suggestion": "Suggestion",
-  "review.flag": "{count} findings. Click to open.",
+  "review.flag": "{count} findings. Hover to list them, click to keep the list open.",
+  "review.openBelow": "Open in the Review tab",
   "review.showInGraph": "Show in graph",
   "review.empty": "No findings.",
 
@@ -133,6 +134,8 @@
 
   "terminal.heading": "Terminal",
   "terminal.restart": "Restart shell",
+  "terminal.newTab": "New terminal tab",
+  "terminal.closeTab": "Close tab",
   "terminal.startAgent": "Start the agent again",
   "terminal.agentLabel": "Agent",
   "terminal.agentHint": "Which agent to start when the terminal opens. Changing it restarts the shell.",

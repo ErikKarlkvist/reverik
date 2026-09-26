@@ -117,6 +117,7 @@ export function AppShell(): JSX.Element {
         <div className="shell__drag" />
         <h1 className="shell__title">Highai</h1>
         <RepoPanel />
+        <BranchBar onRunReview={onRunReview} />
         {repo && <AnalysisList />}
         <Splitter
           orientation="vertical"
@@ -129,7 +130,6 @@ export function AppShell(): JSX.Element {
       </aside>
 
       <main className="shell__canvas">
-        <BranchBar onRunReview={onRunReview} />
         <div className="shell__canvas-body">
           {current ? (
             <FlowPlayer

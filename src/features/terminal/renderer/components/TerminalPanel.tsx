@@ -1,10 +1,11 @@
 import '@xterm/xterm/css/xterm.css';
-import { type JSX, type ReactNode, useCallback, useRef } from 'react';
+import { type JSX, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
 import { useStoredChoice } from '@/common/renderer/useStoredChoice';
 import { type Agent, AGENTS, agentStartCommand } from '../../model/agent';
 import { useTerminal } from '../hooks/useTerminal';
+import { useTerminalApi } from '../TerminalContext';
 import './terminal.css';
 
 interface Props {
@@ -23,28 +24,145 @@ const AGENT_LABELS: Readonly<Record<Agent, string>> = {
   shell: t('terminal.agent.shell'),
 };
 
-/** Terminal för valfri AI-agent, startad i repots rot. Vald agent sparas mellan starter. */
+interface Tab {
+  id: number;
+  agent: Agent;
+}
+
+interface ShellApi {
+  restart: () => void;
+  run: (command: string) => void;
+}
+
+/**
+ * Terminal för valfri AI-agent, startad i repots rot. Flera flikar kan köra
+ * samtidigt, alla hålls monterade så agenterna fortsätter i bakgrunden.
+ * Vald agent för nya flikar sparas mellan starter.
+ */
 export function TerminalPanel({ repoPath, guideFile, onHide, children }: Props): JSX.Element {
-  const [agent, setAgent] = useStoredChoice<Agent>('highai.agent', AGENTS, 'claude');
-  const startCommand = agentStartCommand(agent, guideFile);
+  const [defaultAgent, setDefaultAgent] = useStoredChoice<Agent>('highai.agent', AGENTS, 'claude');
+  const [tabs, setTabs] = useState<Tab[]>(() => [{ id: 1, agent: defaultAgent }]);
+  const [activeId, setActiveId] = useState(1);
+  const [nextId, setNextId] = useState(2);
+  const shells = useRef(new Map<number, ShellApi>());
+  const { setActiveTab } = useTerminalApi();
+
+  useEffect(() => {
+    setActiveTab(activeId);
+  }, [activeId, setActiveTab]);
+
+  const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
+  const activeAgent = active?.agent ?? defaultAgent;
+  const activeStart = agentStartCommand(activeAgent, guideFile);
+
+  const addTab = useCallback(() => {
+    setTabs((current) => [...current, { id: nextId, agent: defaultAgent }]);
+    setActiveId(nextId);
+    setNextId((n) => n + 1);
+  }, [nextId, defaultAgent]);
+
+  const closeTab = useCallback((id: number) => {
+    setTabs((current) => {
+      if (current.length <= 1) return current;
+      const index = current.findIndex((tab) => tab.id === id);
+      const remaining = current.filter((tab) => tab.id !== id);
+      setActiveId((activeNow) =>
+        activeNow === id ? (remaining[Math.max(0, index - 1)]?.id ?? activeNow) : activeNow,
+      );
+      return remaining;
+    });
+  }, []);
+
+  const changeAgent = useCallback(
+    (next: string) => {
+      setDefaultAgent(next);
+      const agent = (AGENTS as readonly string[]).includes(next) ? (next as Agent) : defaultAgent;
+      setTabs((current) => current.map((tab) => (tab.id === activeId ? { ...tab, agent } : tab)));
+    },
+    [activeId, defaultAgent, setDefaultAgent],
+  );
+
+  const onShellApi = useCallback((id: number, api: ShellApi | null) => {
+    if (api) shells.current.set(id, api);
+    else shells.current.delete(id);
+  }, []);
+  const restartActive = useCallback(() => {
+    shells.current.get(activeId)?.restart();
+  }, [activeId]);
+  const startActive = useCallback(() => {
+    if (activeStart) shells.current.get(activeId)?.run(activeStart);
+  }, [activeId, activeStart]);
 
   return (
     <section className="terminal-panel">
       {children}
+      <Bar
+        agent={activeAgent}
+        onAgentChange={changeAgent}
+        onHide={onHide}
+        onRestart={repoPath ? restartActive : undefined}
+        onStartAgent={repoPath && activeStart ? startActive : undefined}
+      />
       {repoPath ? (
-        <Shell
-          key={repoPath}
-          repoPath={repoPath}
-          agent={agent}
-          startCommand={startCommand}
-          onAgentChange={setAgent}
-          onHide={onHide}
-        />
-      ) : (
         <>
-          <Bar agent={agent} onAgentChange={setAgent} onHide={onHide} />
-          <p className="terminal-panel__empty">{t('terminal.noRepo')}</p>
+          <div className="terminal-panel__tabs" role="tablist">
+            {tabs.map((tab, i) => (
+              <div
+                key={tab.id}
+                className={`terminal-panel__tab${tab.id === activeId ? ' is-active' : ''}`}
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={tab.id === activeId}
+                  className="terminal-panel__tab-open"
+                  onClick={() => {
+                    setActiveId(tab.id);
+                  }}
+                >
+                  {AGENT_LABELS[tab.agent]} {i + 1}
+                </button>
+                {tabs.length > 1 && (
+                  <button
+                    type="button"
+                    className="terminal-panel__tab-close"
+                    title={t('terminal.closeTab')}
+                    aria-label={t('terminal.closeTab')}
+                    onClick={() => {
+                      closeTab(tab.id);
+                    }}
+                  >
+                    <Icon name="close" size="sm" />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              className="icon-button icon-button--quiet terminal-panel__tab-add"
+              title={t('terminal.newTab')}
+              aria-label={t('terminal.newTab')}
+              onClick={addTab}
+            >
+              <Icon name="plus" size="sm" />
+            </button>
+          </div>
+          <div className="terminal-panel__screens">
+            {tabs.map((tab) => (
+              <Shell
+                key={`${repoPath}#${tab.id}`}
+                tabId={tab.id}
+                repoPath={repoPath}
+                agent={tab.agent}
+                startCommand={agentStartCommand(tab.agent, guideFile)}
+                active={tab.id === activeId}
+                onApi={onShellApi}
+              />
+            ))}
+          </div>
         </>
+      ) : (
+        <p className="terminal-panel__empty">{t('terminal.noRepo')}</p>
       )}
     </section>
   );
@@ -115,30 +233,28 @@ function Bar({ agent, onAgentChange, onHide, onRestart, onStartAgent }: BarProps
 }
 
 interface ShellProps {
+  tabId: number;
   repoPath: string;
   agent: Agent;
   startCommand: string | null;
-  onAgentChange: (next: string) => void;
-  onHide: () => void;
+  active: boolean;
+  onApi: (tabId: number, api: ShellApi | null) => void;
 }
 
-/** Byte av agent ger nytt startkommando, och hooken startar då om skalet. */
-function Shell({ repoPath, agent, startCommand, onAgentChange, onHide }: ShellProps): JSX.Element {
+/** En flik. Inaktiva flikar göms med visibility så xterm behåller sina mått. */
+function Shell({ tabId, repoPath, agent, startCommand, active, onApi }: ShellProps): JSX.Element {
   const screen = useRef<HTMLDivElement | null>(null);
-  const { exitCode, restart, run } = useTerminal(repoPath, screen, startCommand);
-  const startAgent = useCallback(() => {
-    if (startCommand) run(startCommand);
-  }, [run, startCommand]);
+  const { exitCode, restart, run } = useTerminal(repoPath, screen, startCommand, tabId);
+
+  useEffect(() => {
+    onApi(tabId, { restart, run });
+    return () => {
+      onApi(tabId, null);
+    };
+  }, [tabId, restart, run, onApi]);
 
   return (
-    <>
-      <Bar
-        agent={agent}
-        onAgentChange={onAgentChange}
-        onHide={onHide}
-        onRestart={restart}
-        onStartAgent={startCommand && exitCode === null ? startAgent : undefined}
-      />
+    <div className={`terminal-panel__screen-tab${active ? ' is-active' : ''}`}>
       {agent === 'shell' && (
         <p className="terminal-panel__hint">
           {t('terminal.shellHint', { guide: '.highai/README.md' })}
@@ -153,6 +269,6 @@ function Shell({ repoPath, agent, startCommand, onAgentChange, onHide }: ShellPr
           </button>
         </div>
       )}
-    </>
+    </div>
   );
 }
