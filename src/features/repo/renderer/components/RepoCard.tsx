@@ -29,7 +29,7 @@ export function RepoCard({ repo, busy, onReload }: Props): JSX.Element {
         </button>
         <button
           type="button"
-          className="icon-button icon-button--quiet"
+          className={`icon-button icon-button--quiet repo-card__reload${busy ? ' is-busy' : ''}`}
           title={t('repo.reload')}
           aria-label={t('repo.reload')}
           disabled={busy || !repo.isGit}

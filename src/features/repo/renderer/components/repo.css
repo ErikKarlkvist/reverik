@@ -67,6 +67,17 @@
   white-space: nowrap;
 }
 
+/* Hämta-knappen snurrar medan repot läses om */
+.repo-card__reload.is-busy .icon {
+  animation: repo-spin 900ms linear infinite;
+}
+
+@keyframes repo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .repo-card__meta-block {
   padding: 2px 6px 6px 24px;
 }

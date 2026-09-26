@@ -18,8 +18,6 @@ export function RepoPanel(): JSX.Element {
         <p className="repo__muted">{t('repo.none')}</p>
       )}
 
-      {busy && <p className="repo__muted">{t('repo.reading')}</p>}
-
       {error && (
         <p className="repo__error" onClick={clearError}>
           {error}
