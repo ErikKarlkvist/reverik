@@ -223,14 +223,22 @@ select:focus {
 
 .shell__canvas {
   grid-area: canvas;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
 }
 
-.shell__canvas > .player {
+.shell__canvas-body {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  min-width: 0;
+}
+
+.shell__canvas-body > .player {
   place-self: stretch;
 }
 

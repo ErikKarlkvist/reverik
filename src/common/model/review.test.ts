@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { addTodoReview, addTodoWithListFlow } from './fixtures/add-todo-review';
 import { validateFlow } from './flow';
-import { diffFlows, mergeForReview, reviewSchema, sortFindings, worstSeverity } from './review';
+import {
+  diffFlows,
+  mergeForReview,
+  reviewSchema,
+  sortFindings,
+  validateReviewDocument,
+  worstSeverity,
+} from './review';
 
 describe('review-fixturen', () => {
   it('validerar mot schemat och head-flödet mot flödesschemat', () => {
@@ -58,5 +65,28 @@ describe('findings', () => {
     expect(sorted[0]?.severity).toBe('error');
     expect(worstSeverity(addTodoReview.findings)).toBe('error');
     expect(worstSeverity([])).toBeNull();
+  });
+});
+
+describe('validateReviewDocument', () => {
+  it('delar upp dokumentet i flöde och review', () => {
+    const result = validateReviewDocument({
+      baseLabel: 'main',
+      headLabel: 'feature',
+      base: addTodoReview.base,
+      head: addTodoWithListFlow,
+      findings: addTodoReview.findings,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.flow.title).toBe('Add todo to a list');
+    expect(result.review.findings).toHaveLength(4);
+  });
+
+  it('ger läsbara fel', () => {
+    const result = validateReviewDocument({ baseLabel: 'main', head: {} });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.some((e) => e.startsWith('headLabel'))).toBe(true);
   });
 });

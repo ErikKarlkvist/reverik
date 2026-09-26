@@ -49,6 +49,46 @@ export const reviewSchema = z
     });
   });
 
+/**
+ * Filen agenten skriver till `.highai/reviews/`: båda flödena och fynden.
+ * Importeras som en analys med `flow` = head och `review` = resten.
+ */
+export const reviewDocumentSchema = z.object({
+  baseLabel: z.string().min(1),
+  headLabel: z.string().min(1),
+  base: flowSchema,
+  head: flowSchema,
+  findings: z.array(reviewFindingSchema),
+});
+
+export type ReviewDocument = z.infer<typeof reviewDocumentSchema>;
+
+export type ReviewValidation =
+  { ok: true; flow: Flow; review: Review } | { ok: false; errors: string[] };
+
+/** Validerar en reviewfil och delar upp den i analysens flöde och review. */
+export function validateReviewDocument(input: unknown): ReviewValidation {
+  const parsed = reviewDocumentSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      errors: parsed.error.issues.map((issue) => {
+        const path = issue.path.map(String).join('.');
+        return path ? `${path}: ${issue.message}` : issue.message;
+      }),
+    };
+  }
+  const { head, ...rest } = parsed.data;
+  const review = reviewSchema.safeParse(rest);
+  if (!review.success) {
+    return {
+      ok: false,
+      errors: review.error.issues.map((issue) => issue.message),
+    };
+  }
+  return { ok: true, flow: head, review: review.data };
+}
+
 export type FindingSeverity = z.infer<typeof findingSeveritySchema>;
 export type ReviewFinding = z.infer<typeof reviewFindingSchema>;
 export type Review = z.infer<typeof reviewSchema>;

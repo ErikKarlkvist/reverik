@@ -2,12 +2,16 @@ import { useCallback, useEffect, useState } from 'react';
 import { invokeChannel } from '@/common/renderer/ipc';
 import { readStored, writeStored } from '@/common/renderer/storage';
 import {
+  type BranchList,
+  checkoutBranchChannel,
   forgetRepoChannel,
+  listBranchesChannel,
   listRecentReposChannel,
   openDemoRepoChannel,
   openRepoChannel,
   pickLocalRepoChannel,
 } from '../../ipc/channels';
+import { defaultBaseBranch } from '../../model/branches';
 import { type RepoInfo } from '../../model/repo';
 
 export interface RepoState {
@@ -20,15 +24,26 @@ export interface RepoState {
   open: (path: string) => Promise<void>;
   forget: (path: string) => Promise<void>;
   clearError: () => void;
+  /** Lokala brancher i det valda repot, tom lista utan git */
+  branches: string[];
+  /** Branchen man jämför mot, null om det bara finns en */
+  baseBranch: string | null;
+  setBaseBranch: (branch: string) => void;
+  /** Checkar ut en annan branch i det valda repot */
+  checkout: (branch: string) => Promise<void>;
 }
 
 const LAST_REPO_KEY = 'highai.lastRepo';
+const baseBranchKey = (repoPath: string): string => `highai.baseBranch:${repoPath}`;
 
 export function useRepoState(): RepoState {
   const [repo, setRepo] = useState<RepoInfo | null>(null);
   const [recent, setRecent] = useState<RepoInfo[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Brancherna taggas med repot så ett byte inte visar det gamla repots lista.
+  const [branchList, setBranchList] = useState<{ repoPath: string; list: BranchList } | null>(null);
+  const [baseChoice, setBaseChoice] = useState<{ repoPath: string; branch: string } | null>(null);
 
   const run = useCallback(async (task: () => Promise<RepoInfo | null>, quiet = false) => {
     setBusy(true);
@@ -69,6 +84,50 @@ export function useRepoState(): RepoState {
     (path: string) => run(() => invokeChannel(openRepoChannel, { path })),
     [run],
   );
+  // Läs om brancherna när repot byts eller när branchen ändrats via checkout.
+  const repoPath = repo?.path ?? null;
+  const currentBranch = repo?.branch ?? null;
+  useEffect(() => {
+    if (!repoPath) return;
+    let cancelled = false;
+    invokeChannel(listBranchesChannel, { repoPath })
+      .then((list) => {
+        if (!cancelled) setBranchList({ repoPath, list });
+      })
+      .catch(() => {
+        if (!cancelled) setBranchList({ repoPath, list: { current: null, branches: [] } });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [repoPath, currentBranch]);
+
+  const branches = branchList?.repoPath === repoPath ? branchList.list.branches : [];
+  const baseBranch = repoPath
+    ? defaultBaseBranch(
+        branches,
+        currentBranch,
+        baseChoice?.repoPath === repoPath ? baseChoice.branch : readStored(baseBranchKey(repoPath)),
+      )
+    : null;
+
+  const setBaseBranch = useCallback(
+    (branch: string) => {
+      if (!repoPath) return;
+      setBaseChoice({ repoPath, branch });
+      writeStored(baseBranchKey(repoPath), branch);
+    },
+    [repoPath],
+  );
+
+  const checkout = useCallback(
+    (branch: string) => {
+      if (!repoPath) return Promise.resolve();
+      return run(() => invokeChannel(checkoutBranchChannel, { repoPath, branch }));
+    },
+    [repoPath, run],
+  );
+
   const forget = useCallback(async (path: string) => {
     setRecent(await invokeChannel(forgetRepoChannel, { path }));
     setRepo((current) => (current?.path === path ? null : current));
@@ -78,5 +137,19 @@ export function useRepoState(): RepoState {
     setError(null);
   }, []);
 
-  return { repo, recent, busy, error, pickLocal, openDemo, open, forget, clearError };
+  return {
+    repo,
+    recent,
+    busy,
+    error,
+    pickLocal,
+    openDemo,
+    open,
+    forget,
+    clearError,
+    branches,
+    baseBranch,
+    setBaseBranch,
+    checkout,
+  };
 }

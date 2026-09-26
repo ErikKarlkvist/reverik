@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { type Flow } from '@/common/model/flow';
-import { FLOWS_DIR, GUIDE_FILE, GUIDE_VERSION } from '../model/guide';
+import { FLOWS_DIR, GUIDE_FILE, GUIDE_VERSION, REVIEWS_DIR } from '../model/guide';
 import { importFlowFile, writeGuide } from './inbox';
 import { AnalysisStore } from './store';
 
@@ -47,6 +47,7 @@ describe('importFlowFile', () => {
     await writeFile(join(repo, 'a.ts'), 'line1\nline2\nline3\n');
     await writeFile(join(repo, 'b.ts'), 'only line');
     await mkdir(join(repo, FLOWS_DIR), { recursive: true });
+    await mkdir(join(repo, REVIEWS_DIR), { recursive: true });
     store = new AnalysisStore(join(repo, '.store'));
   });
 
@@ -158,6 +159,7 @@ describe('writeGuide', () => {
       const guide = await readFile(join(repo, GUIDE_FILE), 'utf8');
       expect(guide).toContain(`highai-guide v${GUIDE_VERSION}`);
       expect(guide).toContain('.highai/flows/');
+      expect(guide).toContain('.highai/reviews/');
       expect(guide).toContain('"title": "Load the list"');
     } finally {
       await rm(repo, { recursive: true, force: true });

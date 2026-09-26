@@ -1,11 +1,19 @@
 import { type FSWatcher, watch } from 'node:fs';
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { type FlowValidation, validateFlow } from '@/common/model/flow';
+import { type Flow, validateFlow } from '@/common/model/flow';
+import { type Review, validateReviewDocument } from '@/common/model/review';
 import { t } from '@/common/model/i18n';
 import { type InboxEvent } from '../ipc/channels';
 import { type SavedAnalysis } from '../model/analysis';
-import { buildGuide, errorsFileFor, FLOWS_DIR, GUIDE_FILE, isFlowFile } from '../model/guide';
+import {
+  buildGuide,
+  errorsFileFor,
+  FLOWS_DIR,
+  GUIDE_FILE,
+  isFlowFile,
+  REVIEWS_DIR,
+} from '../model/guide';
 import { type AnalysisStore } from './store';
 import { verifySources } from './verify';
 
@@ -15,18 +23,28 @@ export type ImportResult =
   /** Filen är redan importerad med samma innehåll, eller borttagen */
   | { type: 'unchanged' };
 
+export type InboxKind = 'flow' | 'review';
+
+export const INBOX_DIRS: Readonly<Record<InboxKind, string>> = {
+  flow: FLOWS_DIR,
+  review: REVIEWS_DIR,
+};
+
+type Parsed = { ok: true; flow: Flow; review?: Review } | { ok: false; errors: string[] };
+
 /**
- * Läser en flödesfil, validerar den och sparar den. Fel skrivs bredvid filen
- * som `<namn>.errors.json` så att AI:n kan läsa dem och rätta sig.
+ * Läser en flödes- eller reviewfil, validerar den och sparar den. Fel skrivs
+ * bredvid filen som `<namn>.errors.json` så att AI:n kan läsa dem och rätta sig.
  */
 export async function importFlowFile(
   store: AnalysisStore,
   repoPath: string,
   name: string,
+  kind: InboxKind = 'flow',
 ): Promise<ImportResult> {
-  const dir = join(repoPath, FLOWS_DIR);
+  const dir = join(repoPath, INBOX_DIRS[kind]);
   const errorsPath = join(dir, errorsFileFor(name));
-  const file = `${FLOWS_DIR}/${name}`;
+  const file = `${INBOX_DIRS[kind]}/${name}`;
 
   let raw: string;
   try {
@@ -35,7 +53,7 @@ export async function importFlowFile(
     return { type: 'unchanged' };
   }
 
-  const parsed = await parseAndVerify(repoPath, raw);
+  const parsed = await parseAndVerify(repoPath, raw, kind);
   if (!parsed.ok) {
     await writeFile(errorsPath, JSON.stringify({ file, errors: parsed.errors }, null, 2), 'utf8');
     return { type: 'rejected', errors: parsed.errors };
@@ -43,22 +61,30 @@ export async function importFlowFile(
   await rm(errorsPath, { force: true });
 
   const existing = (await store.list(repoPath)).find((a) => a.file === file);
-  if (existing && JSON.stringify(existing.flow) === JSON.stringify(parsed.flow))
+  if (
+    existing &&
+    JSON.stringify(existing.flow) === JSON.stringify(parsed.flow) &&
+    JSON.stringify(existing.review) === JSON.stringify(parsed.review)
+  )
     return { type: 'unchanged' };
-  return { type: 'imported', analysis: await store.upsertFromFile(repoPath, file, parsed.flow) };
+  return {
+    type: 'imported',
+    analysis: await store.upsertFromFile(repoPath, file, parsed.flow, parsed.review),
+  };
 }
 
-async function parseAndVerify(repoPath: string, raw: string): Promise<FlowValidation> {
-  let parsed: unknown;
+/** Head-flödets källor kontrolleras mot repot. Base beskriver en annan branch och lämnas. */
+async function parseAndVerify(repoPath: string, raw: string, kind: InboxKind): Promise<Parsed> {
+  let json: unknown;
   try {
-    parsed = JSON.parse(raw);
+    json = JSON.parse(raw);
   } catch (e) {
     return {
       ok: false,
       errors: [t('inbox.invalidJson', { message: e instanceof Error ? e.message : String(e) })],
     };
   }
-  const validated = validateFlow(parsed);
+  const validated: Parsed = kind === 'review' ? validateReviewDocument(json) : validateFlow(json);
   if (!validated.ok) return validated;
   const errors = await verifySources(repoPath, validated.flow);
   return errors.length > 0 ? { ok: false, errors } : validated;
@@ -79,7 +105,7 @@ const DEBOUNCE_MS = 250;
  * ligger där vid start och sedan varje fil som sparas.
  */
 export class FlowInbox {
-  private watcher: FSWatcher | null = null;
+  private watchers: FSWatcher[] = [];
   private repoPath: string | null = null;
   private readonly pending = new Map<string, NodeJS.Timeout>();
 
@@ -92,46 +118,51 @@ export class FlowInbox {
   async watch(repoPath: string): Promise<void> {
     this.stop();
     this.repoPath = repoPath;
-    const dir = join(repoPath, FLOWS_DIR);
-    await mkdir(dir, { recursive: true });
     await writeGuide(repoPath);
 
-    this.watcher = watch(dir, (_event, filename) => {
-      if (typeof filename === 'string' && isFlowFile(filename)) this.schedule(repoPath, filename);
-    });
-    this.watcher.on('error', (error: unknown) => {
-      console.error(error);
-    });
+    for (const kind of Object.keys(INBOX_DIRS) as InboxKind[]) {
+      const dir = join(repoPath, INBOX_DIRS[kind]);
+      await mkdir(dir, { recursive: true });
+      const watcher = watch(dir, (_event, filename) => {
+        if (typeof filename === 'string' && isFlowFile(filename))
+          this.schedule(repoPath, kind, filename);
+      });
+      watcher.on('error', (error: unknown) => {
+        console.error(error);
+      });
+      this.watchers.push(watcher);
 
-    for (const name of (await readdir(dir)).filter(isFlowFile).sort()) {
-      await this.importAndEmit(repoPath, name);
+      for (const name of (await readdir(dir)).filter(isFlowFile).sort()) {
+        await this.importAndEmit(repoPath, kind, name);
+      }
     }
   }
 
   stop(): void {
-    this.watcher?.close();
-    this.watcher = null;
+    for (const watcher of this.watchers) watcher.close();
+    this.watchers = [];
     this.repoPath = null;
     for (const timer of this.pending.values()) clearTimeout(timer);
     this.pending.clear();
   }
 
-  private schedule(repoPath: string, name: string): void {
-    const existing = this.pending.get(name);
+  private schedule(repoPath: string, kind: InboxKind, name: string): void {
+    const key = `${kind}/${name}`;
+    const existing = this.pending.get(key);
     if (existing) clearTimeout(existing);
     this.pending.set(
-      name,
+      key,
       setTimeout(() => {
-        this.pending.delete(name);
-        if (this.repoPath === repoPath) void this.importAndEmit(repoPath, name);
+        this.pending.delete(key);
+        if (this.repoPath === repoPath) void this.importAndEmit(repoPath, kind, name);
       }, DEBOUNCE_MS),
     );
   }
 
-  private async importAndEmit(repoPath: string, name: string): Promise<void> {
-    const file = `${FLOWS_DIR}/${name}`;
+  private async importAndEmit(repoPath: string, kind: InboxKind, name: string): Promise<void> {
+    const file = `${INBOX_DIRS[kind]}/${name}`;
     try {
-      const result = await importFlowFile(this.store, repoPath, name);
+      const result = await importFlowFile(this.store, repoPath, name, kind);
       if (result.type === 'imported') {
         this.emit({
           type: 'imported',

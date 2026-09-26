@@ -1,3 +1,4 @@
+export { BranchBar } from './renderer/components/BranchBar';
 export { RepoPanel } from './renderer/components/RepoPanel';
 export { SourceView } from './renderer/components/SourceView';
 export { RepoProvider } from './renderer/RepoProvider';

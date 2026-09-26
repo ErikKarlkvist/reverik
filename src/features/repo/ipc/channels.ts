@@ -28,3 +28,18 @@ export const readSourceChannel = defineChannel<
   { repoPath: string; file: string; line: number; context?: number },
   SourceExcerpt
 >('repo:read-source');
+
+export interface BranchList {
+  /** Utcheckad branch, null vid detached HEAD eller utan git */
+  current: string | null;
+  branches: string[];
+}
+
+export const listBranchesChannel = defineChannel<{ repoPath: string }, BranchList>(
+  'repo:list-branches',
+);
+
+/** Checkar ut en branch och läser om repot. */
+export const checkoutBranchChannel = defineChannel<{ repoPath: string; branch: string }, RepoInfo>(
+  'repo:checkout',
+);

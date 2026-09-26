@@ -7,7 +7,7 @@ import { Splitter } from '@/common/renderer/Splitter';
 import { invokeChannel } from '@/common/renderer/ipc';
 import { AnalysisList, GUIDE_FILE, InboxLog, useAnalyses } from '@/features/analysis';
 import { FlowPlayer, FlowSummary, ReviewPanel } from '@/features/flow-graph';
-import { RepoPanel, SourceView, useRepo } from '@/features/repo';
+import { BranchBar, RepoPanel, SourceView, useRepo } from '@/features/repo';
 import { TerminalPanel, useTerminalApi } from '@/features/terminal';
 import { ThemeSelect } from './ThemeSelect';
 import { useStoredFlag } from './useStoredFlag';
@@ -74,6 +74,12 @@ export function AppShell(): JSX.Element {
     },
     [terminal, setTerminalOpen],
   );
+  const onRunReview = useCallback(
+    (base: string, head: string) => {
+      onAsk(t('branch.reviewPrompt', { base, head }));
+    },
+    [onAsk],
+  );
 
   const shownSource = current ? source : null;
   // Flikar utan innehåll faller tillbaka: kod kräver en källa, sammanfattning en analys.
@@ -123,34 +129,37 @@ export function AppShell(): JSX.Element {
       </aside>
 
       <main className="shell__canvas">
-        {current ? (
-          <FlowPlayer
-            key={current.id}
-            flow={current.flow}
-            onActiveEdgeChange={onActiveEdgeChange}
-            onSelectSource={onSelectSource}
-            flowFile={current.file}
-            onAsk={onAsk}
-            review={current.review}
-            focusedFindingId={focusedFindingId}
-            onFocusFinding={onFocusFinding}
-            beforeControls={
-              logOpen ? (
-                <Splitter
-                  orientation="horizontal"
-                  size={bottomHeight}
-                  min={120}
-                  max={700}
-                  inverted
-                  onResize={setBottomHeight}
-                  label={t('panel.resizeBottom')}
-                />
-              ) : null
-            }
-          />
-        ) : (
-          <p className="shell__empty">{repo ? t('app.chooseAnalysis') : t('app.chooseRepo')}</p>
-        )}
+        <BranchBar onRunReview={onRunReview} />
+        <div className="shell__canvas-body">
+          {current ? (
+            <FlowPlayer
+              key={current.id}
+              flow={current.flow}
+              onActiveEdgeChange={onActiveEdgeChange}
+              onSelectSource={onSelectSource}
+              flowFile={current.file}
+              onAsk={onAsk}
+              review={current.review}
+              focusedFindingId={focusedFindingId}
+              onFocusFinding={onFocusFinding}
+              beforeControls={
+                logOpen ? (
+                  <Splitter
+                    orientation="horizontal"
+                    size={bottomHeight}
+                    min={120}
+                    max={700}
+                    inverted
+                    onResize={setBottomHeight}
+                    label={t('panel.resizeBottom')}
+                  />
+                ) : null
+              }
+            />
+          ) : (
+            <p className="shell__empty">{repo ? t('app.chooseAnalysis') : t('app.chooseRepo')}</p>
+          )}
+        </div>
       </main>
 
       {logOpen && (

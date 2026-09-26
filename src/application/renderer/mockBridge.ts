@@ -46,6 +46,14 @@ export function installMockBridge(): void {
       return demoRepo;
     },
     'repo:open': () => demoRepo,
+    'repo:list-branches': () => ({
+      current: demoRepo.branch,
+      branches: ['main', 'develop', 'feature/todo-lists'],
+    }),
+    'repo:checkout': (payload) => {
+      demoRepo.branch = (payload as { branch: string }).branch;
+      return { ...demoRepo };
+    },
     'repo:forget': () => {
       recent = [];
       return recent;

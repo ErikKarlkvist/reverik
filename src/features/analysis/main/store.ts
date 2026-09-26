@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { type Flow } from '@/common/model/flow';
+import { type Review } from '@/common/model/review';
 import { type SavedAnalysis, savedAnalysesSchema, sortAnalyses } from '../model/analysis';
 
 /**
@@ -31,7 +32,12 @@ export class AnalysisStore {
    * Sparar ett flöde som importerats från en fil i repot. Finns redan en
    * analys från samma fil ersätts den, så att en rättad fil inte ger dubbletter.
    */
-  async upsertFromFile(repoPath: string, file: string, flow: Flow): Promise<SavedAnalysis> {
+  async upsertFromFile(
+    repoPath: string,
+    file: string,
+    flow: Flow,
+    review?: Review,
+  ): Promise<SavedAnalysis> {
     const list = await this.read(repoPath);
     const existing = list.find((a) => a.file === file);
     const analysis: SavedAnalysis = {
@@ -41,6 +47,7 @@ export class AnalysisStore {
       createdAt: new Date().toISOString(),
       file,
       flow,
+      ...(review ? { review } : {}),
     };
     await this.write(repoPath, [...list.filter((a) => a.id !== analysis.id), analysis]);
     return analysis;
