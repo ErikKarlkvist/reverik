@@ -6,17 +6,18 @@ import { Icon } from '@/common/renderer/Icon';
 import { Splitter } from '@/common/renderer/Splitter';
 import { invokeChannel } from '@/common/renderer/ipc';
 import { AnalysisList, GUIDE_FILE, InboxLog, useAnalyses } from '@/features/analysis';
-import { FlowPlayer } from '@/features/flow-graph';
+import { FlowPlayer, FlowSummary } from '@/features/flow-graph';
 import { RepoPanel, SourceView, useRepo } from '@/features/repo';
 import { TerminalPanel, useTerminalApi } from '@/features/terminal';
 import { ThemeSelect } from './ThemeSelect';
 import { useStoredFlag } from './useStoredFlag';
 import { useStoredNumber } from './useStoredNumber';
 
-type PanelTab = 'code' | 'log';
+type PanelTab = 'code' | 'summary' | 'log';
 
 const TAB_LABELS: Readonly<Record<PanelTab, string>> = {
   code: t('panel.code'),
+  summary: t('panel.summary'),
   log: t('panel.log'),
 };
 
@@ -56,7 +57,17 @@ export function AppShell(): JSX.Element {
   );
 
   const shownSource = current ? source : null;
-  const activeTab: PanelTab = tab === 'code' && !shownSource ? 'log' : tab;
+  // Flikar utan innehåll faller tillbaka: kod kräver en källa, sammanfattning en analys.
+  const enabled: Record<PanelTab, boolean> = {
+    code: shownSource !== null,
+    summary: current !== null,
+    log: true,
+  };
+  const activeTab: PanelTab = enabled[tab]
+    ? tab
+    : tab === 'code' && enabled.summary
+      ? 'summary'
+      : 'log';
   const shellClass = [
     'shell',
     logOpen ? '' : 'shell--log-closed',
@@ -137,7 +148,7 @@ export function AppShell(): JSX.Element {
                   role="tab"
                   aria-selected={activeTab === key}
                   className={`shell__tab${activeTab === key ? ' is-active' : ''}`}
-                  disabled={key === 'code' && !shownSource}
+                  disabled={!enabled[key]}
                   onClick={() => {
                     setTab(key);
                   }}
@@ -158,7 +169,13 @@ export function AppShell(): JSX.Element {
               <Icon name="chevronDown" />
             </button>
           </div>
-          {activeTab === 'code' && shownSource ? <SourceView source={shownSource} /> : <InboxLog />}
+          {activeTab === 'code' && shownSource ? (
+            <SourceView source={shownSource} />
+          ) : activeTab === 'summary' && current ? (
+            <FlowSummary flow={current.flow} />
+          ) : (
+            <InboxLog />
+          )}
         </section>
       )}
 

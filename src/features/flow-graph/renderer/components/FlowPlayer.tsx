@@ -136,10 +136,9 @@ export function FlowPlayer({
   return (
     <div className="player">
       <header className="player__header">
-        <div className="player__heading">
-          <h2 className="player__title">{flow.title}</h2>
-          <p className="player__summary">{flow.summary}</p>
-        </div>
+        <h2 className="player__title" title={flow.summary}>
+          {flow.title}
+        </h2>
         <nav className="player__crumbs" aria-label={t('graph.levelNav')}>
           <button
             type="button"

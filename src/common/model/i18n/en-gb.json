@@ -7,6 +7,7 @@
   "app.mockShell": "Mock shell: this is the browser, nothing you type here runs.",
 
   "panel.code": "Code",
+  "panel.summary": "Summary",
   "panel.log": "Log",
   "panel.minimise": "Minimise panel",
   "panel.show": "Show panel",
@@ -95,6 +96,8 @@
   "ask.edgePrompt": "About the call \"{label}\" from \"{from}\" to \"{to}\"{source} in the flow \"{flow}\"{file}: {question}",
   "ask.source": " ({file}:{line})",
   "ask.file": " (saved as {file}, update it if the answer changes the flow)",
+
+  "summary.steps": "Steps",
 
   "table.primaryKey": "Primary key",
   "table.references": "References {target}",
