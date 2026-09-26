@@ -49,7 +49,3 @@ export const THEME_LABELS: Readonly<Record<ThemePreference, string>> = {
   light: t('theme.light'),
   dark: t('theme.dark'),
 };
-
-export function parsePreference(value: string): ThemePreference {
-  return isPreference(value) ? value : 'system';
-}

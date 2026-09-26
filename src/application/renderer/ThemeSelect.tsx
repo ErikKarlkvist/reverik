@@ -1,24 +1,23 @@
 import { type JSX } from 'react';
 import { t } from '@/common/model/i18n';
-import { parsePreference, THEME_LABELS, type ThemePreference, useTheme } from './theme';
+import { type CycleOption, IconCycle } from '@/common/renderer/IconCycle';
+import { THEME_LABELS, type ThemePreference, useTheme } from './theme';
 
+const OPTIONS: readonly CycleOption<ThemePreference>[] = [
+  { value: 'system', icon: 'themeSystem', label: THEME_LABELS.system },
+  { value: 'light', icon: 'themeLight', label: THEME_LABELS.light },
+  { value: 'dark', icon: 'themeDark', label: THEME_LABELS.dark },
+];
+
+/** Temaknappen i sidfoten: en ikon som stegar system, ljust, mörkt. */
 export function ThemeSelect(): JSX.Element {
   const [preference, setPreference] = useTheme();
   return (
-    <label className="theme-select">
-      {t('theme.label')}
-      <select
-        value={preference}
-        onChange={(e) => {
-          setPreference(parsePreference(e.target.value));
-        }}
-      >
-        {(Object.keys(THEME_LABELS) as ThemePreference[]).map((key) => (
-          <option key={key} value={key}>
-            {THEME_LABELS[key]}
-          </option>
-        ))}
-      </select>
-    </label>
+    <IconCycle
+      options={OPTIONS}
+      value={preference}
+      onChange={setPreference}
+      title={t('theme.label')}
+    />
   );
 }

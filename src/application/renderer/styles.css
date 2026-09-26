@@ -318,17 +318,6 @@ select:focus {
   font-size: 12px;
 }
 
-.theme-select {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.theme-select select {
-  padding: 1px 4px;
-  font-size: 12px;
-}
-
 /* Dragbara handtag mellan panelerna */
 .splitter {
   position: absolute;
