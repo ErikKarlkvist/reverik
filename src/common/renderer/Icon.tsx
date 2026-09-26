@@ -14,6 +14,7 @@ import {
   faGears,
   faKey,
   faLink,
+  faMagnifyingGlassPlus,
   faLayerGroup,
   faPause,
   faPlay,
@@ -53,6 +54,7 @@ const ICONS = {
   key: faKey,
   chat: faCommentDots,
   link: faLink,
+  zoomIn: faMagnifyingGlassPlus,
 } satisfies Record<string, IconDefinition>;
 
 export type IconName = keyof typeof ICONS;

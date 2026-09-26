@@ -59,6 +59,8 @@ interface Props {
   /** Det som är utpekat i frågerutan, markeras i grafen */
   asking: AskTarget | null;
   onAsk: (target: AskTarget) => void;
+  /** Förstoringsglaset på en systemnod */
+  onZoom?: ((systemId: string) => void) | undefined;
   /** Ritas ovanpå grafen, t.ex. frågerutan */
   overlay?: ReactNode;
 }
@@ -74,6 +76,7 @@ export function FlowGraph({
   onEdgeClick,
   asking,
   onAsk,
+  onZoom,
   overlay,
 }: Props): JSX.Element {
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
@@ -283,9 +286,15 @@ export function FlowGraph({
     [model, onAsk],
   );
   const askingNodeId = asking?.kind === 'node' ? asking.node.id : null;
+  const zoomInto = useCallback(
+    (systemId: string) => {
+      onZoom?.(systemId);
+    },
+    [onZoom],
+  );
   const graphState = useMemo(
-    () => ({ hoveredNodeId: hoveredNode, view, hide, askNode, askingNodeId }),
-    [hoveredNode, view, hide, askNode, askingNodeId],
+    () => ({ hoveredNodeId: hoveredNode, view, hide, askNode, askingNodeId, zoomInto }),
+    [hoveredNode, view, hide, askNode, askingNodeId, zoomInto],
   );
 
   return (

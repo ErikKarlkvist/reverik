@@ -126,6 +126,33 @@ button.crumb:hover:not(:disabled) {
   stroke-width: 2.5;
 }
 
+/* Förstoringsglaset som zoomar in i ett system, syns vid hover */
+.graph-node__zoom {
+  position: absolute;
+  top: -9px;
+  right: 35px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-panel);
+  color: var(--fg-muted);
+  opacity: 0;
+  transition: opacity 120ms;
+}
+
+.graph-node:hover .graph-node__zoom {
+  opacity: 1;
+}
+
+.graph-node__zoom:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* Pratbubblan som öppnar frågerutan, syns vid hover bredvid krysset */
 .graph-node__ask {
   position: absolute;
@@ -250,7 +277,6 @@ button.crumb:hover:not(:disabled) {
 .graph-node--system {
   width: 220px;
   height: 76px;
-  cursor: zoom-in;
   border-width: 2px;
 }
 

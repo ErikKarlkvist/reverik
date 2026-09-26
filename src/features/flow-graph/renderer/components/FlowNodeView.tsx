@@ -24,14 +24,12 @@ export const FlowNodeView = memo(function FlowNodeView({
   data,
   selected,
 }: NodeProps<GraphNode>): JSX.Element {
-  const { status, hovered, asking, hide, ask } = useNodeState(id);
+  const { status, hovered, asking, hide, ask, zoom } = useNodeState(id);
   const system = data.level === 'system';
   return (
     <div
       className={`graph-node graph-node--${data.kind} graph-node--${data.level} is-${status}${selected ? ' is-selected' : ''}${asking ? ' is-asking' : ''}`}
-      title={
-        system ? t('graph.zoomHint', { name: data.description ?? data.label }) : data.description
-      }
+      title={data.description}
     >
       <Handle type="target" position={Position.Left} id="in-left" className="graph-handle" />
       <Handle type="source" position={Position.Right} id="out-right" className="graph-handle" />
@@ -44,6 +42,20 @@ export const FlowNodeView = memo(function FlowNodeView({
         <span className="graph-node__kind">{t(`kind.${data.kind}`)}</span>
         <span className="graph-node__label">{data.label}</span>
       </span>
+      {system && (
+        <button
+          type="button"
+          className="graph-node__zoom nodrag nopan"
+          title={t('graph.zoomHint', { name: data.label })}
+          aria-label={t('graph.zoomHint', { name: data.label })}
+          onClick={(event) => {
+            event.stopPropagation();
+            zoom();
+          }}
+        >
+          <Icon name="zoomIn" size="sm" />
+        </button>
+      )}
       <AskButton onAsk={ask} />
       <RemoveButton onRemove={hide} />
       {hovered && data.tables.length > 0 && <TablesPopover tables={data.tables} />}

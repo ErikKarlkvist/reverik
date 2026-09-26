@@ -82,12 +82,18 @@ export function FlowPlayer({
     [flow, model, playback],
   );
 
+  // Klick visar koden. Inzoomning sker via förstoringsglaset på systemnoden.
   const onNodeClick = useCallback(
     (node: GraphNode) => {
-      if (node.level === 'system') changeView({ kind: 'focus', systemId: node.systemId });
-      else if (node.source) onSelectSource?.(node.source);
+      if (node.source) onSelectSource?.(node.source);
     },
-    [changeView, onSelectSource],
+    [onSelectSource],
+  );
+  const onZoom = useCallback(
+    (systemId: string) => {
+      changeView({ kind: 'focus', systemId });
+    },
+    [changeView],
   );
   const onEdgeClick = useCallback(
     (edge: FlowEdge) => {
@@ -179,6 +185,7 @@ export function FlowPlayer({
         onEdgeClick={onEdgeClick}
         asking={onAsk ? asking : null}
         onAsk={setAsking}
+        onZoom={onZoom}
         overlay={
           onAsk && asking ? (
             <AskComposer

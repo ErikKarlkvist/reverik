@@ -15,6 +15,8 @@ export interface GraphState {
   askNode: (nodeId: string) => void;
   /** Noden som just nu är utpekad i frågerutan */
   askingNodeId: string | null;
+  /** Zoomar in i ett system, från förstoringsglaset på systemnoden */
+  zoomInto: (systemId: string) => void;
 }
 
 const EMPTY: GraphState = {
@@ -23,6 +25,7 @@ const EMPTY: GraphState = {
   hide: () => undefined,
   askNode: () => undefined,
   askingNodeId: null,
+  zoomInto: () => undefined,
 };
 
 export const GraphStateContext = createContext<GraphState>(EMPTY);
@@ -33,8 +36,10 @@ export function useNodeState(id: string): {
   asking: boolean;
   hide: () => void;
   ask: () => void;
+  zoom: () => void;
 } {
-  const { hoveredNodeId, view, hide, askNode, askingNodeId } = useContext(GraphStateContext);
+  const { hoveredNodeId, view, hide, askNode, askingNodeId, zoomInto } =
+    useContext(GraphStateContext);
   return {
     status: view.nodes.get(id) ?? 'pending',
     hovered: hoveredNodeId === id,
@@ -44,6 +49,9 @@ export function useNodeState(id: string): {
     },
     ask: () => {
       askNode(id);
+    },
+    zoom: () => {
+      zoomInto(id);
     },
   };
 }

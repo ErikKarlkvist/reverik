@@ -45,7 +45,7 @@
   "graph.allDetails": "All details",
   "graph.allDetailsHint": "Show every node in every system",
   "graph.levelNav": "Level",
-  "graph.zoomHint": "{name}. Click to zoom in.",
+  "graph.zoomHint": "Zoom into {name}",
   "graph.sends": "Sends",
   "graph.response": "Response",
   "graph.remove": "Remove from view",
