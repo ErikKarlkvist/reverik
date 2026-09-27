@@ -29,6 +29,8 @@ export function ReviewSidebar({ onFocus }: Props): JSX.Element {
   const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set());
   const [open, setOpen] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  // Instruktionen till agenten, fältet visas när man tryckt på Send
+  const [instruction, setInstruction] = useState<string | null>(null);
 
   const groups = groupReviews(analyses, current);
   const key = (analysis: SavedAnalysis, finding: ReviewFinding): string =>
@@ -86,8 +88,16 @@ export function ReviewSidebar({ onFocus }: Props): JSX.Element {
   };
   const send = (): void => {
     const first = groups[0];
-    if (!first) return;
-    terminal.send(t('side.prompt', { base: first.base, head: first.head, findings: text() }));
+    if (!first || instruction === null) return;
+    terminal.send(
+      t('side.prompt', {
+        base: first.base,
+        head: first.head,
+        findings: text(),
+        instruction: instruction.trim() || t('side.defaultInstruction'),
+      }),
+    );
+    setInstruction(null);
   };
 
   return (
@@ -205,6 +215,41 @@ export function ReviewSidebar({ onFocus }: Props): JSX.Element {
           </section>
         ))}
       </div>
+      {instruction !== null && (
+        <div className="review-side__compose">
+          <textarea
+            className="review-side__instruction"
+            autoFocus
+            rows={3}
+            value={instruction}
+            placeholder={t('side.defaultInstruction')}
+            onChange={(event) => {
+              setInstruction(event.target.value);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) send();
+              else if (event.key === 'Escape') setInstruction(null);
+            }}
+          />
+          <div className="review-side__compose-actions">
+            <span className="review-side__hint">
+              {t('side.composeHint', { count: chosenCount })}
+            </span>
+            <button
+              type="button"
+              className="text-button"
+              onClick={() => {
+                setInstruction(null);
+              }}
+            >
+              {t('ask.cancel')}
+            </button>
+            <button type="button" className="review-side__send" onClick={send}>
+              <Icon name="chat" size="sm" /> {t('side.sendNow')}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="review-side__actions">
         <button type="button" disabled={chosenCount === 0} onClick={copy}>
           <Icon name="copy" size="sm" /> {copied ? t('side.copied') : t('side.copy')}
@@ -213,9 +258,11 @@ export function ReviewSidebar({ onFocus }: Props): JSX.Element {
         <button
           type="button"
           className="review-side__send"
-          disabled={chosenCount === 0}
+          disabled={chosenCount === 0 || instruction !== null}
           title={t('side.sendHint')}
-          onClick={send}
+          onClick={() => {
+            setInstruction('');
+          }}
         >
           <Icon name="chat" size="sm" /> {t('side.send')}
           {chosenCount > 0 && ` (${chosenCount})`}
