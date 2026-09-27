@@ -1,5 +1,5 @@
 import '@xyflow/react/dist/style.css';
-import { type JSX, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { type JSX, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type Flow, type FlowEdge, type SourceRef } from '@/common/model/flow';
 import { t } from '@/common/model/i18n';
 import { diffFlows, mergeForReview, type Review } from '@/common/model/review';
@@ -33,6 +33,8 @@ interface Props {
   /** Finns när analysen är en review: `flow` är då flödet efter ändringen */
   review?: Review | undefined;
   focusedFindingId?: string | null | undefined;
+  /** Räknas upp vid varje fokusering, uppspelningen spolar då till fyndets steg */
+  focusSeq?: number | undefined;
   onFocusFinding?: ((findingId: string) => void) | undefined;
 }
 
@@ -49,6 +51,7 @@ export function FlowPlayer({
   onAsk,
   review,
   focusedFindingId = null,
+  focusSeq = 0,
   onFocusFinding,
 }: Props): JSX.Element {
   const [view, setView] = useState<GraphView>({ kind: 'system' });
@@ -122,6 +125,23 @@ export function FlowPlayer({
     },
     [onFocusFinding],
   );
+
+  // Spola till första steget som rör fyndets nod eller anrop, en gång per fokusering.
+  const handledFocus = useRef(0);
+  useEffect(() => {
+    if (handledFocus.current === focusSeq || !review || focusedFindingId === null) return;
+    handledFocus.current = focusSeq;
+    const finding = review.findings.find((f) => f.id === focusedFindingId);
+    if (!finding) return;
+    const index = model.steps.findIndex((step) => {
+      const edge = graphFlow.edges.find((e) => e.id === step.edgeId);
+      return (
+        edge !== undefined &&
+        (edge.id === finding.edgeId || edge.from === finding.nodeId || edge.to === finding.nodeId)
+      );
+    });
+    if (index >= 0) playback.goTo(index);
+  }, [focusSeq, focusedFindingId, review, model, graphFlow, playback]);
   const onEdgeClick = useCallback(
     (edge: FlowEdge) => {
       onSelectSource?.(edge.source);

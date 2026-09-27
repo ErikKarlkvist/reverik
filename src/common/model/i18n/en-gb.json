@@ -20,6 +20,7 @@
   "side.copied": "Copied",
   "side.send": "Send to AI",
   "side.sendHint": "Sends the selected findings to the agent in the terminal",
+  "side.openHint": "Open in the Review tab and go to the step in the flow",
   "side.prompt": "In the review of {head} against {base} I want to act on these findings, grouped by flow with the review file each belongs to:\n\n{findings}\n\nFor each one: check whether it is real, explain briefly, and propose or make the fix. If a flow changes, update its review file.",
 
   "panel.code": "Code",

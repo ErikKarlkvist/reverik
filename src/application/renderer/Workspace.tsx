@@ -24,6 +24,11 @@ interface Props {
   onBottomResize: (size: number) => void;
   onLogOpenChange: (open: boolean) => void;
   onAsk: (prompt: string) => void;
+  /** Valt fynd, ägs av skalet så Full review kan sätta det */
+  focusedFindingId: string | null;
+  /** Räknas upp vid varje fokusering, så samma fynd kan fokuseras igen */
+  focusSeq: number;
+  onFocusFinding: (findingId: string | null) => void;
 }
 
 /** Arbetsytan: grafen och den nedre panelen för den valda analysen. */
@@ -35,10 +40,24 @@ export function Workspace({
   onBottomResize,
   onLogOpenChange,
   onAsk,
+  focusedFindingId,
+  focusSeq,
+  onFocusFinding,
 }: Props): JSX.Element {
   const [source, setSource] = useState<SourceRef | null>(null);
-  const [tab, setTab] = useState<PanelTab>('code');
-  const [focusedFindingId, setFocusedFinding] = useState<string | null>(null);
+  // Fliken följer fokuseringen: ett nytt fynd visar Review tills användaren väljer en annan flik.
+  const [tabChoice, setTabChoice] = useState<{ tab: PanelTab; seq: number }>({
+    tab: 'code',
+    seq: 0,
+  });
+  const tab: PanelTab =
+    focusedFindingId !== null && tabChoice.seq !== focusSeq ? 'review' : tabChoice.tab;
+  const setTab = useCallback(
+    (next: PanelTab) => {
+      setTabChoice({ tab: next, seq: focusSeq });
+    },
+    [focusSeq],
+  );
 
   const onActiveEdgeChange = useCallback((edge: FlowEdge | null) => {
     setSource(edge?.source ?? null);
@@ -46,14 +65,6 @@ export function Workspace({
   const onSelectSource = useCallback((selected: SourceRef) => {
     setSource(selected);
   }, []);
-  const onFocusFinding = useCallback(
-    (findingId: string) => {
-      setFocusedFinding(findingId);
-      setTab('review');
-      onLogOpenChange(true);
-    },
-    [onLogOpenChange],
-  );
 
   const shownSource = analysis ? source : null;
   // Flikar utan innehåll faller tillbaka: kod kräver en källa, sammanfattning en analys.
@@ -96,6 +107,7 @@ export function Workspace({
             onAsk={onAsk}
             review={analysis.review}
             focusedFindingId={focusedFindingId}
+            focusSeq={focusSeq}
             onFocusFinding={onFocusFinding}
             beforeControls={logOpen ? splitter : null}
           />
@@ -147,7 +159,7 @@ export function Workspace({
               review={analysis.review}
               commit={analysis.ref?.commit}
               focusedFindingId={focusedFindingId}
-              onFocus={setFocusedFinding}
+              onFocus={onFocusFinding}
             />
           ) : (
             <InboxLog />

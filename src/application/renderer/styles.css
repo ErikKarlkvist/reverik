@@ -357,7 +357,23 @@ select:focus {
   align-items: center;
   gap: 8px;
   padding: 4px 4px 4px 8px;
-  cursor: pointer;
+}
+
+.review-side__open {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--fg);
+  text-align: left;
+}
+
+.review-side__open:hover .review-side__text {
+  color: var(--accent);
 }
 
 .review-side__row input {

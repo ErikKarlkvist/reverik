@@ -18,7 +18,12 @@ interface ReviewGroup {
  * Markerade fynd kan kopieras som text eller skickas till agenten, över alla
  * flöden på en gång.
  */
-export function ReviewSidebar(): JSX.Element {
+interface Props {
+  /** Öppnar fyndet i analysens Review-flik och spolar dit i grafen */
+  onFocus: (analysisId: string, findingId: string) => void;
+}
+
+export function ReviewSidebar({ onFocus }: Props): JSX.Element {
   const { analyses, current, select } = useAnalyses();
   const terminal = useTerminalApi();
   const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set());
@@ -141,31 +146,40 @@ export function ReviewSidebar(): JSX.Element {
                           key={finding.id}
                           className={`review-side__item is-${finding.severity}${checked ? ' is-checked' : ''}`}
                         >
-                          <label className="review-side__row">
+                          <div className="review-side__row">
                             <input
                               type="checkbox"
                               checked={checked}
+                              aria-label={finding.title}
                               onChange={() => {
                                 toggle(k);
                               }}
                             />
-                            <span className={`review__severity is-${finding.severity}`}>
-                              <Icon name={finding.severity} size="sm" />
-                            </span>
-                            <span className="review-side__text">{finding.title}</span>
+                            <button
+                              type="button"
+                              className="review-side__open"
+                              title={t('side.openHint')}
+                              onClick={() => {
+                                onFocus(analysis.id, finding.id);
+                              }}
+                            >
+                              <span className={`review__severity is-${finding.severity}`}>
+                                <Icon name={finding.severity} size="sm" />
+                              </span>
+                              <span className="review-side__text">{finding.title}</span>
+                            </button>
                             <button
                               type="button"
                               className="icon-button icon-button--quiet"
                               aria-expanded={expanded}
                               aria-label={finding.title}
-                              onClick={(event) => {
-                                event.preventDefault();
+                              onClick={() => {
                                 setOpen(expanded ? null : k);
                               }}
                             >
                               <Icon name={expanded ? 'chevronDown' : 'chevronRight'} size="sm" />
                             </button>
-                          </label>
+                          </div>
                           {expanded && (
                             <div className="review-side__body">
                               <p className="review__text">{finding.description}</p>

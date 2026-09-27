@@ -20,14 +20,38 @@ const SIDE_MODES = ['terminal', 'review'] as const;
 export function AppShell(): JSX.Element {
   const [info, setInfo] = useState<AppInfo | null>(null);
   const { repo } = useRepo();
-  const { current } = useAnalyses();
-  useTabTitle(repo ? (current ? `${repo.name} · ${current.flow.title}` : repo.name) : null);
+  const { current, select } = useAnalyses();
   const [logOpen, setLogOpen] = useStoredFlag('reverik.logOpen', true);
   const [terminalOpen, setTerminalOpen] = useStoredFlag('reverik.terminalOpen', true);
   const [sideMode, setSideMode] = useStoredChoice('reverik.sideMode', SIDE_MODES, 'terminal');
   const [sidebarWidth, setSidebarWidth] = useStoredNumber('reverik.sidebarWidth', 300);
   const [bottomHeight, setBottomHeight] = useStoredNumber('reverik.bottomHeight', 220);
   const [terminalWidth, setTerminalWidth] = useStoredNumber('reverik.terminalWidth', 460);
+  // Valt fynd taggas med analysen. Räknaren låter samma fynd fokuseras igen.
+  const [focused, setFocused] = useState<{ analysisId: string; findingId: string } | null>(null);
+  const [focusSeq, setFocusSeq] = useState(0);
+  const focusedFindingId =
+    focused !== null && focused.analysisId === current?.id ? focused.findingId : null;
+  const focusFinding = useCallback(
+    (analysisId: string, findingId: string | null) => {
+      if (findingId === null) {
+        setFocused(null);
+        return;
+      }
+      if (analysisId !== current?.id) select(analysisId);
+      setFocused({ analysisId, findingId });
+      setFocusSeq((n) => n + 1);
+      setLogOpen(true);
+    },
+    [current, select, setLogOpen],
+  );
+  const onFocusInCurrent = useCallback(
+    (findingId: string | null) => {
+      if (current) focusFinding(current.id, findingId);
+    },
+    [current, focusFinding],
+  );
+  useTabTitle(repo ? (current ? `${repo.name} · ${current.flow.title}` : repo.name) : null);
 
   useEffect(() => {
     void invokeChannel(appInfoChannel, undefined).then(setInfo);
@@ -94,6 +118,9 @@ export function AppShell(): JSX.Element {
           onBottomResize={setBottomHeight}
           onLogOpenChange={setLogOpen}
           onAsk={onAsk}
+          focusedFindingId={focusedFindingId}
+          focusSeq={focusSeq}
+          onFocusFinding={onFocusInCurrent}
         />
       </div>
 
@@ -135,7 +162,7 @@ export function AppShell(): JSX.Element {
               />
             </div>
             <div className={`shell__side-pane${sideMode === 'review' ? ' is-active' : ''}`}>
-              <ReviewSidebar />
+              <ReviewSidebar onFocus={focusFinding} />
             </div>
           </div>
         </div>
