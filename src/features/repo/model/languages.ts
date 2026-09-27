@@ -56,7 +56,7 @@ const EXTENSION_TO_LANGUAGE: Readonly<Record<string, string>> = {
   tf: 'Terraform',
 };
 
-export const MAX_LANGUAGES = 5;
+const MAX_LANGUAGES = 5;
 
 /** Räknar filer per språk utifrån filändelse och returnerar de vanligaste, störst först. */
 export function summarizeLanguages(paths: Iterable<string>, limit = MAX_LANGUAGES): LanguageStat[] {

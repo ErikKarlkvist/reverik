@@ -1,20 +1,22 @@
 # Reverik
 
-PoC: en Electron-app som med hjälp av Claude analyserar dataflöden i en kodbas
-och visar dem som ett animerat sekvensdiagram.
+PoC: en Electron-app som visar dataflöden i en kodbas som animerade
+sekvensdiagram, och reviewar ändringar mot dem.
 
-Man kopplar appen till ett lokalt repo, ställer en fråga som
-"Visa vad som händer när man klickar på lägg till i varukorg", och får en graf
-där requests spelas upp steg för steg. Varje nod och kant pekar på fil och rad
-i koden.
+Man kopplar appen till ett lokalt repo och kör valfri AI-agent, till exempel
+Claude Code, i terminalpanelen. Agenten får en guide som beskriver hur den
+levererar flöden och reviewer som JSON till `.reverik/` i repot, appen bevakar
+mappen och ritar upp resultatet. Varje nod och anrop pekar på fil och rad.
 
-Se [PLAN.md](PLAN.md) för arbetsplanen. I `demo/todo-app` finns en liten app att
-analysera: React-frontend, Express-backend, Postgres och Redis.
+I `demo/todo-app` finns en liten app att analysera: React-frontend,
+Express-backend, Postgres och Redis, med inbyggda analyser och en demo-review.
 
 ## Kom igång
 
 ```bash
-cp .env.example .env   # fyll i ANTHROPIC_API_KEY
 npm install
 npm run dev
 ```
+
+Ingen API-nyckel behövs, agenten i terminalen använder sin egen inloggning.
+Se CLAUDE.md för kommandon, arkitektur och kodstil.

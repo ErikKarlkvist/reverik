@@ -8,9 +8,9 @@ import { t } from './i18n';
  * `flow`, så allt som fungerar på flöden fungerar på reviewer.
  */
 
-export const findingSeveritySchema = z.enum(['info', 'warning', 'error']);
+const findingSeveritySchema = z.enum(['info', 'warning', 'error']);
 
-export const reviewFindingSchema = z.object({
+const reviewFindingSchema = z.object({
   id: z.string().min(1),
   severity: findingSeveritySchema,
   /** Kort, t.ex. "Cache is no longer invalidated" */
@@ -55,15 +55,13 @@ export const reviewSchema = z
  * Filen agenten skriver till `.reverik/reviews/`: båda flödena och fynden.
  * Importeras som en analys med `flow` = head och `review` = resten.
  */
-export const reviewDocumentSchema = z.object({
+const reviewDocumentSchema = z.object({
   baseLabel: z.string().min(1),
   headLabel: z.string().min(1),
   base: flowSchema,
   head: flowSchema,
   findings: z.array(reviewFindingSchema),
 });
-
-export type ReviewDocument = z.infer<typeof reviewDocumentSchema>;
 
 export type ReviewValidation =
   { ok: true; flow: Flow; review: Review } | { ok: false; errors: string[] };
@@ -95,7 +93,7 @@ export type FindingSeverity = z.infer<typeof findingSeveritySchema>;
 export type ReviewFinding = z.infer<typeof reviewFindingSchema>;
 export type Review = z.infer<typeof reviewSchema>;
 
-export const SEVERITY_ORDER: Readonly<Record<FindingSeverity, number>> = {
+const SEVERITY_ORDER: Readonly<Record<FindingSeverity, number>> = {
   error: 0,
   warning: 1,
   info: 2,

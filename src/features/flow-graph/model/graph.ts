@@ -54,7 +54,7 @@ const NO_ANNOTATIONS: ReviewAnnotations = {
 };
 
 /** Relation mellan två tabellnoder, från kolumnen med främmande nyckel till tabellen den pekar på. */
-export interface GraphRelation {
+interface GraphRelation {
   id: string;
   from: string;
   to: string;
@@ -62,7 +62,7 @@ export interface GraphRelation {
 }
 
 /** Ram runt noderna i ett system i detaljvyn. */
-export interface GraphGroup {
+interface GraphGroup {
   id: string;
   kind: SystemKind;
   label: string;

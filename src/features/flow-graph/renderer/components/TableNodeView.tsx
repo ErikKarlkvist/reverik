@@ -11,7 +11,7 @@ import { FindingFlag } from './FindingFlag';
 import { RemoveButton } from './RemoveButton';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type TableNodeData = {
+type TableNodeData = {
   kind: NodeKind;
   table: TableInfo;
   change: FlowChange | undefined;

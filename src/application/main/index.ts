@@ -1,10 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
-import { loadEnv } from './env';
 import { registerApplicationHandlers } from './handlers';
 import { createMainWindow } from './window';
-
-loadEnv();
 
 // Sätt REVERIK_USER_DATA för att köra en instans med egen datamapp, t.ex. vid felsökning
 // parallellt med en annan instans.

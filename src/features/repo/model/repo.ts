@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
-export const languageStatSchema = z.object({
+const languageStatSchema = z.object({
   name: z.string(),
   files: z.number().int().nonnegative(),
 });
 
-export const repoInfoSchema = z.object({
+const repoInfoSchema = z.object({
   /** Absolut sökväg till repots rot. */
   path: z.string().min(1),
   name: z.string().min(1),

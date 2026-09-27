@@ -9,9 +9,6 @@ export interface Channel<Req, Res> {
   readonly __res?: Res;
 }
 
-export type ChannelRequest<C> = C extends Channel<infer Req, unknown> ? Req : never;
-export type ChannelResponse<C> = C extends Channel<unknown, infer Res> ? Res : never;
-
 export function defineChannel<Req = undefined, Res = undefined>(name: string): Channel<Req, Res> {
   return { name };
 }

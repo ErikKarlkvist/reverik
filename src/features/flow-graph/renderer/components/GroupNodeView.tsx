@@ -6,7 +6,7 @@ import { Icon } from '@/common/renderer/Icon';
 import { useZoomOut } from './GraphStateContext';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type GroupNodeData = {
+type GroupNodeData = {
   kind: SystemKind;
   label: string;
 };

@@ -12,8 +12,8 @@ export const NODE_SIZES: Readonly<Record<GraphLevel, Size>> = {
   table: { width: 230, height: 40 },
 };
 
-export const TABLE_HEADER_HEIGHT = 34;
-export const TABLE_ROW_HEIGHT = 22;
+const TABLE_HEADER_HEIGHT = 34;
+const TABLE_ROW_HEIGHT = 22;
 
 /** Tabellnoder växer med antalet kolumner. */
 export function nodeSize(node: { level: GraphLevel; columnCount?: number }): Size {
@@ -32,7 +32,7 @@ export interface Point {
 
 export type Direction = 'forward' | 'backward';
 
-export interface EdgePlacement {
+interface EdgePlacement {
   /** Går kanten åt höger (forward) eller tillbaka åt vänster (backward) */
   direction: Direction;
   /** Förskjutning i pixlar för att skilja parallella kanter mellan samma noder */

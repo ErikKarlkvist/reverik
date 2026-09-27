@@ -8,7 +8,7 @@ import {
 import { type JSX, memo } from 'react';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type RelationEdgeData = {
+type RelationEdgeData = {
   label: string;
   offset: number;
 };

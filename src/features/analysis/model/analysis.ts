@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { flowSchema } from '@/common/model/flow';
 import { reviewSchema } from '@/common/model/review';
 
-export const analysisOriginSchema = z.enum([
+const analysisOriginSchema = z.enum([
   /** Inbyggd grundanalys som följer med appen, går inte att ta bort */
   'builtin',
   /** Producerad av AI-analysen */
@@ -10,7 +10,7 @@ export const analysisOriginSchema = z.enum([
 ]);
 
 /** Var i historiken analysen gäller: branch och commit när den importerades. */
-export const analysisRefSchema = z.object({
+const analysisRefSchema = z.object({
   branch: z.string().nullable(),
   commit: z.string().min(1),
 });
@@ -30,7 +30,6 @@ export const savedAnalysisSchema = z.object({
   ref: analysisRefSchema.optional(),
 });
 
-export type AnalysisOrigin = z.infer<typeof analysisOriginSchema>;
 export type SavedAnalysis = z.infer<typeof savedAnalysisSchema>;
 export type AnalysisRef = z.infer<typeof analysisRefSchema>;
 

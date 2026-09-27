@@ -28,7 +28,7 @@ export interface EdgeMemberData {
 
 // React Flow kräver Record<string, unknown>, vilket ett interface inte uppfyller.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type GraphEdgeData = {
+type GraphEdgeData = {
   /** Anropen som ritas på den här linjen, i flödets ordning */
   members: EdgeMemberData[];
   /** Linjens status: aktiv om något anrop är aktivt, annars klar om något är klart */

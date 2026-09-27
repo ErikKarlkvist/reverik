@@ -11,7 +11,7 @@ import { RemoveButton } from './RemoveButton';
 
 // React Flow kräver Record<string, unknown>, vilket ett interface inte uppfyller.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type GraphNodeData = {
+type GraphNodeData = {
   kind: GraphKind;
   level: GraphLevel;
   label: string;

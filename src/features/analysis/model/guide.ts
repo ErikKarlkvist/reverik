@@ -1,7 +1,7 @@
 import { listTodosFlow } from '@/common/model/fixtures';
 
 /** Mappen i repot som appen bevakar, relativt repots rot. */
-export const REVERIK_DIR = '.reverik';
+const REVERIK_DIR = '.reverik';
 export const FLOWS_DIR = `${REVERIK_DIR}/flows`;
 export const REVIEWS_DIR = `${REVERIK_DIR}/reviews`;
 export const GUIDE_FILE = `${REVERIK_DIR}/instructions.md`;

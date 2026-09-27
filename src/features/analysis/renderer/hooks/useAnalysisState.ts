@@ -12,7 +12,7 @@ import {
 import { type SavedAnalysis } from '../../model/analysis';
 
 /** En rad i inkorgens logg: en import eller ett avvisat försök. */
-export type InboxEntry = { at: string } & (
+type InboxEntry = { at: string } & (
   | { type: 'imported'; file: string; title: string; id: string }
   | { type: 'rejected'; file: string; errors: string[] }
 );

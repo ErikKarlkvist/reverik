@@ -38,7 +38,7 @@ export const systemKindSchema = z.enum([
   'queue',
 ]);
 
-export const flowSystemSchema = z.object({
+const flowSystemSchema = z.object({
   id: z.string().min(1),
   kind: systemKindSchema,
   label: z.string().min(1),
@@ -52,13 +52,13 @@ export const sourceRefSchema = z.object({
   endLine: z.number().int().positive().optional(),
 });
 
-export const columnReferenceSchema = z.object({
+const columnReferenceSchema = z.object({
   /** Tabell i samma nod */
   table: z.string().min(1),
   column: z.string().min(1),
 });
 
-export const tableColumnSchema = z.object({
+const tableColumnSchema = z.object({
   name: z.string().min(1),
   type: z.string().min(1),
   description: z.string().optional(),
@@ -68,7 +68,7 @@ export const tableColumnSchema = z.object({
 });
 
 /** En tabell, collection eller nyckelrymd i en lagringsnod. */
-export const dataTableSchema = z.object({
+const dataTableSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   columns: z.array(tableColumnSchema).optional(),
@@ -76,7 +76,7 @@ export const dataTableSchema = z.object({
   source: sourceRefSchema.optional(),
 });
 
-export const flowNodeSchema = z.object({
+const flowNodeSchema = z.object({
   id: z.string().min(1),
   kind: nodeKindSchema,
   /** Systemet noden tillhör, refererar `systems[].id` */
@@ -89,7 +89,7 @@ export const flowNodeSchema = z.object({
   tables: z.array(dataTableSchema).optional(),
 });
 
-export const flowEdgeSchema = z.object({
+const flowEdgeSchema = z.object({
   id: z.string().min(1),
   from: z.string().min(1),
   to: z.string().min(1),
@@ -105,7 +105,7 @@ export const flowEdgeSchema = z.object({
   tables: z.array(z.string().min(1)).optional(),
 });
 
-export const flowStepSchema = z.object({
+const flowStepSchema = z.object({
   edgeId: z.string().min(1),
   /** En mening om vad som händer i det här steget. */
   description: z.string().min(1),
@@ -247,12 +247,9 @@ export const flowSchema = z
 
 export type NodeKind = z.infer<typeof nodeKindSchema>;
 export type SystemKind = z.infer<typeof systemKindSchema>;
-export type FlowSystem = z.infer<typeof flowSystemSchema>;
 export type SourceRef = z.infer<typeof sourceRefSchema>;
 export type FlowNode = z.infer<typeof flowNodeSchema>;
 export type DataTable = z.infer<typeof dataTableSchema>;
-export type TableColumn = z.infer<typeof tableColumnSchema>;
-export type ColumnReference = z.infer<typeof columnReferenceSchema>;
 export type FlowEdge = z.infer<typeof flowEdgeSchema>;
 export type FlowStep = z.infer<typeof flowStepSchema>;
 export type Flow = z.infer<typeof flowSchema>;

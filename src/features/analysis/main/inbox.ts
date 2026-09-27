@@ -26,7 +26,7 @@ export type ImportResult =
 
 export type InboxKind = 'flow' | 'review';
 
-export const INBOX_DIRS: Readonly<Record<InboxKind, string>> = {
+const INBOX_DIRS: Readonly<Record<InboxKind, string>> = {
   flow: FLOWS_DIR,
   review: REVIEWS_DIR,
 };
