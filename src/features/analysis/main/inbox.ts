@@ -1,6 +1,6 @@
-import { type FSWatcher, watch } from 'node:fs';
+import { existsSync, type FSWatcher, watch } from 'node:fs';
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { headRef, resolveCommit } from '@/common/main/git';
 import { type Flow, validateFlow } from '@/common/model/flow';
 import { type Review, validateReviewDocument } from '@/common/model/review';
@@ -130,13 +130,19 @@ export async function writeGuide(repoPath: string): Promise<void> {
 }
 
 const DEBOUNCE_MS = 250;
+/** Hur ofta bevakningen kontrollerar att `.reverik/` finns kvar */
+const HEALTH_MS = 3000;
+const REARM_MS = 1000;
 
 /**
- * Bevakar `.reverik/flows/` i det valda repot. Importerar det som redan
- * ligger där vid start och sedan varje fil som sparas.
+ * Bevakar `.reverik/` i det valda repot. Importerar det som redan ligger där
+ * vid start och sedan varje fil som sparas. Försvinner mappen, till exempel
+ * för att en agent städar, skapas den om och bevakningen armas på nytt.
  */
 export class FlowInbox {
-  private watchers: FSWatcher[] = [];
+  private watcher: FSWatcher | null = null;
+  private health: NodeJS.Timeout | null = null;
+  private rearmTimer: NodeJS.Timeout | null = null;
   private repoPath: string | null = null;
   private readonly pending = new Map<string, NodeJS.Timeout>();
 
@@ -149,32 +155,76 @@ export class FlowInbox {
   async watch(repoPath: string): Promise<void> {
     this.stop();
     this.repoPath = repoPath;
+    await this.arm(repoPath);
+    this.health = setInterval(() => {
+      if (this.repoPath === repoPath && !existsSync(inboxRoot(repoPath))) this.rearm(repoPath);
+    }, HEALTH_MS);
+  }
+
+  stop(): void {
+    this.closeWatcher();
+    if (this.health) clearInterval(this.health);
+    this.health = null;
+    if (this.rearmTimer) clearTimeout(this.rearmTimer);
+    this.rearmTimer = null;
+    this.repoPath = null;
+    for (const timer of this.pending.values()) clearTimeout(timer);
+    this.pending.clear();
+  }
+
+  /** Skapar mapparna, startar bevakningen och skannar det som redan ligger där. */
+  private async arm(repoPath: string): Promise<void> {
+    if (this.repoPath !== repoPath) return;
     await writeGuide(repoPath);
+    for (const kind of Object.keys(INBOX_DIRS) as InboxKind[]) {
+      await mkdir(join(repoPath, INBOX_DIRS[kind]), { recursive: true });
+    }
+    this.closeWatcher();
+    try {
+      // Rekursivt så en mapp som tas bort och kommer tillbaka fångas utan ny bevakare
+      this.watcher = watch(inboxRoot(repoPath), { recursive: true }, (_event, filename) => {
+        if (typeof filename === 'string') this.onChange(repoPath, filename);
+      });
+    } catch (error) {
+      console.error(error);
+      this.rearm(repoPath);
+      return;
+    }
+    this.watcher.on('error', () => {
+      this.rearm(repoPath);
+    });
 
     for (const kind of Object.keys(INBOX_DIRS) as InboxKind[]) {
       const dir = join(repoPath, INBOX_DIRS[kind]);
-      await mkdir(dir, { recursive: true });
-      const watcher = watch(dir, (_event, filename) => {
-        if (typeof filename === 'string' && isFlowFile(filename))
-          this.schedule(repoPath, kind, filename);
-      });
-      watcher.on('error', (error: unknown) => {
-        console.error(error);
-      });
-      this.watchers.push(watcher);
-
-      for (const name of (await readdir(dir)).filter(isFlowFile).sort()) {
+      const names = await readdir(dir).catch(() => [] as string[]);
+      for (const name of names.filter(isFlowFile).sort()) {
         await this.importAndEmit(repoPath, kind, name, true);
       }
     }
   }
 
-  stop(): void {
-    for (const watcher of this.watchers) watcher.close();
-    this.watchers = [];
-    this.repoPath = null;
-    for (const timer of this.pending.values()) clearTimeout(timer);
-    this.pending.clear();
+  private rearm(repoPath: string): void {
+    if (this.repoPath !== repoPath || this.rearmTimer) return;
+    this.closeWatcher();
+    this.rearmTimer = setTimeout(() => {
+      this.rearmTimer = null;
+      void this.arm(repoPath);
+    }, REARM_MS);
+  }
+
+  private closeWatcher(): void {
+    this.watcher?.close();
+    this.watcher = null;
+  }
+
+  /** Sökvägen är relativ `.reverik/`, t.ex. `flows/add-todo.json`. */
+  private onChange(repoPath: string, relative: string): void {
+    const [dir, name, ...rest] = relative.split(/[\\/]/);
+    if (!dir || !name || rest.length > 0 || !isFlowFile(name)) return;
+    const kind = (Object.keys(INBOX_DIRS) as InboxKind[]).find(
+      (k) => basename(INBOX_DIRS[k]) === dir,
+    );
+    if (kind) this.schedule(repoPath, kind, name);
   }
 
   private schedule(repoPath: string, kind: InboxKind, name: string): void {
@@ -221,4 +271,8 @@ export class FlowInbox {
       });
     }
   }
+}
+
+function inboxRoot(repoPath: string): string {
+  return dirname(join(repoPath, FLOWS_DIR));
 }
