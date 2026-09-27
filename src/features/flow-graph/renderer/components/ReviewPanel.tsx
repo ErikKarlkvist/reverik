@@ -3,7 +3,7 @@ import { type Flow } from '@/common/model/flow';
 import { t } from '@/common/model/i18n';
 import { diffFlows, type Review, type ReviewFinding, sortFindings } from '@/common/model/review';
 import { Icon } from '@/common/renderer/Icon';
-import { SourceView } from '@/features/repo';
+import { FindingDetails } from './FindingDetails';
 import './graph.css';
 
 interface Props {
@@ -80,13 +80,7 @@ export function ReviewPanel({
               </button>
               {open && (
                 <div className="review__body">
-                  <p className="review__text">{finding.description}</p>
-                  {finding.suggestion && (
-                    <p className="review__text">
-                      <strong>{t('review.suggestion')}</strong> {finding.suggestion}
-                    </p>
-                  )}
-                  {finding.source && <SourceView source={finding.source} commit={commit} />}
+                  <FindingDetails finding={finding} showSource commit={commit} />
                 </div>
               )}
             </li>

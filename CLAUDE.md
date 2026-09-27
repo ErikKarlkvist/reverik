@@ -10,6 +10,7 @@ Guiden agenten läser byggs i `src/features/analysis/model/guide.ts`.
 - `npm run dev` startar appen med hot reload
 - `npm run check` kör typecheck, lint, format-check och test, samma som CI bör köra
 - `npm run test` kör Vitest
+- `npm run unused` kör knip och listar oanvända filer, exporter och beroenden (demo-appen ignoreras)
 - Renderern går att titta på i en vanlig webbläsare medan `npm run dev` kör: öppna
   Vite-adressen som skrivs ut. Då laddas `src/application/renderer/mockBridge.ts`
   i stället för preload-bryggan och svarar med demo-repot och fixturerna.

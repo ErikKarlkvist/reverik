@@ -79,16 +79,16 @@ export function AppTabs(): JSX.Element {
 
   return (
     <div className="app">
-      <div className="app__tabs" role="tablist">
+      <div className="tab-strip app__tabs" role="tablist">
         {tabs.ids.map((id) => {
           const active = id === tabs.active;
           return (
-            <div key={id} className={`app-tab${active ? ' is-active' : ''}`}>
+            <div key={id} className={`tab${active ? ' is-active' : ''}`}>
               <button
                 type="button"
                 role="tab"
                 aria-selected={active}
-                className="app-tab__open"
+                className="tab__open"
                 onClick={() => {
                   activate(id);
                 }}
@@ -98,7 +98,7 @@ export function AppTabs(): JSX.Element {
               {tabs.ids.length > 1 && (
                 <button
                   type="button"
-                  className="app-tab__close"
+                  className="tab__close"
                   title={t('tabs.close')}
                   aria-label={t('tabs.close')}
                   onClick={() => {
@@ -113,7 +113,7 @@ export function AppTabs(): JSX.Element {
         })}
         <button
           type="button"
-          className="icon-button icon-button--quiet app-tab__add"
+          className="icon-button icon-button--quiet tab__add"
           title={t('tabs.new')}
           aria-label={t('tabs.new')}
           onClick={add}

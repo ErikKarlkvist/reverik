@@ -9,9 +9,7 @@ import { useTabTitle } from './AppTabsContext';
 import { BranchBar, RepoMenu, RepoPanel, useRepo } from '@/features/repo';
 import { TerminalPanel, useTerminalApi } from '@/features/terminal';
 import { ThemeSelect } from './ThemeSelect';
-import { useStoredChoice } from '@/common/renderer/useStoredChoice';
-import { useStoredFlag } from './useStoredFlag';
-import { useStoredNumber } from './useStoredNumber';
+import { useStoredChoice, useStoredFlag, useStoredNumber } from '@/common/renderer/useStored';
 import { ReviewSidebar } from './ReviewSidebar';
 import { Workspace } from './Workspace';
 
@@ -136,14 +134,14 @@ export function AppShell(): JSX.Element {
             onResize={setTerminalWidth}
             label={t('panel.resizeTerminal')}
           />
-          <div className="shell__side-modes" role="tablist">
+          <div className="tab-strip shell__side-modes" role="tablist">
             {SIDE_MODES.map((mode) => (
               <button
                 key={mode}
                 type="button"
                 role="tab"
                 aria-selected={sideMode === mode}
-                className={`side-tab${sideMode === mode ? ' is-active' : ''}`}
+                className={`tab tab--caps${sideMode === mode ? ' is-active' : ''}`}
                 onClick={() => {
                   setSideMode(mode);
                 }}

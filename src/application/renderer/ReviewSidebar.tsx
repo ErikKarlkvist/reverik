@@ -3,6 +3,7 @@ import { t } from '@/common/model/i18n';
 import { formatFindings, type ReviewFinding, sortFindings } from '@/common/model/review';
 import { Icon } from '@/common/renderer/Icon';
 import { type SavedAnalysis, useAnalyses } from '@/features/analysis';
+import { FindingDetails } from '@/features/flow-graph';
 import { useTerminalApi } from '@/features/terminal';
 
 interface ReviewGroup {
@@ -61,7 +62,7 @@ export function ReviewSidebar({ onFocus }: Props): JSX.Element {
 
   if (groups.length === 0)
     return (
-      <p className="review-side__empty">
+      <p className="shell__empty shell__empty--padded">
         {analyses.some((a) => a.review) ? t('side.pickReview') : t('side.empty')}
       </p>
     );
@@ -144,7 +145,7 @@ export function ReviewSidebar({ onFocus }: Props): JSX.Element {
                     }}
                   >
                     {analysis.flow.title}
-                    <span className="review-side__count">{review.findings.length}</span>
+                    <span className="count-badge">{review.findings.length}</span>
                   </button>
                   <ul className="review-side__list">
                     {sortFindings(review.findings).map((finding) => {
@@ -192,17 +193,7 @@ export function ReviewSidebar({ onFocus }: Props): JSX.Element {
                           </div>
                           {expanded && (
                             <div className="review-side__body">
-                              <p className="review__text">{finding.description}</p>
-                              {finding.suggestion && (
-                                <p className="review__text">
-                                  <strong>{t('review.suggestion')}</strong> {finding.suggestion}
-                                </p>
-                              )}
-                              {finding.source && (
-                                <p className="review-side__source">
-                                  {finding.source.file}:{finding.source.line}
-                                </p>
-                              )}
+                              <FindingDetails finding={finding} showSource={false} />
                             </div>
                           )}
                         </li>

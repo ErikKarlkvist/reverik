@@ -63,17 +63,6 @@
   white-space: nowrap;
 }
 
-.analyses__group-count {
-  flex-shrink: 0;
-  min-width: 18px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
 .analyses__list {
   margin: 0;
   padding: 0;

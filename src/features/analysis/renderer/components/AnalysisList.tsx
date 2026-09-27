@@ -59,7 +59,7 @@ export function AnalysisList(): JSX.Element {
             >
               <Icon name={collapsed.has(group.key) ? 'chevronRight' : 'chevronDown'} size="sm" />
               <span className="analyses__group-label">{group.label}</span>
-              <span className="analyses__group-count">{group.items.length}</span>
+              <span className="count-badge">{group.items.length}</span>
             </button>
           </h3>
           {!collapsed.has(group.key) && (

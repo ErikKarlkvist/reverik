@@ -1,6 +1,7 @@
-import { type JSX, useEffect, useRef, useState } from 'react';
+import { type JSX, useCallback, useRef, useState } from 'react';
 import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
+import { useClickOutside } from '@/common/renderer/useClickOutside';
 import { useRepo } from '../RepoContext';
 import './repo.css';
 
@@ -13,22 +14,10 @@ export function RepoMenu(): JSX.Element {
   const [isOpen, setOpen] = useState(false);
   const root = useRef<HTMLDivElement | null>(null);
 
-  // Stäng vid klick utanför eller Escape
-  useEffect(() => {
-    if (!isOpen) return;
-    const onPointerDown = (event: PointerEvent): void => {
-      if (root.current && !root.current.contains(event.target as Node)) setOpen(false);
-    };
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [isOpen]);
+  const close = useCallback(() => {
+    setOpen(false);
+  }, []);
+  useClickOutside(root, isOpen, close);
 
   const choose = (action: () => Promise<void>): void => {
     setOpen(false);

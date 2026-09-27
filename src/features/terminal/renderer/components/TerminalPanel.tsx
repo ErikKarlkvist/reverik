@@ -2,7 +2,7 @@ import '@xterm/xterm/css/xterm.css';
 import { type JSX, type ReactNode, useCallback, useRef } from 'react';
 import { t } from '@/common/model/i18n';
 import { Icon } from '@/common/renderer/Icon';
-import { useStoredChoice } from '@/common/renderer/useStoredChoice';
+import { useStoredChoice } from '@/common/renderer/useStored';
 import { type Agent, AGENTS, agentStartCommand } from '../../model/agent';
 import { useTerminal } from '../hooks/useTerminal';
 import './terminal.css';
@@ -47,7 +47,7 @@ export function TerminalPanel({ repoPath, guideFile, onHide, children }: Props):
       ) : (
         <>
           <Bar agent={agent} onAgentChange={setAgent} onHide={onHide} />
-          <p className="terminal-panel__empty">{t('terminal.noRepo')}</p>
+          <p className="shell__empty shell__empty--padded">{t('terminal.noRepo')}</p>
         </>
       )}
     </section>

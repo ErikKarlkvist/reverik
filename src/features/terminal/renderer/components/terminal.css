@@ -53,12 +53,6 @@
   background-color: var(--bg-panel);
 }
 
-.terminal-panel__empty {
-  margin: 0;
-  padding: 16px 14px;
-  color: var(--fg-muted);
-}
-
 .terminal-panel__exited {
   display: flex;
   align-items: center;

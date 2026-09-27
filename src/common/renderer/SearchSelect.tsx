@@ -1,15 +1,7 @@
-import {
-  type JSX,
-  type KeyboardEvent,
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type JSX, type KeyboardEvent, useCallback, useId, useMemo, useRef, useState } from 'react';
 import { filterOptions } from '@/common/model/search';
 import { Icon } from './Icon';
+import { useClickOutside } from './useClickOutside';
 
 interface Props {
   options: readonly string[];
@@ -55,17 +47,7 @@ export function SearchSelect({
     [close, onSelect, value],
   );
 
-  // Stäng vid klick utanför
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: PointerEvent): void => {
-      if (root.current && !root.current.contains(event.target as Node)) close();
-    };
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-    };
-  }, [open, close]);
+  useClickOutside(root, open, close);
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (!open && (event.key === 'ArrowDown' || event.key === 'Enter')) {

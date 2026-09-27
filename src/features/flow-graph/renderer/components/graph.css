@@ -298,9 +298,22 @@ button.crumb:hover:not(:disabled) {
   padding: 0 10px 10px 32px;
 }
 
-.review__text {
+.finding-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.finding-details__text {
   margin: 0;
   line-height: 1.5;
+}
+
+.finding-details__source {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--fg-muted);
 }
 
 /* Fliken Summary i nedre panelen */

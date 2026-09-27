@@ -182,33 +182,8 @@ select:focus {
 }
 
 .shell__side-modes {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
+  height: auto;
   padding: 6px 8px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.side-tab {
-  padding: 6px 12px;
-  border: 1px solid transparent;
-  border-bottom: none;
-  border-radius: 6px 6px 0 0;
-  background: none;
-  color: var(--fg-muted);
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.side-tab.is-active {
-  border-color: var(--border);
-  background: var(--bg);
-  color: var(--fg);
-  /* Täcker listens underkant så fliken hänger ihop med innehållet */
-  margin-bottom: -1px;
-  padding-bottom: 7px;
 }
 
 .shell__side-body {
@@ -237,12 +212,7 @@ select:focus {
 
 .shell__side-pane > .terminal-panel,
 .shell__side-pane > .review-side,
-.shell__side-pane > .review-side__empty {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Reviewläget i högerpanelen */
+.shell__side-pane > /* Reviewläget i högerpanelen */
 .review-side {
   display: flex;
   flex-direction: column;
@@ -305,18 +275,6 @@ select:focus {
 
 .review-side__flow-title.is-current {
   color: var(--accent);
-}
-
-.review-side__count {
-  min-width: 18px;
-  padding: 0 6px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--bg);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--fg-muted);
-  text-align: center;
 }
 
 .review-side__list {
@@ -393,13 +351,6 @@ select:focus {
   gap: 6px;
   padding: 0 10px 10px 34px;
   font-size: 13px;
-}
-
-.review-side__source {
-  margin: 0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
-  color: var(--fg-muted);
 }
 
 .review-side__compose {
@@ -582,6 +533,25 @@ select:focus {
   color: var(--fg-muted);
 }
 
+.shell__empty--padded {
+  padding: 16px 14px;
+}
+
+/* Liten siffra i en rubrik eller rad */
+.count-badge {
+  flex-shrink: 0;
+  min-width: 18px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
 .shell__footer {
   grid-area: footer;
   display: flex;
@@ -634,24 +604,28 @@ select:focus {
   height: 100vh;
 }
 
-.app__tabs {
+.tab-strip {
   display: flex;
   align-items: flex-end;
   gap: 2px;
   height: 38px;
-  /* Plats för trafikljusen på macOS */
-  padding: 0 8px 0 84px;
+  padding: 0 8px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-panel);
   overflow-x: auto;
-  -webkit-app-region: drag;
 }
 
-.app__tabs button {
+.tab-strip button {
   -webkit-app-region: no-drag;
 }
 
-.app-tab {
+/* Appflikarna bär trafikljusen på macOS */
+.app__tabs {
+  padding-left: 84px;
+  -webkit-app-region: drag;
+}
+
+.tab {
   display: flex;
   align-items: center;
   max-width: 260px;
@@ -663,14 +637,32 @@ select:focus {
   -webkit-app-region: no-drag;
 }
 
-.app-tab.is-active {
+.tab.is-active {
   border-color: var(--border);
   background: var(--bg);
   color: var(--fg);
   font-weight: 600;
 }
 
-.app-tab__open {
+/* En flik utan inre knapp, t.ex. lägesväxlaren i högerpanelen */
+button.tab {
+  padding: 6px 12px;
+  background: none;
+}
+
+button.tab.is-active {
+  background: var(--bg);
+  margin-bottom: -1px;
+  padding-bottom: 7px;
+}
+
+.tab--caps {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tab__open {
   min-width: 0;
   padding: 6px 10px;
   border: none;
@@ -682,7 +674,7 @@ select:focus {
   white-space: nowrap;
 }
 
-.app-tab__close {
+.tab__close {
   display: grid;
   place-items: center;
   width: 20px;
@@ -696,12 +688,12 @@ select:focus {
   opacity: 0.6;
 }
 
-.app-tab__close:hover {
+.tab__close:hover {
   opacity: 1;
   background: var(--border);
 }
 
-.app-tab__add {
+.tab__add {
   width: 24px;
   height: 24px;
   margin-bottom: 4px;

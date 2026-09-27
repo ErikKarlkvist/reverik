@@ -15,6 +15,7 @@
     "format:check": "prettier --check .",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
+    "unused": "knip",
     "prepare": "husky",
     "postinstall": "node scripts/fix-node-pty.mjs"
   },
@@ -53,6 +54,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "husky": "^9.1.7",
+    "knip": "^6.38.0",
     "lint-staged": "^17.5.1",
     "prettier": "^3.9.9",
     "typescript": "^5.9.3",
