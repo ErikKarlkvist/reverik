@@ -145,8 +145,7 @@
   "review.severity.warning": "Warning",
   "review.severity.info": "Info",
   "review.suggestion": "Suggestion",
-  "review.flag": "{count} findings. Hover to list them, click to keep the list open.",
-  "review.openBelow": "Open in the Review tab",
+  "review.flag": "{count} findings. Click to open in the Review tab.",
   "review.showInGraph": "Show in graph",
   "review.empty": "No findings.",
 

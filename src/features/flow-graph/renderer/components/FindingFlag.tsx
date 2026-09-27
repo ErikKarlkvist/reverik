@@ -1,4 +1,4 @@
-import { type CSSProperties, type JSX, useState } from 'react';
+import { type CSSProperties, type JSX } from 'react';
 import { t } from '@/common/model/i18n';
 import { type ReviewFinding, sortFindings, worstSeverity } from '@/common/model/review';
 import { Icon } from '@/common/renderer/Icon';
@@ -11,62 +11,35 @@ interface Props {
 }
 
 /**
- * Flaggan med antal fynd på en nod eller en linje. Hover visar fynden,
- * klick på flaggan fäster listan, klick på ett fynd öppnar det i review-fliken.
+ * Flaggan med antal fynd på en nod eller en linje. Klick öppnar det
+ * allvarligaste fyndet i review-fliken, klick igen går vidare till nästa.
  */
 export function FindingFlag({ findings, className = '', style }: Props): JSX.Element | null {
   const { focusedFindingId, focusFinding } = useFindingState();
-  const [hovered, setHovered] = useState(false);
-  const [pinned, setPinned] = useState(false);
   const severity = worstSeverity(findings);
   if (!severity) return null;
-  const focused = findings.some((f) => f.id === focusedFindingId);
-  const open = hovered || pinned;
+  const sorted = sortFindings(findings);
+  const index = sorted.findIndex((f) => f.id === focusedFindingId);
+  const focused = index !== -1;
+  const titles = sorted.map((f) => f.title).join('\n');
 
   return (
-    <span
-      className={`graph-flag-wrap nodrag nopan ${className}`}
+    <button
+      type="button"
+      className={`graph-flag is-${severity}${focused ? ' is-focused' : ''} nodrag nopan ${className}`}
       style={style}
-      onMouseEnter={() => {
-        setHovered(true);
+      title={`${t('review.flag', { count: findings.length })}\n${titles}`}
+      onMouseDown={(event) => {
+        event.stopPropagation();
       }}
-      onMouseLeave={() => {
-        setHovered(false);
+      onClick={(event) => {
+        event.stopPropagation();
+        const next = sorted[(index + 1) % sorted.length];
+        if (next) focusFinding(next.id);
       }}
     >
-      <button
-        type="button"
-        className={`graph-flag is-${severity}${focused ? ' is-focused' : ''}${pinned ? ' is-pinned' : ''}`}
-        title={t('review.flag', { count: findings.length })}
-        onClick={(event) => {
-          event.stopPropagation();
-          setPinned((p) => !p);
-        }}
-      >
-        <Icon name={severity} size="sm" />
-        {findings.length > 1 && <span className="graph-flag__count">{findings.length}</span>}
-      </button>
-      {open && (
-        <ul className="graph-flag-list">
-          {sortFindings(findings).map((finding) => (
-            <li key={finding.id}>
-              <button
-                type="button"
-                className={`graph-flag-list__item is-${finding.severity}${finding.id === focusedFindingId ? ' is-focused' : ''}`}
-                title={t('review.openBelow')}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setPinned(false);
-                  focusFinding(finding.id);
-                }}
-              >
-                <Icon name={finding.severity} size="sm" />
-                <span className="graph-flag-list__title">{finding.title}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </span>
+      <Icon name={severity} size="sm" />
+      {findings.length > 1 && <span className="graph-flag__count">{findings.length}</span>}
+    </button>
   );
 }
