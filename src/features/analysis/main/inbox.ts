@@ -1,6 +1,6 @@
 import { type FSWatcher, watch } from 'node:fs';
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { headRef, resolveCommit } from '@/common/main/git';
 import { type Flow, validateFlow } from '@/common/model/flow';
 import { type Review, validateReviewDocument } from '@/common/model/review';
@@ -120,9 +120,10 @@ async function checkSources(repoPath: string, flow: Flow, review?: Review): Prom
   return resolvedReview ? { ok: true, flow, review: resolvedReview, ref } : { ok: true, flow, ref };
 }
 
-/** Skriver guiden om den saknas eller är en äldre version. */
+/** Skriver guiden om den saknas eller är en äldre version. Skapar mappen vid behov. */
 export async function writeGuide(repoPath: string): Promise<void> {
   const path = join(repoPath, GUIDE_FILE);
+  await mkdir(dirname(path), { recursive: true });
   const content = buildGuide();
   const current = await readFile(path, 'utf8').catch(() => null);
   if (current !== content) await writeFile(path, content, 'utf8');

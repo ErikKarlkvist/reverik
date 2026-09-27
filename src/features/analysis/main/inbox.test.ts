@@ -151,6 +151,16 @@ describe('importFlowFile', () => {
 });
 
 describe('writeGuide', () => {
+  it('skapar mappen när den saknas', async () => {
+    const repo = await mkdtemp(join(tmpdir(), 'reverik-guide-'));
+    try {
+      await writeGuide(repo);
+      expect(await readFile(join(repo, GUIDE_FILE), 'utf8')).toContain('reverik-guide');
+    } finally {
+      await rm(repo, { recursive: true, force: true });
+    }
+  });
+
   it('writes the guide with its version marker and rewrites an outdated copy', async () => {
     const repo = await mkdtemp(join(tmpdir(), 'reverik-guide-'));
     try {

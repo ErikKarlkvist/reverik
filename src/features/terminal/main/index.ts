@@ -10,7 +10,12 @@ import {
 } from '../ipc/channels';
 import { TerminalSessions } from './sessions';
 
-export function registerTerminalHandlers(): void {
+export interface TerminalOptions {
+  /** Körs innan skalet startar i ett repo, t.ex. för att se till att guiden agenten läser finns. */
+  prepare?: (repoPath: string) => Promise<void>;
+}
+
+export function registerTerminalHandlers({ prepare }: TerminalOptions = {}): void {
   const sessions = new TerminalSessions({
     onData: (id, data) => {
       emitEvent(terminalDataEvent, { id, data });
@@ -20,9 +25,13 @@ export function registerTerminalHandlers(): void {
     },
   });
 
-  handleChannel(openTerminalChannel, ({ repoPath, cols, rows }) => ({
-    id: sessions.open(repoPath, { cols, rows }),
-  }));
+  handleChannel(openTerminalChannel, async ({ repoPath, cols, rows }) => {
+    // Agenten startar direkt i skalet, så det som ska finnas i repot måste finnas nu.
+    await prepare?.(repoPath).catch((error: unknown) => {
+      console.error(error);
+    });
+    return { id: sessions.open(repoPath, { cols, rows }) };
+  });
   handleChannel(writeTerminalChannel, ({ id, data }) => {
     sessions.write(id, data);
   });

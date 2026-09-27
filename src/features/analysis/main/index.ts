@@ -35,3 +35,5 @@ export function registerAnalysisHandlers(): void {
     inbox.stop();
   });
 }
+
+export { writeGuide } from './inbox';
