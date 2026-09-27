@@ -65,7 +65,6 @@ interface BarProps {
 function Bar({ agent, onAgentChange, onHide, onRestart, onStartAgent }: BarProps): JSX.Element {
   return (
     <header className="terminal-panel__bar">
-      <h2 className="terminal-panel__heading">{t('terminal.heading')}</h2>
       <span className="terminal-panel__tools">
         <select
           className="terminal-panel__agent"

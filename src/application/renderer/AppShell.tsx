@@ -116,7 +116,7 @@ export function AppShell(): JSX.Element {
                 type="button"
                 role="tab"
                 aria-selected={sideMode === mode}
-                className={`shell__tab${sideMode === mode ? ' is-active' : ''}`}
+                className={`side-tab${sideMode === mode ? ' is-active' : ''}`}
                 onClick={() => {
                   setSideMode(mode);
                 }}

@@ -13,9 +13,10 @@ interface ReviewGroup {
 }
 
 /**
- * Full review i högerpanelen: fynden från alla review-analyser i repot,
- * grupperade per jämförelse och per flöde. Markerade fynd kan kopieras som
- * text eller skickas till agenten i terminalen, över alla flöden på en gång.
+ * Full review i högerpanelen: alla flöden i den review som den valda analysen
+ * hör till, alltså samma jämförelse base → head, med fynden per flöde.
+ * Markerade fynd kan kopieras som text eller skickas till agenten, över alla
+ * flöden på en gång.
  */
 export function ReviewSidebar(): JSX.Element {
   const { analyses, current, select } = useAnalyses();
@@ -51,7 +52,12 @@ export function ReviewSidebar(): JSX.Element {
     };
   }, [copied]);
 
-  if (groups.length === 0) return <p className="review-side__empty">{t('side.empty')}</p>;
+  if (groups.length === 0)
+    return (
+      <p className="review-side__empty">
+        {analyses.some((a) => a.review) ? t('side.pickReview') : t('side.empty')}
+      </p>
+    );
 
   /** Markerade fynd som text, med en rubrik per flöde och reviewfilen den hör till. */
   const text = (): string =>
@@ -205,28 +211,22 @@ export function ReviewSidebar(): JSX.Element {
   );
 }
 
-/** Review-analyser grupperade per jämförelse. Gruppen med den valda analysen först. */
+/** Den valda analysens review: alla analyser med samma jämförelse base → head. Tom utan vald review. */
 function groupReviews(
   analyses: readonly SavedAnalysis[],
   current: SavedAnalysis | null,
 ): ReviewGroup[] {
-  const groups = new Map<string, ReviewGroup>();
-  for (const analysis of analyses) {
-    const review = analysis.review;
-    if (!review) continue;
-    const key = `${review.baseLabel}\u0000${review.headLabel}`;
-    const group = groups.get(key) ?? {
-      key,
+  const review = current?.review;
+  if (!review) return [];
+  const members = analyses.filter(
+    (a) => a.review?.baseLabel === review.baseLabel && a.review.headLabel === review.headLabel,
+  );
+  return [
+    {
+      key: `${review.baseLabel}\u0000${review.headLabel}`,
       base: review.baseLabel,
       head: review.headLabel,
-      analyses: [],
-    };
-    group.analyses.push(analysis);
-    groups.set(key, group);
-  }
-  const list = [...groups.values()];
-  const currentKey = current?.review
-    ? `${current.review.baseLabel}\u0000${current.review.headLabel}`
-    : null;
-  return list.sort((a, b) => Number(b.key === currentKey) - Number(a.key === currentKey));
+      analyses: members,
+    },
+  ];
 }

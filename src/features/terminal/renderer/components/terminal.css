@@ -10,24 +10,9 @@
 .terminal-panel__bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 6px 8px 6px 14px;
+  justify-content: flex-end;
+  padding: 4px 8px;
   border-bottom: 1px solid var(--border);
-  /* Dragbar yta på höjd med trafikljusen */
-  -webkit-app-region: drag;
-}
-
-.terminal-panel__bar button {
-  -webkit-app-region: no-drag;
-}
-
-.terminal-panel__heading {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--fg-muted);
 }
 
 .terminal-panel__tools {

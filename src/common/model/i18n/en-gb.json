@@ -13,6 +13,7 @@
   "side.terminal": "Terminal",
   "side.review": "Full review",
   "side.empty": "No reviews in this repository yet. Run review to get one.",
+  "side.pickReview": "Select a review in the list to see all its flows here.",
   "side.selectAll": "Select all",
   "side.clear": "Clear",
   "side.copy": "Copy",
@@ -151,7 +152,6 @@
   "table.primaryKey": "Primary key",
   "table.references": "References {target}",
 
-  "terminal.heading": "Terminal",
   "terminal.restart": "Restart shell",
   "terminal.startAgent": "Start the agent again",
   "terminal.agentLabel": "Agent",

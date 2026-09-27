@@ -183,9 +183,32 @@ select:focus {
 
 .shell__side-modes {
   display: flex;
+  align-items: flex-end;
   gap: 2px;
   padding: 6px 8px 0;
   border-bottom: 1px solid var(--border);
+}
+
+.side-tab {
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: none;
+  color: var(--fg-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.side-tab.is-active {
+  border-color: var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  /* Täcker listens underkant så fliken hänger ihop med innehållet */
+  margin-bottom: -1px;
+  padding-bottom: 7px;
 }
 
 .shell__side-body {
