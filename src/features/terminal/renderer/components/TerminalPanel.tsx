@@ -143,7 +143,7 @@ function Shell({ repoPath, agent, startCommand, onAgentChange, onHide }: ShellPr
       />
       {agent === 'shell' && (
         <p className="terminal-panel__hint">
-          {t('terminal.shellHint', { guide: '.reverik/README.md' })}
+          {t('terminal.shellHint', { guide: '.reverik/instructions.md' })}
         </p>
       )}
       <div className="terminal-panel__screen" ref={screen} />
