@@ -9,9 +9,13 @@ import { useTabTitle } from './AppTabsContext';
 import { BranchBar, RepoMenu, RepoPanel, useRepo } from '@/features/repo';
 import { TerminalPanel, useTerminalApi } from '@/features/terminal';
 import { ThemeSelect } from './ThemeSelect';
+import { useStoredChoice } from '@/common/renderer/useStoredChoice';
 import { useStoredFlag } from './useStoredFlag';
 import { useStoredNumber } from './useStoredNumber';
+import { ReviewSidebar } from './ReviewSidebar';
 import { Workspace } from './Workspace';
+
+const SIDE_MODES = ['terminal', 'review'] as const;
 
 export function AppShell(): JSX.Element {
   const [info, setInfo] = useState<AppInfo | null>(null);
@@ -20,6 +24,7 @@ export function AppShell(): JSX.Element {
   useTabTitle(repo ? (current ? `${repo.name} · ${current.flow.title}` : repo.name) : null);
   const [logOpen, setLogOpen] = useStoredFlag('reverik.logOpen', true);
   const [terminalOpen, setTerminalOpen] = useStoredFlag('reverik.terminalOpen', true);
+  const [sideMode, setSideMode] = useStoredChoice('reverik.sideMode', SIDE_MODES, 'terminal');
   const [sidebarWidth, setSidebarWidth] = useStoredNumber('reverik.sidebarWidth', 300);
   const [bottomHeight, setBottomHeight] = useStoredNumber('reverik.bottomHeight', 220);
   const [terminalWidth, setTerminalWidth] = useStoredNumber('reverik.terminalWidth', 460);
@@ -36,9 +41,10 @@ export function AppShell(): JSX.Element {
   const onAsk = useCallback(
     (prompt: string) => {
       setTerminalOpen(true);
+      setSideMode('terminal');
       terminal.send(prompt);
     },
-    [terminal, setTerminalOpen],
+    [terminal, setTerminalOpen, setSideMode],
   );
   const onRunReview = useCallback(
     (base: string, head: string) => {
@@ -92,19 +98,46 @@ export function AppShell(): JSX.Element {
       </div>
 
       {terminalOpen && (
-        <div className="shell__terminal">
-          <TerminalPanel repoPath={repo?.path ?? null} guideFile={GUIDE_FILE} onHide={hideTerminal}>
-            <Splitter
-              orientation="vertical"
-              size={terminalWidth}
-              min={320}
-              max={900}
-              inverted
-              edge="start"
-              onResize={setTerminalWidth}
-              label={t('panel.resizeTerminal')}
-            />
-          </TerminalPanel>
+        <div className="shell__side">
+          <Splitter
+            orientation="vertical"
+            size={terminalWidth}
+            min={320}
+            max={900}
+            inverted
+            edge="start"
+            onResize={setTerminalWidth}
+            label={t('panel.resizeTerminal')}
+          />
+          <div className="shell__side-modes" role="tablist">
+            {SIDE_MODES.map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                role="tab"
+                aria-selected={sideMode === mode}
+                className={`shell__tab${sideMode === mode ? ' is-active' : ''}`}
+                onClick={() => {
+                  setSideMode(mode);
+                }}
+              >
+                {t(`side.${mode}`)}
+              </button>
+            ))}
+          </div>
+          <div className="shell__side-body">
+            {/* Terminalen hålls monterad i reviewläget så agenten kör vidare */}
+            <div className={`shell__side-pane${sideMode === 'terminal' ? ' is-active' : ''}`}>
+              <TerminalPanel
+                repoPath={repo?.path ?? null}
+                guideFile={GUIDE_FILE}
+                onHide={hideTerminal}
+              />
+            </div>
+            <div className={`shell__side-pane${sideMode === 'review' ? ' is-active' : ''}`}>
+              <ReviewSidebar />
+            </div>
+          </div>
         </div>
       )}
 

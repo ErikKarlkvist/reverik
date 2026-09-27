@@ -82,8 +82,10 @@ export function useTerminal(
       // Skalet läser det köade när det är redo, så kommandot kan skickas direkt.
       if (startCommand)
         void invokeChannel(writeTerminalChannel, { id: opened, data: `${startCommand}\r` });
-      register((line) => {
-        void invokeChannel(writeTerminalChannel, { id: opened, data: `${line}\r` });
+      register((text) => {
+        // Flera rader skickas som bracketed paste så TUI:n inte skickar iväg vid första radbrytningen
+        const data = text.includes('\n') ? `\u001b[200~${text}\u001b[201~\r` : `${text}\r`;
+        void invokeChannel(writeTerminalChannel, { id: opened, data });
       });
     });
 

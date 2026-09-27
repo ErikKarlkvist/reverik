@@ -10,6 +10,18 @@
   "tabs.new": "New tab",
   "tabs.close": "Close tab",
 
+  "side.terminal": "Terminal",
+  "side.review": "Review",
+  "side.empty": "Select a review to see its findings here.",
+  "side.selectAll": "Select all",
+  "side.clear": "Clear",
+  "side.copy": "Copy",
+  "side.copied": "Copied",
+  "side.send": "Send to AI",
+  "side.sendHint": "Sends the selected findings to the agent in the terminal",
+  "side.prompt": "In the review \"{title}\" ({base} → {head}{file}) I want to act on these findings:\n\n{findings}\n\nFor each one: check whether it is real, explain briefly, and propose or make the fix. If the flow changes, update the review file.",
+  "side.promptFile": ", saved as {file}",
+
   "panel.code": "Code",
   "panel.summary": "Summary",
   "panel.review": "Review",

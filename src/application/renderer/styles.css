@@ -158,7 +158,7 @@ select:focus {
   grid-template-columns: var(--sidebar-width, 300px) 1fr var(--terminal-width, 460px);
   grid-template-rows: 1fr 28px;
   grid-template-areas:
-    'sidebar work terminal'
+    'sidebar work side'
     'footer footer footer';
   height: 100%;
 }
@@ -170,15 +170,181 @@ select:focus {
     'footer footer';
 }
 
-.shell__terminal {
-  grid-area: terminal;
+.shell__side {
+  position: relative;
+  grid-area: side;
   display: flex;
+  flex-direction: column;
   min-height: 0;
+  min-width: 0;
+  border-left: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.shell__side-modes {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.shell__side-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Båda panelerna monterade, den inaktiva gömd med opacity så terminalen behåller måtten */
+.shell__side-pane {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  z-index: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.shell__side-pane.is-active {
+  z-index: 1;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.shell__side-pane > .terminal-panel,
+.shell__side-pane > .review-side,
+.shell__side-pane > .review-side__empty {
+  flex: 1;
   min-width: 0;
 }
 
-.shell__terminal > .terminal-panel {
+/* Reviewläget i högerpanelen */
+.review-side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.review-side__empty {
+  margin: 0;
+  padding: 16px 14px;
+  color: var(--fg-muted);
+}
+
+.review-side__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px 6px;
+}
+
+.review-side__title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-side__compare {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+.review-side__tools {
+  display: flex;
+  gap: 4px;
+  padding: 0 8px 6px;
+}
+
+.review-side__list {
   flex: 1;
+  margin: 0;
+  padding: 0 8px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.review-side__item {
+  border: 1px solid transparent;
+  border-left: 3px solid var(--fg-muted);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.review-side__item.is-error {
+  border-left-color: var(--danger);
+}
+
+.review-side__item.is-warning {
+  border-left-color: var(--warn);
+}
+
+.review-side__item.is-info {
+  border-left-color: var(--accent);
+}
+
+.review-side__item.is-checked {
+  border-color: var(--accent);
+  border-left-width: 3px;
+}
+
+.review-side__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 8px;
+  cursor: pointer;
+}
+
+.review-side__row input {
+  margin: 0;
+}
+
+.review-side__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.review-side__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 10px 10px 34px;
+  font-size: 13px;
+}
+
+.review-side__source {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+.review-side__actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.review-side__actions button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.review-side__send {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Arbetsytan: flikrad och en arbetsyta per flik, alla monterade */

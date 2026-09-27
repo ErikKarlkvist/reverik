@@ -3,6 +3,7 @@ import { addTodoReview, addTodoWithListFlow } from './fixtures/add-todo-review';
 import { validateFlow } from './flow';
 import {
   diffFlows,
+  formatFindings,
   mergeForReview,
   reviewSchema,
   sortFindings,
@@ -88,5 +89,22 @@ describe('validateReviewDocument', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.errors.some((e) => e.startsWith('headLabel'))).toBe(true);
+  });
+});
+
+describe('formatFindings', () => {
+  it('skriver en numrerad lista med plats, fil och förslag, allvarligast först', () => {
+    const text = formatFindings(
+      addTodoReview.findings.slice(0, 2).reverse(),
+      addTodoWithListFlow,
+      addTodoReview.base,
+    );
+    expect(text.split('\n')[0]).toBe(
+      '1. [error] The cached list is no longer invalidated (TodoService.create, backend/src/services/TodoService.ts:22)',
+    );
+    expect(text).toContain(
+      '2. [warning] The webhook is awaited inside the request (await POST webhook, ',
+    );
+    expect(text).toContain('   Suggestion: Call cache.invalidate()');
   });
 });

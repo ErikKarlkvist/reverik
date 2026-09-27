@@ -187,3 +187,37 @@ export function mergeForReview(head: Flow, base: Flow, diff: FlowDiff): Flow {
     edges: [...head.edges, ...removedEdges],
   };
 }
+
+/**
+ * Fynden som text att kopiera eller skicka till agenten: en numrerad lista
+ * med allvarlighet, titel, var i flödet, fil och rad, beskrivning och förslag.
+ */
+export function formatFindings(findings: readonly ReviewFinding[], flow: Flow, base: Flow): string {
+  const label = (finding: ReviewFinding): string | null => {
+    if (finding.nodeId) {
+      const id = finding.nodeId;
+      return [...flow.nodes, ...base.nodes].find((n) => n.id === id)?.label ?? id;
+    }
+    if (finding.edgeId) {
+      const id = finding.edgeId;
+      return [...flow.edges, ...base.edges].find((e) => e.id === id)?.label ?? id;
+    }
+    return null;
+  };
+  return sortFindings(findings)
+    .map((finding, i) => {
+      const where = [
+        label(finding),
+        finding.source && `${finding.source.file}:${finding.source.line}`,
+      ]
+        .filter(Boolean)
+        .join(', ');
+      const lines = [
+        `${i + 1}. [${finding.severity}] ${finding.title}${where ? ` (${where})` : ''}`,
+        `   ${finding.description}`,
+      ];
+      if (finding.suggestion) lines.push(`   Suggestion: ${finding.suggestion}`);
+      return lines.join('\n');
+    })
+    .join('\n');
+}
