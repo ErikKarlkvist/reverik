@@ -120,7 +120,8 @@ export function useAnalysisState(repoPath: string | null): AnalysisState {
       }));
       if (event.type === 'imported') {
         setLoaded({ repoPath, list: event.list });
-        select(event.analysis.id);
+        // Bara en fil som just sparats tar över valet, inte skanningen vid start
+        if (!event.initial) select(event.analysis.id);
         setRejection(null);
       } else {
         setRejection({ repoPath, value: entry });

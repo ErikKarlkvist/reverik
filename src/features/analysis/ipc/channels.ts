@@ -30,6 +30,8 @@ export type InboxEvent =
       analysis: SavedAnalysis;
       /** Hela listan efter importen, så renderern slipper hämta om */
       list: SavedAnalysis[];
+      /** Från skanningen när repot öppnas, inte en fil som just sparades */
+      initial: boolean;
     }
   | { type: 'rejected'; repoPath: string; file: string; errors: string[] };
 

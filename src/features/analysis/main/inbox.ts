@@ -164,7 +164,7 @@ export class FlowInbox {
       this.watchers.push(watcher);
 
       for (const name of (await readdir(dir)).filter(isFlowFile).sort()) {
-        await this.importAndEmit(repoPath, kind, name);
+        await this.importAndEmit(repoPath, kind, name, true);
       }
     }
   }
@@ -190,7 +190,12 @@ export class FlowInbox {
     );
   }
 
-  private async importAndEmit(repoPath: string, kind: InboxKind, name: string): Promise<void> {
+  private async importAndEmit(
+    repoPath: string,
+    kind: InboxKind,
+    name: string,
+    initial = false,
+  ): Promise<void> {
     const file = `${INBOX_DIRS[kind]}/${name}`;
     try {
       const result = await importFlowFile(this.store, repoPath, name, kind);
@@ -201,6 +206,7 @@ export class FlowInbox {
           file,
           analysis: result.analysis,
           list: await this.listAll(repoPath),
+          initial,
         });
       } else if (result.type === 'rejected') {
         this.emit({ type: 'rejected', repoPath, file, errors: result.errors });
