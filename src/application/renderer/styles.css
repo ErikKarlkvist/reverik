@@ -212,17 +212,16 @@ select:focus {
 
 .shell__side-pane > .terminal-panel,
 .shell__side-pane > .review-side,
-.shell__side-pane > /* Reviewläget i högerpanelen */
+.shell__side-pane > .shell__empty {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Reviewläget i högerpanelen */
 .review-side {
   display: flex;
   flex-direction: column;
   min-height: 0;
-}
-
-.review-side__empty {
-  margin: 0;
-  padding: 16px 14px;
-  color: var(--fg-muted);
 }
 
 .review-side__tools {
