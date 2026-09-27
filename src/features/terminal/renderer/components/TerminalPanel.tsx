@@ -39,6 +39,7 @@ export function TerminalPanel({ repoPath, guideFile, onHide, children }: Props):
           key={repoPath}
           repoPath={repoPath}
           agent={agent}
+          guideFile={guideFile}
           startCommand={startCommand}
           onAgentChange={setAgent}
           onHide={onHide}
@@ -120,12 +121,20 @@ function Bar({ agent, onAgentChange, onHide, onRestart, onStartAgent }: BarProps
 interface ShellProps {
   repoPath: string;
   agent: Agent;
+  guideFile: string;
   startCommand: string | null;
   onAgentChange: (next: string) => void;
   onHide: () => void;
 }
 
-function Shell({ repoPath, agent, startCommand, onAgentChange, onHide }: ShellProps): JSX.Element {
+function Shell({
+  repoPath,
+  agent,
+  guideFile,
+  startCommand,
+  onAgentChange,
+  onHide,
+}: ShellProps): JSX.Element {
   const screen = useRef<HTMLDivElement | null>(null);
   const { exitCode, restart, run } = useTerminal(repoPath, screen, startCommand);
   const startAgent = useCallback(() => {
@@ -142,9 +151,7 @@ function Shell({ repoPath, agent, startCommand, onAgentChange, onHide }: ShellPr
         onStartAgent={startCommand && exitCode === null ? startAgent : undefined}
       />
       {agent === 'shell' && (
-        <p className="terminal-panel__hint">
-          {t('terminal.shellHint', { guide: '.reverik/instructions.md' })}
-        </p>
+        <p className="terminal-panel__hint">{t('terminal.shellHint', { guide: guideFile })}</p>
       )}
       <div className="terminal-panel__screen" ref={screen} />
       {exitCode !== null && (
