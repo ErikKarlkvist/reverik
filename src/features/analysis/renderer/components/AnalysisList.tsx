@@ -1,4 +1,4 @@
-import { type JSX } from 'react';
+import { type JSX, useState } from 'react';
 import { LOCALE, t } from '@/common/model/i18n';
 import { worstSeverity } from '@/common/model/review';
 import { Icon } from '@/common/renderer/Icon';
@@ -8,6 +8,15 @@ import './analysis.css';
 
 export function AnalysisList(): JSX.Element {
   const { analyses, current, error, rejection, select, remove, dismissRejection } = useAnalyses();
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
+  const toggle = (key: string): void => {
+    setCollapsed((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   return (
     <section className="analyses">
@@ -38,59 +47,73 @@ export function AnalysisList(): JSX.Element {
       {analyses.length === 0 && !error && <p className="analyses__muted">{t('analyses.empty')}</p>}
       {groupAnalyses(analyses).map((group) => (
         <div key={group.key} className="analyses__group">
-          <h3 className="analyses__group-heading" title={group.title}>
-            {group.label}
+          <h3 className="analyses__group-heading">
+            <button
+              type="button"
+              className="analyses__group-toggle"
+              aria-expanded={!collapsed.has(group.key)}
+              title={group.title}
+              onClick={() => {
+                toggle(group.key);
+              }}
+            >
+              <Icon name={collapsed.has(group.key) ? 'chevronRight' : 'chevronDown'} size="sm" />
+              <span className="analyses__group-label">{group.label}</span>
+              <span className="analyses__group-count">{group.items.length}</span>
+            </button>
           </h3>
-          <ul className="analyses__list">
-            {group.items.map((analysis) => {
-              const active = analysis.id === current?.id;
-              return (
-                <li key={analysis.id} className={`analyses__item${active ? ' is-active' : ''}`}>
-                  <button
-                    type="button"
-                    className="analyses__open"
-                    title={analysis.flow.question}
-                    onClick={() => {
-                      select(active ? null : analysis.id);
-                    }}
-                  >
-                    <span className="analyses__title">
-                      {analysis.review && (
-                        <span
-                          className={`analyses__tag is-${worstSeverity(analysis.review.findings) ?? 'none'}`}
-                        >
-                          <Icon name="warning" size="sm" /> {t('analyses.review')}
-                        </span>
-                      )}
-                      {analysis.flow.title}
-                    </span>
-                    <span className="analyses__meta">
-                      {analysis.review
-                        ? t('review.compare', {
-                            base: analysis.review.baseLabel,
-                            head: analysis.review.headLabel,
-                          })
-                        : analysis.origin === 'builtin'
-                          ? t('analyses.builtin')
-                          : formatDate(analysis.createdAt)}{' '}
-                      · {t('analyses.steps', { count: analysis.flow.steps.length })}
-                    </span>
-                  </button>
-                  {analysis.origin !== 'builtin' && (
+          {!collapsed.has(group.key) && (
+            <ul className="analyses__list">
+              {group.items.map((analysis) => {
+                const active = analysis.id === current?.id;
+                return (
+                  <li key={analysis.id} className={`analyses__item${active ? ' is-active' : ''}`}>
                     <button
                       type="button"
-                      className="icon-button icon-button--quiet"
-                      title={t('analyses.delete')}
-                      aria-label={t('analyses.delete')}
-                      onClick={() => void remove(analysis.id)}
+                      className="analyses__open"
+                      title={analysis.flow.question}
+                      onClick={() => {
+                        select(active ? null : analysis.id);
+                      }}
                     >
-                      <Icon name="close" size="sm" />
+                      <span className="analyses__title">
+                        {analysis.review && (
+                          <span
+                            className={`analyses__tag is-${worstSeverity(analysis.review.findings) ?? 'none'}`}
+                          >
+                            <Icon name="warning" size="sm" /> {t('analyses.review')}
+                          </span>
+                        )}
+                        {analysis.flow.title}
+                      </span>
+                      <span className="analyses__meta">
+                        {analysis.review
+                          ? t('review.compare', {
+                              base: analysis.review.baseLabel,
+                              head: analysis.review.headLabel,
+                            })
+                          : analysis.origin === 'builtin'
+                            ? t('analyses.builtin')
+                            : formatDate(analysis.createdAt)}{' '}
+                        · {t('analyses.steps', { count: analysis.flow.steps.length })}
+                      </span>
                     </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+                    {analysis.origin !== 'builtin' && (
+                      <button
+                        type="button"
+                        className="icon-button icon-button--quiet"
+                        title={t('analyses.delete')}
+                        aria-label={t('analyses.delete')}
+                        onClick={() => void remove(analysis.id)}
+                      >
+                        <Icon name="close" size="sm" />
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       ))}
     </section>
