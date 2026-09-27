@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
+import { readFileAtCommit } from '@/common/main/git';
 import { type Flow, type SourceRef } from '@/common/model/flow';
 import { t } from '@/common/model/i18n';
 
@@ -23,26 +24,37 @@ function collectRefs(flow: Flow): Ref[] {
   return refs;
 }
 
-/**
- * Kontrollerar att varje källhänvisning pekar på en fil i repot och en rad
- * som finns. Felen är skrivna för att skickas tillbaka till AI:n.
- */
-export async function verifySources(repoPath: string, flow: Flow): Promise<string[]> {
+/** Läser en fil ur arbetsträdet, null utanför repot eller om den saknas. */
+async function readWorkingTree(repoPath: string, file: string): Promise<string | null> {
   const root = resolve(repoPath);
+  const absolute = resolve(root, file);
+  if (!absolute.startsWith(root + sep)) return null;
+  try {
+    return await readFile(absolute, 'utf8');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Kontrollerar att varje källhänvisning pekar på en fil och en rad som finns,
+ * i arbetsträdet eller i en given commit. Felen är skrivna för att skickas
+ * tillbaka till AI:n.
+ */
+export async function verifySources(
+  repoPath: string,
+  flow: Flow,
+  commit: string | null = null,
+): Promise<string[]> {
   const lineCounts = new Map<string, number | null>();
 
   async function countLines(file: string): Promise<number | null> {
     const cached = lineCounts.get(file);
     if (cached !== undefined) return cached;
-    const absolute = resolve(root, file);
-    let count: number | null = null;
-    if (absolute.startsWith(root + sep)) {
-      try {
-        count = (await readFile(absolute, 'utf8')).split('\n').length;
-      } catch {
-        count = null;
-      }
-    }
+    const content = commit
+      ? await readFileAtCommit(repoPath, commit, file)
+      : await readWorkingTree(repoPath, file);
+    const count = content === null ? null : content.split('\n').length;
     lineCounts.set(file, count);
     return count;
   }
@@ -51,7 +63,11 @@ export async function verifySources(repoPath: string, flow: Flow): Promise<strin
   for (const { where, source } of collectRefs(flow)) {
     const count = await countLines(source.file);
     if (count === null) {
-      errors.push(t('verify.missingFile', { where, file: source.file }));
+      errors.push(
+        commit
+          ? t('verify.missingFileAt', { where, file: source.file, commit: commit.slice(0, 7) })
+          : t('verify.missingFile', { where, file: source.file }),
+      );
       continue;
     }
     for (const line of [source.line, source.endLine ?? source.line]) {

@@ -38,8 +38,8 @@ export function registerRepoHandlers(): void {
 
   handleChannel(forgetRepoChannel, ({ path }) => forgetRepo(path));
 
-  handleChannel(readSourceChannel, ({ repoPath, file, line, context }) =>
-    readSource(repoPath, file, line, context),
+  handleChannel(readSourceChannel, ({ repoPath, file, line, context, commit }) =>
+    readSource(repoPath, file, line, context, commit),
   );
 
   handleChannel(listBranchesChannel, ({ repoPath }) => listBranches(repoPath));

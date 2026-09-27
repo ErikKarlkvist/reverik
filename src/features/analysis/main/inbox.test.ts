@@ -2,6 +2,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { makeRepo } from '@/common/main/git.test';
 import { type Flow } from '@/common/model/flow';
 import { FLOWS_DIR, GUIDE_FILE, GUIDE_VERSION, REVIEWS_DIR } from '../model/guide';
 import { importFlowFile, writeGuide } from './inbox';
@@ -161,6 +162,76 @@ describe('writeGuide', () => {
       expect(guide).toContain('.reverik/flows/');
       expect(guide).toContain('.reverik/reviews/');
       expect(guide).toContain('"title": "Load the list"');
+    } finally {
+      await rm(repo, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('importFlowFile mot git', () => {
+  it('kontrollerar en reviews head mot branchen även när den inte är utcheckad', async () => {
+    const repo = await makeRepo();
+    try {
+      await mkdir(join(repo, REVIEWS_DIR), { recursive: true });
+      const store = new AnalysisStore(join(repo, '.store'));
+      const onFeature = {
+        ...flow,
+        nodes: [
+          { ...flow.nodes[0], source: { file: 'b.txt', line: 3 } },
+          { ...flow.nodes[1], source: { file: 'a.txt', line: 3 } },
+        ],
+        edges: [{ ...flow.edges[0], source: { file: 'b.txt', line: 1 } }],
+      };
+      await writeFile(
+        join(repo, REVIEWS_DIR, 'feature.json'),
+        JSON.stringify({
+          baseLabel: 'main',
+          headLabel: 'feature',
+          base: {
+            ...flow,
+            nodes: [
+              { ...flow.nodes[0], source: { file: 'a.txt', line: 1 } },
+              { ...flow.nodes[1], source: { file: 'a.txt', line: 2 } },
+            ],
+            edges: [{ ...flow.edges[0], source: { file: 'a.txt', line: 1 } }],
+          },
+          head: onFeature,
+          findings: [],
+        }),
+      );
+      const result = await importFlowFile(store, repo, 'feature.json', 'review');
+      expect(result.type).toBe('imported');
+      if (result.type !== 'imported') return;
+      expect(result.analysis.ref?.branch).toBe('feature');
+      expect(result.analysis.ref?.commit).toMatch(/^[0-9a-f]{40}$/);
+      expect(result.analysis.review?.baseCommit).toMatch(/^[0-9a-f]{40}$/);
+    } finally {
+      await rm(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('avvisar en review vars head pekar på rader som inte finns på branchen', async () => {
+    const repo = await makeRepo();
+    try {
+      await mkdir(join(repo, REVIEWS_DIR), { recursive: true });
+      const store = new AnalysisStore(join(repo, '.store'));
+      await writeFile(
+        join(repo, REVIEWS_DIR, 'bad.json'),
+        JSON.stringify({
+          baseLabel: 'main',
+          headLabel: 'feature',
+          base: flow,
+          head: {
+            ...flow,
+            nodes: [{ ...flow.nodes[0], source: { file: 'b.txt', line: 9 } }, flow.nodes[1]],
+          },
+          findings: [],
+        }),
+      );
+      const result = await importFlowFile(store, repo, 'bad.json', 'review');
+      expect(result.type).toBe('rejected');
+      if (result.type !== 'rejected') return;
+      expect(result.errors[0]).toContain('line 9 does not exist');
     } finally {
       await rm(repo, { recursive: true, force: true });
     }

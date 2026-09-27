@@ -60,6 +60,7 @@
   "analyses.steps": "{count} steps",
   "analyses.delete": "Delete analysis",
   "analyses.review": "Review",
+  "analyses.workingTree": "Working tree, no git",
 
   "graph.allSystems": "All systems",
   "graph.allDetails": "All details",
@@ -94,6 +95,7 @@
 
   "error.demoMissing": "The demo app was not found at {path}",
   "error.outsideRepo": "The file {file} is outside the repository",
+  "error.missingAtCommit": "The file {file} does not exist at {commit}",
   "error.envMissing": "The environment variable {key} is missing. See .env.example.",
   "error.mockChannel": "The mock bridge has no channel named {channel}",
   "error.mockRead": "Could not read {file}",
@@ -160,5 +162,6 @@
   "inbox.dismiss": "Dismiss",
 
   "verify.missingFile": "{where}: {file} does not exist in the repository",
+  "verify.missingFileAt": "{where}: {file} does not exist at {commit}",
   "verify.lineOutOfRange": "{where}: {file} has {count} lines, line {line} does not exist"
 }

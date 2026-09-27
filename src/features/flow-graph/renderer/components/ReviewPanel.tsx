@@ -10,12 +10,20 @@ interface Props {
   /** Flödet efter ändringen */
   flow: Flow;
   review: Review;
+  /** Commiten head-flödet beskriver, för kodutdragen */
+  commit?: string | undefined;
   focusedFindingId: string | null;
   onFocus: (findingId: string | null) => void;
 }
 
 /** Fliken Review i nedre panelen: vad som ändrats och fynden, allvarligast först. */
-export function ReviewPanel({ flow, review, focusedFindingId, onFocus }: Props): JSX.Element {
+export function ReviewPanel({
+  flow,
+  review,
+  commit,
+  focusedFindingId,
+  onFocus,
+}: Props): JSX.Element {
   const diff = diffFlows(review.base, flow);
   const count = (change: string): number =>
     [...diff.nodes.values(), ...diff.edges.values()].filter((c) => c === change).length;
@@ -78,7 +86,7 @@ export function ReviewPanel({ flow, review, focusedFindingId, onFocus }: Props):
                       <strong>{t('review.suggestion')}</strong> {finding.suggestion}
                     </p>
                   )}
-                  {finding.source && <SourceView source={finding.source} />}
+                  {finding.source && <SourceView source={finding.source} commit={commit} />}
                 </div>
               )}
             </li>

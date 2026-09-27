@@ -33,6 +33,8 @@ export const reviewSchema = z
     headLabel: z.string().min(1),
     /** Flödet före ändringen. Flödet efter är analysens `flow`. */
     base: flowSchema,
+    /** Commiten baseLabel pekade på vid importen, om den fanns i repot */
+    baseCommit: z.string().optional(),
     findings: z.array(reviewFindingSchema),
   })
   .superRefine((review, ctx) => {

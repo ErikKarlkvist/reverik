@@ -2,6 +2,7 @@ import { type JSX } from 'react';
 import { LOCALE, t } from '@/common/model/i18n';
 import { worstSeverity } from '@/common/model/review';
 import { Icon } from '@/common/renderer/Icon';
+import { refLabel, type SavedAnalysis } from '../../model/analysis';
 import { useAnalyses } from '../AnalysisContext';
 import './analysis.css';
 
@@ -35,53 +36,99 @@ export function AnalysisList(): JSX.Element {
         </div>
       )}
       {analyses.length === 0 && !error && <p className="analyses__muted">{t('analyses.empty')}</p>}
-      <ul className="analyses__list">
-        {analyses.map((analysis) => {
-          const active = analysis.id === current?.id;
-          return (
-            <li key={analysis.id} className={`analyses__item${active ? ' is-active' : ''}`}>
-              <button
-                type="button"
-                className="analyses__open"
-                title={analysis.flow.question}
-                onClick={() => {
-                  select(active ? null : analysis.id);
-                }}
-              >
-                <span className="analyses__title">
-                  {analysis.review && (
-                    <span
-                      className={`analyses__tag is-${worstSeverity(analysis.review.findings) ?? 'none'}`}
-                    >
-                      <Icon name="warning" size="sm" /> {t('analyses.review')}
+      {groupAnalyses(analyses).map((group) => (
+        <div key={group.key} className="analyses__group">
+          <h3 className="analyses__group-heading" title={group.title}>
+            {group.label}
+          </h3>
+          <ul className="analyses__list">
+            {group.items.map((analysis) => {
+              const active = analysis.id === current?.id;
+              return (
+                <li key={analysis.id} className={`analyses__item${active ? ' is-active' : ''}`}>
+                  <button
+                    type="button"
+                    className="analyses__open"
+                    title={analysis.flow.question}
+                    onClick={() => {
+                      select(active ? null : analysis.id);
+                    }}
+                  >
+                    <span className="analyses__title">
+                      {analysis.review && (
+                        <span
+                          className={`analyses__tag is-${worstSeverity(analysis.review.findings) ?? 'none'}`}
+                        >
+                          <Icon name="warning" size="sm" /> {t('analyses.review')}
+                        </span>
+                      )}
+                      {analysis.flow.title}
                     </span>
+                    <span className="analyses__meta">
+                      {analysis.review
+                        ? t('review.compare', {
+                            base: analysis.review.baseLabel,
+                            head: analysis.review.headLabel,
+                          })
+                        : analysis.origin === 'builtin'
+                          ? t('analyses.builtin')
+                          : formatDate(analysis.createdAt)}{' '}
+                      · {t('analyses.steps', { count: analysis.flow.steps.length })}
+                    </span>
+                  </button>
+                  {analysis.origin !== 'builtin' && (
+                    <button
+                      type="button"
+                      className="icon-button icon-button--quiet"
+                      title={t('analyses.delete')}
+                      aria-label={t('analyses.delete')}
+                      onClick={() => void remove(analysis.id)}
+                    >
+                      <Icon name="close" size="sm" />
+                    </button>
                   )}
-                  {analysis.flow.title}
-                </span>
-                <span className="analyses__meta">
-                  {analysis.origin === 'builtin'
-                    ? t('analyses.builtin')
-                    : formatDate(analysis.createdAt)}{' '}
-                  · {t('analyses.steps', { count: analysis.flow.steps.length })}
-                </span>
-              </button>
-              {analysis.origin !== 'builtin' && (
-                <button
-                  type="button"
-                  className="icon-button icon-button--quiet"
-                  title={t('analyses.delete')}
-                  aria-label={t('analyses.delete')}
-                  onClick={() => void remove(analysis.id)}
-                >
-                  <Icon name="close" size="sm" />
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
     </section>
   );
+}
+
+interface Group {
+  key: string;
+  label: string;
+  title: string;
+  items: SavedAnalysis[];
+}
+
+/**
+ * Grupperar på branch och commit, eftersom ett flöde bara gäller en version
+ * av koden. Inbyggda först, sedan grupperna i ordning efter nyaste analys,
+ * sist sådant utan git.
+ */
+function groupAnalyses(analyses: readonly SavedAnalysis[]): Group[] {
+  const groups = new Map<string, Group>();
+  for (const analysis of analyses) {
+    const key = analysis.origin === 'builtin' ? 'builtin' : (analysis.ref?.commit ?? 'worktree');
+    const group = groups.get(key) ?? {
+      key,
+      label:
+        analysis.origin === 'builtin'
+          ? t('analyses.builtin')
+          : analysis.ref
+            ? refLabel(analysis.ref)
+            : t('analyses.workingTree'),
+      title: analysis.ref?.commit ?? '',
+      items: [],
+    };
+    group.items.push(analysis);
+    groups.set(key, group);
+  }
+  const order = (g: Group): number => (g.key === 'builtin' ? 0 : g.key === 'worktree' ? 2 : 1);
+  return [...groups.values()].sort((a, b) => order(a) - order(b));
 }
 
 function formatDate(iso: string): string {

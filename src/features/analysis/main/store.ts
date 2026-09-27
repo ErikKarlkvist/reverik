@@ -3,7 +3,12 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { type Flow } from '@/common/model/flow';
 import { type Review } from '@/common/model/review';
-import { type SavedAnalysis, savedAnalysesSchema, sortAnalyses } from '../model/analysis';
+import {
+  type AnalysisRef,
+  type SavedAnalysis,
+  savedAnalysesSchema,
+  sortAnalyses,
+} from '../model/analysis';
 
 /**
  * Sparar analyser som en JSON-fil per repo under en basmapp. Basmappen
@@ -37,6 +42,7 @@ export class AnalysisStore {
     file: string,
     flow: Flow,
     review?: Review,
+    ref?: AnalysisRef | null,
   ): Promise<SavedAnalysis> {
     const list = await this.read(repoPath);
     const existing = list.find((a) => a.file === file);
@@ -48,6 +54,7 @@ export class AnalysisStore {
       file,
       flow,
       ...(review ? { review } : {}),
+      ...(ref ? { ref } : {}),
     };
     await this.write(repoPath, [...list.filter((a) => a.id !== analysis.id), analysis]);
     return analysis;

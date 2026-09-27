@@ -23,9 +23,12 @@ export interface SourceExcerpt {
   lines: string[];
 }
 
-/** Läser rader runt en källhänvisning. Sökvägen måste ligga inom repot. */
+/**
+ * Läser rader runt en källhänvisning. Sökvägen måste ligga inom repot. Med
+ * `commit` läses filen ur den commiten när den inte är utcheckad.
+ */
 export const readSourceChannel = defineChannel<
-  { repoPath: string; file: string; line: number; context?: number },
+  { repoPath: string; file: string; line: number; context?: number; commit?: string },
   SourceExcerpt
 >('repo:read-source');
 

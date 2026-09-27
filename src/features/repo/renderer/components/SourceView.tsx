@@ -8,21 +8,28 @@ import './source.css';
 
 interface Props {
   source: SourceRef;
+  /** Commiten koden ska läsas ur när den inte är utcheckad */
+  commit?: string | undefined;
 }
 
 type Result = { key: string; excerpt: SourceExcerpt } | { key: string; error: string };
 
 /** Visar rader runt en källhänvisning i det valda repot. */
-export function SourceView({ source }: Props): JSX.Element {
+export function SourceView({ source, commit }: Props): JSX.Element {
   const { repo } = useRepo();
   const repoPath = repo?.path ?? null;
-  const key = `${repoPath ?? ''}|${source.file}|${source.line}`;
+  const key = `${repoPath ?? ''}|${commit ?? ''}|${source.file}|${source.line}`;
   const [result, setResult] = useState<Result | null>(null);
 
   useEffect(() => {
     if (!repoPath) return;
     let cancelled = false;
-    invokeChannel(readSourceChannel, { repoPath, file: source.file, line: source.line })
+    invokeChannel(readSourceChannel, {
+      repoPath,
+      file: source.file,
+      line: source.line,
+      ...(commit ? { commit } : {}),
+    })
       .then((excerpt) => {
         if (!cancelled) setResult({ key, excerpt });
       })
@@ -32,7 +39,7 @@ export function SourceView({ source }: Props): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [repoPath, source.file, source.line, key]);
+  }, [repoPath, source.file, source.line, commit, key]);
 
   const current = result?.key === key ? result : null;
   const targetRef = useRef<HTMLDivElement>(null);

@@ -138,13 +138,14 @@ export function Workspace({
             </button>
           </div>
           {activeTab === 'code' && shownSource ? (
-            <SourceView source={shownSource} />
+            <SourceView source={shownSource} commit={analysis?.ref?.commit} />
           ) : activeTab === 'summary' && analysis ? (
             <FlowSummary flow={analysis.flow} />
           ) : activeTab === 'review' && analysis?.review ? (
             <ReviewPanel
               flow={analysis.flow}
               review={analysis.review}
+              commit={analysis.ref?.commit}
               focusedFindingId={focusedFindingId}
               onFocus={setFocusedFinding}
             />

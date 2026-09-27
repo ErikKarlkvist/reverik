@@ -1,11 +1,12 @@
 import { type FSWatcher, watch } from 'node:fs';
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { headRef, resolveCommit } from '@/common/main/git';
 import { type Flow, validateFlow } from '@/common/model/flow';
 import { type Review, validateReviewDocument } from '@/common/model/review';
 import { t } from '@/common/model/i18n';
 import { type InboxEvent } from '../ipc/channels';
-import { type SavedAnalysis } from '../model/analysis';
+import { type AnalysisRef, type SavedAnalysis } from '../model/analysis';
 import {
   buildGuide,
   errorsFileFor,
@@ -30,7 +31,9 @@ export const INBOX_DIRS: Readonly<Record<InboxKind, string>> = {
   review: REVIEWS_DIR,
 };
 
-type Parsed = { ok: true; flow: Flow; review?: Review } | { ok: false; errors: string[] };
+type Parsed =
+  | { ok: true; flow: Flow; review?: Review; ref: AnalysisRef | null }
+  | { ok: false; errors: string[] };
 
 /**
  * Läser en flödes- eller reviewfil, validerar den och sparar den. Fel skrivs
@@ -64,16 +67,22 @@ export async function importFlowFile(
   if (
     existing &&
     JSON.stringify(existing.flow) === JSON.stringify(parsed.flow) &&
-    JSON.stringify(existing.review) === JSON.stringify(parsed.review)
+    JSON.stringify(existing.review) === JSON.stringify(parsed.review) &&
+    existing.ref?.commit === parsed.ref?.commit
   )
     return { type: 'unchanged' };
   return {
     type: 'imported',
-    analysis: await store.upsertFromFile(repoPath, file, parsed.flow, parsed.review),
+    analysis: await store.upsertFromFile(repoPath, file, parsed.flow, parsed.review, parsed.ref),
   };
 }
 
-/** Head-flödets källor kontrolleras mot repot. Base beskriver en annan branch och lämnas. */
+/**
+ * Ett flöde beskriver arbetsträdet och kontrolleras mot det. En reviews head
+ * kontrolleras mot branchen den säger sig beskriva om den finns i repot och
+ * inte är utcheckad, annars mot arbetsträdet. Base beskriver en annan branch
+ * och kontrolleras inte.
+ */
 async function parseAndVerify(repoPath: string, raw: string, kind: InboxKind): Promise<Parsed> {
   let json: unknown;
   try {
@@ -84,10 +93,31 @@ async function parseAndVerify(repoPath: string, raw: string, kind: InboxKind): P
       errors: [t('inbox.invalidJson', { message: e instanceof Error ? e.message : String(e) })],
     };
   }
-  const validated: Parsed = kind === 'review' ? validateReviewDocument(json) : validateFlow(json);
+  if (kind === 'review') {
+    const validated = validateReviewDocument(json);
+    if (!validated.ok) return validated;
+    return checkSources(repoPath, validated.flow, validated.review);
+  }
+  const validated = validateFlow(json);
   if (!validated.ok) return validated;
-  const errors = await verifySources(repoPath, validated.flow);
-  return errors.length > 0 ? { ok: false, errors } : validated;
+  return checkSources(repoPath, validated.flow);
+}
+
+async function checkSources(repoPath: string, flow: Flow, review?: Review): Promise<Parsed> {
+  const head = await headRef(repoPath);
+  let ref: AnalysisRef | null = head;
+  let resolvedReview = review;
+  if (review) {
+    const headCommit = await resolveCommit(repoPath, review.headLabel);
+    if (headCommit) ref = { branch: review.headLabel, commit: headCommit };
+    const baseCommit = await resolveCommit(repoPath, review.baseLabel);
+    if (baseCommit) resolvedReview = { ...review, baseCommit };
+  }
+  // Är commiten utcheckad räcker arbetsträdet, som även har ocommittade ändringar.
+  const verifyAt = ref && ref.commit !== head?.commit ? ref.commit : null;
+  const errors = await verifySources(repoPath, flow, verifyAt);
+  if (errors.length > 0) return { ok: false, errors };
+  return resolvedReview ? { ok: true, flow, review: resolvedReview, ref } : { ok: true, flow, ref };
 }
 
 /** Skriver guiden om den saknas eller är en äldre version. */
